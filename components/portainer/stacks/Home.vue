@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {useEndpointStore} from "~/stores/endpoint";
 import type {ContainerInfo} from "~/types";
-import MuraqibContainerClient from "~/components/portainer/stacks/MuraqibContainer.client.vue";
+import MuraqibContainer from "~/components/portainer/stacks/MuraqibContainer.vue";
 
 const store = useEndpointStore();
 
@@ -32,7 +32,7 @@ const containers = computed(() =>
         :class="{
           'col-span-2': container.name === 'authentik-server'
         }">
-      <MuraqibContainerClient :container="container"/>
+      <MuraqibContainer :container="container"/>
     </div>
   </div>
 </template>
