@@ -3,19 +3,21 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 
+RUN apk add --no-cache python3 make g++
+
 RUN corepack enable
 
-# Copy package.json and your lockfile, here we add pnpm-lock.yaml for illustration
-COPY package.json pnpm-lock.yaml .npmrc ./
+# Copy package.json and your lockfile,
+COPY package.json yarn.lock  ./
 
 # Install dependencies
-RUN pnpm i
+RUN yarn install --frozen-lockfile
 
 # Copy the entire project
 COPY . ./
 
 # Build the project
-RUN pnpm run build
+RUN yarn build
 
 # Build Stage 2
 
@@ -26,8 +28,8 @@ WORKDIR /app
 COPY --from=build /app/.output/ ./
 
 # Change the port and host
-ENV PORT 3000
-ENV HOST 0.0.0.0
+ENV PORT=3000
+ENV HOST=0.0.0.0
 
 EXPOSE 80
 

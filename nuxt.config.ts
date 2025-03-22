@@ -1,7 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
-const PORTAINER_BASE_URL = process.env.PORTAINER_BASE_URL
-const PORTAINER_X_API_KEY = process.env.PORTAINER_X_API_KEY
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: {enabled: true},
@@ -22,8 +20,8 @@ export default defineNuxtConfig({
   },
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
-    PORTAINER_BASE_URL,
-    PORTAINER_X_API_KEY,
+    PORTAINER_BASE_URL: process.env.PORTAINER_BASE_URL,
+    PORTAINER_X_API_KEY: process.env.PORTAINER_X_API_KEY,
   },
   nitro: {
     experimental: {
