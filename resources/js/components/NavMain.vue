@@ -18,7 +18,7 @@ const { urlIsActive } = useActiveUrl();
                 'group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2',
                 urlIsActive(item.href)
                     ? 'bg-primary/10 text-primary'
-                    : 'text-slate-400 hover:bg-white/5 hover:text-white',
+                    : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
             ]">
                 <!-- Render Material Symbol icon as text if it's a string -->
                 <span v-if="typeof item.icon === 'string'" class="material-symbols-outlined text-[20px]"

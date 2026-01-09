@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c710751be5f04354ccb96d3a0dd1ca6d",
+    "content-hash": "4c161dbf9a04fb895e1b4289655e521d",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -4063,6 +4063,66 @@
                 }
             ],
             "time": "2025-01-13T13:04:43+00:00"
+        },
+        {
+            "name": "syamsoul/laravel-set-env",
+            "version": "1.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/syamsoul/laravel-set-env.git",
+                "reference": "38ff3d9f8f8da9a8d3e904cb3ec3fafd5e37b96a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/syamsoul/laravel-set-env/zipball/38ff3d9f8f8da9a8d3e904cb3ec3fafd5e37b96a",
+                "reference": "38ff3d9f8f8da9a8d3e904cb3ec3fafd5e37b96a",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/console": "^10.0|^11.0|^12.0",
+                "illuminate/support": "^10.0|^11.0|^12.0",
+                "php": ">=8.0.0"
+            },
+            "type": "laravel-package",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "SoulDoit\\SetEnv\\Providers\\SetEnvServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "SoulDoit\\SetEnv\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Syamsoul Azrien",
+                    "email": "syamsoulazrien88@gmail.com"
+                }
+            ],
+            "description": "Easily update or insert Laravel environment variable with Artisan command",
+            "keywords": [
+                "artisan",
+                "command",
+                "env",
+                "laravel",
+                "php",
+                "programatically",
+                "set",
+                "souldoit",
+                "syamsoul"
+            ],
+            "support": {
+                "issues": "https://github.com/syamsoul/laravel-set-env/issues",
+                "source": "https://github.com/syamsoul/laravel-set-env/tree/1.3.0"
+            },
+            "time": "2025-03-12T22:41:49+00:00"
         },
         {
             "name": "symfony/clock",

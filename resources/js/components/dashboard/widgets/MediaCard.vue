@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 </script>
 
 <template>
-    <Card class="bg-surface-dark/40 border-slate-800 backdrop-blur-sm flex flex-col h-full">
+    <Card class="flex flex-col h-full">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-4">
             <div class="flex items-center gap-3">
                 <span class="material-symbols-outlined text-rose-500">movie_filter</span>

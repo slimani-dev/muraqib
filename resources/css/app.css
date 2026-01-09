@@ -190,10 +190,10 @@
     --accent-foreground: hsl(210 40% 98%);
     --destructive: hsl(0 62.8% 30.6%);
     --destructive-foreground: hsl(210 40% 98%);
-    --border: hsl(217.2 32.6% 17.5%);
-    /* Slate-800 */
-    --input: hsl(217.2 32.6% 17.5%);
-    /* Slate-800 */
+    --border: hsl(215 20.2% 30%);
+    /* Slate-700 for visible borders */
+    --input: hsl(215 20.2% 30%);
+    /* Slate-700 */
     --ring: hsl(243 75% 59%);
     /* Primary */
     --chart-1: hsl(220 70% 50%);

@@ -5,14 +5,15 @@ import MediaCard from '@/components/dashboard/widgets/MediaCard.vue';
 import NetworkCard from '@/components/dashboard/widgets/NetworkCard.vue';
 import ProxmoxCard from '@/components/dashboard/widgets/ProxmoxCard.vue';
 import RequestsCard from '@/components/dashboard/widgets/RequestsCard.vue';
-import AuthLayout from '@/layouts/AuthLayout.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 </script>
 
 <template>
+
   <Head title="Dashboard" />
 
-  <AuthLayout :breadcrumbs="[{ title: 'Dashboard', href: '/dashboard' }]">
+  <AppLayout :breadcrumbs="[{ title: 'Dashboard', href: route('dashboard') }]">
     <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <!-- Scrollable Content Area -->
       <div class="flex-1 overflow-y-auto scroll-smooth p-6">
@@ -49,5 +50,5 @@ import { Head } from '@inertiajs/vue3';
         <div class="h-10"></div>
       </div>
     </div>
-  </AuthLayout>
+  </AppLayout>
 </template>
