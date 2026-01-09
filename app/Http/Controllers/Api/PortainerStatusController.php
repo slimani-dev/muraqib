@@ -21,8 +21,8 @@ class PortainerStatusController extends Controller
                 'latency_ms' => $duration,
             ]);
         } catch (\Exception $e) {
-            Log::error('Portainer status check failed: ' . $e->getMessage());
-            
+            Log::error('Portainer status check failed: '.$e->getMessage());
+
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage(),
@@ -35,7 +35,7 @@ class PortainerStatusController extends Controller
         try {
             // Get endpoints to find the primary one
             $endpoints = $client->getEndpoints();
-            
+
             if ($endpoints->isEmpty()) {
                 return response()->json([
                     'total' => 0,
@@ -62,8 +62,8 @@ class PortainerStatusController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Portainer container stats failed: ' . $e->getMessage());
-            
+            Log::error('Portainer container stats failed: '.$e->getMessage());
+
             return response()->json([
                 'message' => $e->getMessage(),
             ], 500);
@@ -74,12 +74,12 @@ class PortainerStatusController extends Controller
     {
         try {
             $stacks = collect($client->getStacks());
-            
+
             // Status: 1 = Active, 2 = Inactive
             $active = $stacks->where('Status', 1)->count();
             $inactive = $stacks->where('Status', 2)->count();
             $total = $stacks->count();
-            
+
             // If statuses are different, 'active' might capture standard active ones.
             // Portainer Stacks usually are 1 (Active) or 2 (Inactive).
             // Some versions might differ, but this is standard.
@@ -91,8 +91,8 @@ class PortainerStatusController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Portainer stacks fetch failed: ' . $e->getMessage());
-            
+            Log::error('Portainer stacks fetch failed: '.$e->getMessage());
+
             return response()->json([
                 'message' => $e->getMessage(),
             ], 500);

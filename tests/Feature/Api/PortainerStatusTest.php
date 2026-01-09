@@ -1,7 +1,6 @@
 <?php
 
 use App\Services\Portainer\PortainerClient;
-use Illuminate\Support\Facades\Http;
 
 it('returns connected status when portainer is reachable', function () {
     // Mock the PortainerClient

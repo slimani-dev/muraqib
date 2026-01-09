@@ -5,11 +5,11 @@ import MediaCard from '@/components/dashboard/widgets/MediaCard.vue';
 import NetworkCard from '@/components/dashboard/widgets/NetworkCard.vue';
 import ProxmoxCard from '@/components/dashboard/widgets/ProxmoxCard.vue';
 import RequestsCard from '@/components/dashboard/widgets/RequestsCard.vue';
-import PortainerTotalStacksCard from '@/components/portainer/widgets/PortainerTotalStacksCard.vue';
-import PortainerHealthyContainersCard from '@/components/portainer/widgets/PortainerHealthyContainersCard.vue';
+import PortainerStacksStatsCard from '@/components/portainer/widgets/PortainerStacksStatsCard.vue';
+import PortainerContainersStatsCard from '@/components/portainer/widgets/PortainerContainersStatsCard.vue';
 import PortainerUpdatesPendingCard from '@/components/portainer/widgets/PortainerUpdatesPendingCard.vue';
 import PortainerApiConnectionCard from '@/components/portainer/widgets/PortainerApiConnectionCard.vue';
-import ActiveStacksWidget from '@/components/portainer/widgets/ActiveStacksWidget.vue';
+import PortainerStacks from '@/components/portainer/widgets/PortainerStacks.vue';
 import DockerEventsWidget from '@/components/portainer/widgets/DockerEventsWidget.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
@@ -24,7 +24,7 @@ import { dashboard } from '@/routes';
     <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <!-- Scrollable Content Area -->
       <div class="flex-1 overflow-y-auto scroll-smooth p-6">
-        <div class="mx-auto flex  flex-col gap-6">
+        <div class="mx-auto flex flex-col gap-6">
           <!-- Welcome & Actions Row -->
           <WelcomeSection />
 
@@ -34,8 +34,8 @@ import { dashboard } from '@/routes';
 
             <!-- Stats Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
-              <PortainerTotalStacksCard />
-              <PortainerHealthyContainersCard />
+              <PortainerStacksStatsCard />
+              <PortainerContainersStatsCard />
               <PortainerUpdatesPendingCard />
               <PortainerApiConnectionCard />
             </div>
@@ -44,7 +44,7 @@ import { dashboard } from '@/routes';
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
               <!-- Active Stacks (Left / Top) -->
               <div class="lg:col-span-8 flex flex-col gap-4">
-                <ActiveStacksWidget />
+                <PortainerStacks />
               </div>
 
               <!-- Docker Events (Right / Bottom) -->

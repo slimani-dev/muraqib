@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { stacks } from '@/actions/App/Http/Controllers/Api/PortainerStatusController';
+import { containers } from '@/actions/App/Http/Controllers/Api/PortainerStatusController';
 import StatWidget from '@/components/dashboard/StatWidget.vue';
-import StacksChart from '@/components/portainer/widgets/StacksChart.vue';
+import ContainerStatusChart from '@/components/portainer/widgets/ContainerStatusChart.vue';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,15 +12,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useIntervalFn } from '@vueuse/core';
+import { useEventBus, useIntervalFn } from '@vueuse/core';
 import axios from 'axios';
 import { computed, onMounted, ref } from 'vue';
 
 const stats = ref<{
   total: number;
-  active: number;
-  inactive: number;
-}>({ total: 0, active: 0, inactive: 0 });
+  running: number;
+  stopped: number;
+  other: number;
+}>({ total: 0, running: 0, stopped: 0, other: 0 });
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -31,7 +32,7 @@ const refreshRate = ref(isProd ? '60000' : '10000');
 
 const fetchStats = async () => {
   try {
-    const response = await axios.request(stacks());
+    const response = await axios.request(containers());
     stats.value = response.data;
     error.value = null;
   } catch (e: any) {
@@ -56,20 +57,23 @@ onMounted(() => {
   resume();
 });
 
-const activePercentage = computed(() => {
+const bus = useEventBus<string>('portainer-stats-update');
+bus.on(() => fetchStats());
+
+const runningPercentage = computed(() => {
   if (stats.value.total === 0) return 0;
-  return Math.round((stats.value.active / stats.value.total) * 100);
+  return Math.round((stats.value.running / stats.value.total) * 100);
 });
 
 const statusValue = computed(() => {
   if (loading.value) return '...';
-  return `${stats.value.active} Active`;
+  return `${stats.value.running} Active`;
 });
 </script>
 
 <template>
-  <StatWidget title="Stacks" icon="layers" icon-color="text-primary/80 dark:text-primary" :value="statusValue"
-    :subtitle="`${activePercentage}% Active`">
+  <StatWidget title="Containers" icon="view_in_ar" icon-color="text-indigo-500" :value="statusValue"
+    :subtitle="`${runningPercentage}% Running`" subtitleClass="font-mono">
     <template #actions>
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
@@ -95,7 +99,7 @@ const statusValue = computed(() => {
     </template>
     <template #chart>
       <div class="flex h-full items-end justify-end p-3.5 pe-10">
-        <StacksChart :data="stats" />
+        <ContainerStatusChart :data="stats" />
       </div>
     </template>
   </StatWidget>

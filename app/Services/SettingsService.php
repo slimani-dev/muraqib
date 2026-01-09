@@ -8,9 +8,7 @@ use Illuminate\Support\Str;
 
 class SettingsService
 {
-    public function __construct(protected GeneralSettings $settings)
-    {
-    }
+    public function __construct(protected GeneralSettings $settings) {}
 
     public function set(string $key, mixed $value): void
     {

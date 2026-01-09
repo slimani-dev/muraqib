@@ -2,15 +2,16 @@
 
 use Spatie\LaravelSettings\Migrations\SettingsMigration;
 
-return new class extends SettingsMigration {
+return new class extends SettingsMigration
+{
     public function up(): void
     {
         $url = config('app.url', 'localhost');
         $host = parse_url($url, PHP_URL_HOST);
 
         // 2. Handle cases where the URL might not have a scheme (e.g., "google.com")
-        if (!$host) {
-            $host = parse_url('http://' . $url, PHP_URL_HOST);
+        if (! $host) {
+            $host = parse_url('http://'.$url, PHP_URL_HOST);
         }
 
         $this->migrator->add('general.site_name', config('app.name', 'Muraqib'));
