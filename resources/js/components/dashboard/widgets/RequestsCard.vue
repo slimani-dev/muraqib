@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import WidgetTitle from '@/components/dashboard/WidgetTitle.vue';
 </script>
 
 <template>
   <Card class="flex h-full flex-col">
     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-4">
-      <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-amber-500">notifications_active</span>
-        <CardTitle>Requests</CardTitle>
-      </div>
+      <WidgetTitle server="Overseerr" title="Requests">
+        <template #icon>
+          <span class="material-symbols-outlined text-amber-500">notifications_active</span>
+        </template>
+      </WidgetTitle>
       <span class="flex h-2 w-2 rounded-full bg-amber-500"></span>
     </CardHeader>
     <CardContent class="flex flex-1 flex-col gap-3">

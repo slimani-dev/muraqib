@@ -2,13 +2,20 @@
 
 use Spatie\LaravelSettings\Migrations\SettingsMigration;
 
-return new class extends SettingsMigration
-{
+return new class extends SettingsMigration {
     public function up(): void
     {
-        $this->migrator->add('general.site_name', 'Muraqib');
-        $this->migrator->add('general.root_domain', 'localhost');
-        $this->migrator->add('general.timezone', 'UTC');
+        $url = config('app.url', 'localhost');
+        $host = parse_url($url, PHP_URL_HOST);
+
+        // 2. Handle cases where the URL might not have a scheme (e.g., "google.com")
+        if (!$host) {
+            $host = parse_url('http://' . $url, PHP_URL_HOST);
+        }
+
+        $this->migrator->add('general.site_name', config('app.name', 'Muraqib'));
+        $this->migrator->add('general.root_domain', $host);
+        $this->migrator->add('general.timezone', config('app.timezone', 'UTC'));
         $this->migrator->add('general.puid', 1000);
         $this->migrator->add('general.pgid', 1000);
 

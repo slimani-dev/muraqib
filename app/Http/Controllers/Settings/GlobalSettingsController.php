@@ -79,32 +79,47 @@ class GlobalSettingsController extends Controller
     public function updateInfrastructure(Request $request, InfrastructureSettings $infrastructure): RedirectResponse
     {
         $data = $request->validate([
-            'portainer_url' => ['required', 'url'],
+            'portainer_url' => ['sometimes', 'required', 'url'],
             'portainer_api_key' => ['nullable', 'string'],
-            'proxmox_url' => ['required', 'url'],
-            'proxmox_user' => ['required', 'string'],
-            'proxmox_token_id' => ['required', 'string'],
+            'proxmox_url' => ['sometimes', 'required', 'url'],
+            'proxmox_user' => ['sometimes', 'required', 'string'],
+            'proxmox_token_id' => ['sometimes', 'required', 'string'],
             'proxmox_secret' => ['nullable', 'string'],
-            'cloudflare_email' => ['required', 'email'],
+            'cloudflare_email' => ['sometimes', 'required', 'email'],
             'cloudflare_api_token' => ['nullable', 'string'],
-            'cloudflare_account_id' => ['required', 'string'],
+            'cloudflare_account_id' => ['sometimes', 'required', 'string'],
         ]);
 
-        $infrastructure->portainer_url = $data['portainer_url'];
+        if (array_key_exists('portainer_url', $data)) {
+            $infrastructure->portainer_url = $data['portainer_url'];
+        }
         if (! empty($data['portainer_api_key'])) {
             $infrastructure->portainer_api_key = $data['portainer_api_key'];
         }
-        $infrastructure->proxmox_url = $data['proxmox_url'];
-        $infrastructure->proxmox_user = $data['proxmox_user'];
-        $infrastructure->proxmox_token_id = $data['proxmox_token_id'];
+
+        if (array_key_exists('proxmox_url', $data)) {
+            $infrastructure->proxmox_url = $data['proxmox_url'];
+        }
+        if (array_key_exists('proxmox_user', $data)) {
+            $infrastructure->proxmox_user = $data['proxmox_user'];
+        }
+        if (array_key_exists('proxmox_token_id', $data)) {
+            $infrastructure->proxmox_token_id = $data['proxmox_token_id'];
+        }
         if (! empty($data['proxmox_secret'])) {
             $infrastructure->proxmox_secret = $data['proxmox_secret'];
         }
-        $infrastructure->cloudflare_email = $data['cloudflare_email'];
+
+        if (array_key_exists('cloudflare_email', $data)) {
+            $infrastructure->cloudflare_email = $data['cloudflare_email'];
+        }
         if (! empty($data['cloudflare_api_token'])) {
             $infrastructure->cloudflare_api_token = $data['cloudflare_api_token'];
         }
-        $infrastructure->cloudflare_account_id = $data['cloudflare_account_id'];
+        if (array_key_exists('cloudflare_account_id', $data)) {
+            $infrastructure->cloudflare_account_id = $data['cloudflare_account_id'];
+        }
+
         $infrastructure->save();
 
         return redirect()->back()->with('success', 'Infrastructure settings updated successfully.');

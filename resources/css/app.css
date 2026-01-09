@@ -73,6 +73,10 @@
     /* Slate-950 */
     --color-surface-dark: #1e293b;
     /* Slate-800 */
+    --color-surface-highlight: #334155;
+    /* Slate-700 */
+    --color-border-dark: #334155;
+    /* Slate-700 */
     --color-danger: #ef4444;
 
     --font-display: 'Inter', sans-serif;

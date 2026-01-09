@@ -35,11 +35,11 @@ Constraint: Do not build any dashboard widgets yet.
 
 ### 1.4 The Settings UI (Frontend)
 
-- [ ] Create `Settings/Index.vue`.
-- [ ] Build the "API Keys Vault" form (Cloudflare, Proxmox, Portainer inputs).
-- [ ] Wire up form submission to `SettingsController@update`.
-- [ ] **Verify:** Enter a dummy key, save, check DB to ensure it is encrypted.
-- [ ] **Commit:** "Settings UI functional"
+- [x] Create `Settings/Index.vue`.
+- [x] Build the "API Keys Vault" form (Cloudflare, Proxmox, Portainer inputs).
+- [x] Wire up form submission to `SettingsController@update`.
+- [x] **Verify:** Enter a dummy key, save, check DB to ensure it is encrypted.
+- [x] **Commit:** "Settings UI functional"
 
 ## Phase 2: Portainer Core (Tier 2)
 
@@ -54,6 +54,7 @@ Constraint: Do not work on "Auto-discovery" yet. Just raw API communication.
 - [ ] Method: `getEndpoints()` -> Returns list of Docker environments.
 - [ ] Method: `getContainers(endpointId)` -> Returns raw JSON list.
 - [ ] **Tinker Test:** Run `app(PortainerClient::class)->getContainers(1)` in terminal. Ensure JSON is returned.
+- [ ] UI Test in the settings page
 - [ ] **Commit:** "Portainer Client API implementation"
 
 ### 2.2 The Container Manager UI

@@ -7,15 +7,17 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import WidgetTitle from '@/components/dashboard/WidgetTitle.vue';
 </script>
 
 <template>
     <Card class="flex flex-col h-full">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-4">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-violet-400">code_blocks</span>
-                <CardTitle>Active PRs</CardTitle>
-            </div>
+            <WidgetTitle server="GitHub" title="Active PRs">
+                <template #icon>
+                    <span class="material-symbols-outlined text-violet-400">code_blocks</span>
+                </template>
+            </WidgetTitle>
             <Badge variant="secondary"
                 class="bg-violet-500/20 text-violet-500 border-none text-xs px-2 py-0.5 rounded-full font-mono hover:bg-violet-500/30">
                 3 Open

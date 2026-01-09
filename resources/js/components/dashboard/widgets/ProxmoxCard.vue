@@ -5,15 +5,20 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import WidgetTitle from '@/components/dashboard/WidgetTitle.vue';
 </script>
 
 <template>
     <Card class="h-full">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-6">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-orange-500">dns</span>
-                <CardTitle>Proxmox Cluster</CardTitle>
-            </div>
+            <WidgetTitle server="Proxmox" title="Infrastructure">
+                <template #icon>
+                    <div
+                        class="size-5 rounded bg-[#E55D3A] flex items-center justify-center text-white font-bold text-[10px] shadow-md shadow-orange-500/20">
+                        PVE
+                    </div>
+                </template>
+            </WidgetTitle>
             <div class="flex gap-4 text-xs font-mono text-muted-foreground">
                 <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> 3
                     Nodes</span>
