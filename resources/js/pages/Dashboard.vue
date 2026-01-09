@@ -1,47 +1,53 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { dashboard } from '@/routes';
-import { type BreadcrumbItem } from '@/types';
+import WelcomeSection from '@/components/dashboard/WelcomeSection.vue';
+import ActivePRsCard from '@/components/dashboard/widgets/ActivePRsCard.vue';
+import MediaCard from '@/components/dashboard/widgets/MediaCard.vue';
+import NetworkCard from '@/components/dashboard/widgets/NetworkCard.vue';
+import ProxmoxCard from '@/components/dashboard/widgets/ProxmoxCard.vue';
+import RequestsCard from '@/components/dashboard/widgets/RequestsCard.vue';
+import AuthLayout from '@/layouts/AuthLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '../components/PlaceholderPattern.vue';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard().url,
-    },
-];
 </script>
 
 <template>
-    <Head title="Dashboard" />
+  <Head title="Dashboard" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div
-            class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-        >
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-                >
-                    <PlaceholderPattern />
-                </div>
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-                >
-                    <PlaceholderPattern />
-                </div>
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-                >
-                    <PlaceholderPattern />
-                </div>
+  <AuthLayout :breadcrumbs="[{ title: 'Dashboard', href: '/dashboard' }]">
+    <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+      <!-- Scrollable Content Area -->
+      <div class="flex-1 overflow-y-auto scroll-smooth p-6">
+        <div class="mx-auto flex  flex-col gap-6">
+          <!-- Welcome & Actions Row -->
+          <WelcomeSection />
+
+          <!-- Infrastructure Grid -->
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <!-- Proxmox: Span 2 cols -->
+            <div class="lg:col-span-2">
+              <ProxmoxCard />
             </div>
-            <div
-                class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
+            <!-- Network: Span 1 col -->
+            <div class="lg:col-span-1">
+              <NetworkCard />
             </div>
+
+            <!-- Media Widget -->
+            <div>
+              <MediaCard />
+            </div>
+            <!-- Active PRs Widget -->
+            <div>
+              <ActivePRsCard />
+            </div>
+            <!-- Requests Widget -->
+            <div>
+              <RequestsCard />
+            </div>
+          </div>
         </div>
-    </AppLayout>
+        <!-- Bottom spacer -->
+        <div class="h-10"></div>
+      </div>
+    </div>
+  </AuthLayout>
 </template>

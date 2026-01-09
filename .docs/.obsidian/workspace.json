@@ -1,0 +1,216 @@
+{
+  "main": {
+    "id": "f2d500ecd0988b2d",
+    "type": "split",
+    "children": [
+      {
+        "id": "bcca6590daaf8232",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4c7c51130819ca17",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Welcome.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Welcome"
+            }
+          },
+          {
+            "id": "e4789362e4c94a36",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Implementation Plan.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Implementation Plan"
+            }
+          },
+          {
+            "id": "acf392611e99d3c4",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          }
+        ],
+        "currentTab": 2
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "d938a86e760c3788",
+    "type": "split",
+    "children": [
+      {
+        "id": "afb0cf1e13cdb2df",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "95df981f44a9ada1",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "8d9e8729fcb217a3",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "490f9389a49e835c",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "8e0b99ce60380124",
+    "type": "split",
+    "children": [
+      {
+        "id": "9ed063f3e57b09b7",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "de52577973f01830",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "✅ Project Checklist.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for ✅ Project Checklist"
+            }
+          },
+          {
+            "id": "482d7ae7bbf4ceca",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Implementation Plan.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from Implementation Plan"
+            }
+          },
+          {
+            "id": "dbebab85cd972221",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "1e453e609a03d29e",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Implementation Plan.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of Implementation Plan"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "bases:Create new base": false,
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "acf392611e99d3c4",
+  "lastOpenFiles": [
+    "truck-billing/Priting reports.md",
+    "truck-billing/Untitled.md",
+    "truck-billing/Widgets.md",
+    "truck-billing/Payment System & Balance Implementation Guide (Drivers & Accounts).md",
+    "truck-billing/Technical Specification Truck Rotation Management System.md",
+    "truck-billing/Meeting Notes 2025-12-13.md",
+    "truck-billing/Execution Plan 2025-12-13.md",
+    "POS/Pos plan.md",
+    "truck-billing",
+    "sms gatway/GetWaySms.md",
+    "POS",
+    "✅ Project Checklist.md",
+    "sms gatway",
+    "Welcome.md",
+    "Implementation Plan.md",
+    "Project"
+  ]
+}

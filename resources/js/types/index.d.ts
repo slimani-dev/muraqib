@@ -13,7 +13,7 @@ export interface BreadcrumbItem {
 export interface NavItem {
     title: string;
     href: NonNullable<InertiaLinkProps['href']>;
-    icon?: LucideIcon;
+    icon?: LucideIcon | string;
     isActive?: boolean;
 }
 

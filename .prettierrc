@@ -14,7 +14,7 @@
         "cva"
     ],
     "tailwindStylesheet": "resources/css/app.css",
-    "tabWidth": 4,
+    "tabWidth": 2,
     "overrides": [
         {
             "files": "**/*.yml",

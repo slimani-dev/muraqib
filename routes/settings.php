@@ -7,7 +7,11 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::redirect('settings', '/settings/profile');
+    Route::get('settings', function () {
+        return Inertia::render('Settings/Index');
+    })->name('settings.index');
+
+    //Route::redirect('settings', '/settings/profile');
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
