@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\Portainer\PortainerClient;
 use Illuminate\Http\Request;
 
 class ConnectionTesterController extends Controller
 {
-    public function test(Request $request, PortainerClient $client)
+    public function test(Request $request)
     {
         $request->validate([
             'url' => 'required|url',
@@ -16,6 +15,7 @@ class ConnectionTesterController extends Controller
         ]);
 
         try {
+            $client = new \App\Services\Portainer\PortainerService;
             $endpoints = $client->withCredentials(
                 $request->input('url'),
                 $request->input('key')

@@ -2,7 +2,6 @@
 
 namespace App\Services\Portainer;
 
-use App\Settings\InfrastructureSettings;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
@@ -10,16 +9,18 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
-class PortainerClient
+class PortainerService
 {
     protected ?string $baseUrl;
 
     protected ?string $apiKey;
 
-    public function __construct(InfrastructureSettings $settings)
+    public function __construct(?\App\Models\Portainer $portainer = null)
     {
-        $this->baseUrl = $settings->portainer_url;
-        $this->apiKey = $settings->portainer_api_key;
+        if ($portainer) {
+            $this->baseUrl = $portainer->url;
+            $this->apiKey = $portainer->access_token;
+        }
     }
 
     public function withCredentials(string $url, string $key): self
@@ -30,13 +31,18 @@ class PortainerClient
         return $this;
     }
 
+    public function getBaseUrl(): ?string
+    {
+        return $this->baseUrl;
+    }
+
     protected function request(): PendingRequest
     {
         return Http::withHeaders([
             'X-API-Key' => $this->apiKey,
             'Accept' => 'application/json',
         ])->baseUrl($this->baseUrl)
-            ->timeout(5);
+            ->timeout(30);
     }
 
     /**

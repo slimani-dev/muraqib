@@ -5,15 +5,15 @@ import MediaCard from '@/components/dashboard/widgets/MediaCard.vue';
 import NetworkCard from '@/components/dashboard/widgets/NetworkCard.vue';
 import ProxmoxCard from '@/components/dashboard/widgets/ProxmoxCard.vue';
 import RequestsCard from '@/components/dashboard/widgets/RequestsCard.vue';
-import PortainerStacksStatsCard from '@/components/portainer/widgets/PortainerStacksStatsCard.vue';
-import PortainerContainersStatsCard from '@/components/portainer/widgets/PortainerContainersStatsCard.vue';
-import PortainerUpdatesPendingCard from '@/components/portainer/widgets/PortainerUpdatesPendingCard.vue';
+import ServerNetdataWidget from '@/components/proxmox/widgets/ServerNetdataWidget.vue';
 import PortainerApiConnectionCard from '@/components/portainer/widgets/PortainerApiConnectionCard.vue';
+import PortainerContainersStatsCard from '@/components/portainer/widgets/PortainerContainersStatsCard.vue';
 import PortainerStacks from '@/components/portainer/widgets/PortainerStacks.vue';
-import DockerEventsWidget from '@/components/portainer/widgets/DockerEventsWidget.vue';
+import PortainerStacksStatsCard from '@/components/portainer/widgets/PortainerStacksStatsCard.vue';
+import PortainerUpdatesPendingCard from '@/components/portainer/widgets/PortainerUpdatesPendingCard.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head } from '@inertiajs/vue3';
 import { dashboard } from '@/routes';
+import { Head } from '@inertiajs/vue3';
 </script>
 
 <template>
@@ -28,7 +28,7 @@ import { dashboard } from '@/routes';
           <!-- Welcome & Actions Row -->
           <WelcomeSection />
 
-          <!-- Portainer / Container Section -->
+          <!-- Container Infrastructure Section -->
           <div class="flex flex-col gap-4">
             <h2 class="text-lg font-bold text-gray-900 dark:text-white">Container Infrastructure</h2>
 
@@ -47,14 +47,14 @@ import { dashboard } from '@/routes';
                 <PortainerStacks />
               </div>
 
-              <!-- Docker Events (Right / Bottom) -->
+              <!-- Netdata / Proxmox Node (Right / Bottom) -->
               <div class="lg:col-span-4 flex flex-col gap-4">
-                <DockerEventsWidget />
+                <ServerNetdataWidget />
               </div>
             </div>
           </div>
 
-          <!-- Infrastructure Grid -->
+          <!-- Infrastructure Grid (Restored) -->
           <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             <!-- Proxmox: Span 2 cols -->
             <div class="lg:col-span-2">
@@ -79,8 +79,6 @@ import { dashboard } from '@/routes';
             </div>
           </div>
         </div>
-        <!-- Bottom spacer -->
-        <div class="h-10"></div>
       </div>
     </div>
   </AppLayout>

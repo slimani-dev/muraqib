@@ -1,89 +1,80 @@
 <script setup lang="ts">
-import InputError from '@/components/InputError.vue';
-import SecretInput from '@/components/Settings/SecretInput.vue';
-import TestConnectionBtn from '@/components/Settings/TestConnectionBtn.vue';
+import CloudflareWizard from '@/components/Settings/Infrastructure/CloudflareWizard.vue';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useForm } from '@inertiajs/vue3';
-import routeSettings from '@/routes/settings';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
-interface Props {
-    settings: {
-        cloudflare_email: string;
-        cloudflare_account_id: string;
-        cloudflare_api_token?: string;
-    };
-}
-
-const props = defineProps<Props>();
-
-const form = useForm({
-    cloudflare_email: props.settings.cloudflare_email,
-    cloudflare_account_id: props.settings.cloudflare_account_id,
-    cloudflare_api_token: props.settings.cloudflare_api_token,
-});
-
-const submit = () => {
-    form.put(routeSettings.infrastructure.update.url(), {
-        preserveScroll: true,
-    });
-};
+defineProps<{
+  tunnels: { status: string; connections: number; details: any }[] | [];
+}>();
 </script>
 
 <template>
-    <form @submit.prevent="submit">
-        <Card class="border-slate-200 bg-white backdrop-blur-sm dark:border-slate-800 dark:bg-surface-dark/40">
-            <CardHeader class="flex flex-row items-center justify-between border-b border-border p-4">
-                <div class="flex items-center gap-3">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F38020]/10 text-[#F38020]">
-                        <span class="material-symbols-outlined">cloud</span>
-                    </div>
-                    <div>
-                        <CardTitle class="text-base">Cloudflare DNS</CardTitle>
-                        <CardDescription>Managing DNS records for automatic SSL.</CardDescription>
-                    </div>
-                </div>
-                <!-- Assuming Cloudflare also supports connection testing via the generic button for now -->
-                <TestConnectionBtn service="cloudflare" :payload="form" />
-            </CardHeader>
-            <CardContent class="grid grid-cols-1 gap-6 p-6 lg:grid-cols-2">
-                <div class="flex flex-col gap-2">
-                    <Label class="text-xs font-medium text-muted-foreground uppercase">Email</Label>
-                    <Input type="email" v-model="form.cloudflare_email" class="mt-1 block w-full font-mono" />
-                    <InputError class="mt-2" :message="form.errors.cloudflare_email" />
-                </div>
-                <div class="flex flex-col gap-2">
-                    <Label class="text-xs font-medium text-muted-foreground uppercase">Account ID</Label>
-                    <Input type="text" v-model="form.cloudflare_account_id" class="mt-1 block w-full font-mono" />
-                    <InputError class="mt-2" :message="form.errors.cloudflare_account_id" />
-                </div>
-                <div class="relative flex flex-col gap-2 lg:col-span-2">
-                    <Label class="text-xs font-medium text-muted-foreground uppercase">API Token</Label>
-                    <SecretInput id="cloudflare_api_token" v-model="form.cloudflare_api_token"
-                        class="mt-1 block w-full" />
-                    <InputError class="mt-2" :message="form.errors.cloudflare_api_token" />
-                </div>
-            </CardContent>
-
-            <div
-                class="border-t border-border p-4 flex items-center justify-end gap-4 bg-slate-50/50 dark:bg-transparent">
-                <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"
-                    leave-active-class="transition ease-in-out" leave-to-class="opacity-0">
-                    <p v-show="form.recentlySuccessful" class="text-sm text-neutral-600">
-                        Saved.
-                    </p>
-                </Transition>
-
-                <Button type="submit" :disabled="form.processing">Save Changes</Button>
+  <Card class="border-slate-200 bg-white backdrop-blur-sm dark:border-slate-800 dark:bg-surface-dark/40">
+    <CardHeader class="flex flex-row items-center justify-between border-b border-border p-4">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F38020]/10 text-[#F38020]">
+          <span class="material-symbols-outlined">cloud</span>
+        </div>
+        <div>
+          <CardTitle class="text-base">Cloudflare Tunnel</CardTitle>
+          <CardDescription>Securely expose services without opening ports.</CardDescription>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <!-- Wizard Trigger -->
+        <CloudflareWizard>
+          <Button type="button" variant="default" size="sm">
+            <span class="material-symbols-outlined mr-2">bolt</span>
+            Setup / Manage Tunnel
+          </Button>
+        </CloudflareWizard>
+      </div>
+    </CardHeader>
+    <!-- Tunnel Details -->
+    <CardContent v-if="tunnels.length > 0" class="p-0">
+        <div v-for="(tunnel, index) in tunnels" :key="tunnel.details.id" :class="cn('grid grid-cols-2 md:grid-cols-4 gap-6 p-6', index !== 0 && 'border-t')">
+            <div class="space-y-1">
+              <div class="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Tunnel Name</div>
+              <div class="text-sm font-medium flex items-center gap-2">
+                  <span class="h-2 w-2 rounded-full bg-emerald-500 inline-block" v-if="tunnel.status === 'healthy'"></span>
+                  <span class="h-2 w-2 rounded-full bg-amber-500 inline-block" v-else></span>
+                  {{ tunnel.details.name }}
+              </div>
             </div>
-        </Card>
-    </form>
+            <div class="space-y-1">
+              <div class="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Tunnel ID</div>
+              <div class="truncate font-mono text-xs text-muted-foreground bg-muted p-1 rounded w-fit max-w-full" :title="tunnel.details.id">
+                {{ tunnel.details.id }}
+              </div>
+            </div>
+            <div class="space-y-1">
+              <div class="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Created At</div>
+              <div class="text-sm text-foreground/80">{{ new Date(tunnel.details.created_at).toLocaleDateString() }}</div>
+            </div>
+            <div class="space-y-1">
+              <div class="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Region</div>
+              <div class="flex items-center gap-1.5 text-sm text-foreground/80">
+                <span class="material-symbols-outlined text-[16px] text-muted-foreground">public_off</span>
+                {{ tunnel.details.conns?.[0]?.colo || 'Unknown' }}
+              </div>
+            </div>
+        </div>
+    </CardContent>
+    
+    <!-- Empty State -->
+    <CardContent v-else class="p-6">
+      <div class="flex items-center justify-between rounded-lg border border-dashed p-4 bg-muted/30">
+        <div class="flex items-center gap-4">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-background border shadow-sm">
+            <span class="material-symbols-outlined text-muted-foreground">public</span>
+          </div>
+          <div>
+            <p class="text-sm font-medium">No Active Tunnels</p>
+            <p class="text-xs text-muted-foreground">Use the wizard to configure your first secure tunnel.</p>
+          </div>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
 </template>

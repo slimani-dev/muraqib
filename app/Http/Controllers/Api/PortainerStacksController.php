@@ -3,25 +3,39 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\Portainer\PortainerClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class PortainerStacksController extends Controller
 {
-    public function __construct(protected PortainerClient $client) {}
+    private function getClient(): ?\App\Services\Portainer\PortainerService
+    {
+        $portainer = \App\Models\Portainer::first();
+
+        if (! $portainer) {
+            return null;
+        }
+
+        return new \App\Services\Portainer\PortainerService($portainer);
+    }
 
     public function index(): JsonResponse
     {
         try {
-            $stacks = collect($this->client->getStacks());
+            $client = $this->getClient();
+
+            if (! $client) {
+                return response()->json([]);
+            }
+
+            $stacks = collect($client->getStacks());
 
             // Get endpoints to fetch containers
-            $endpoints = $this->client->getEndpoints();
+            $endpoints = $client->getEndpoints();
             $endpointId = $endpoints->first()['id'] ?? 1; // Default to 1 if fails, but usually 2 or dynamic
 
-            $containers = collect($this->client->getContainers($endpointId));
+            $containers = collect($client->getContainers($endpointId));
 
             $stacksWithContainers = $stacks->map(function ($stack) use ($containers) {
                 // Filter containers belonging to this stack
@@ -74,11 +88,11 @@ class PortainerStacksController extends Controller
         }
     }
 
-    private function getEndpointId(): int
+    private function getEndpointId(\App\Services\Portainer\PortainerService $client): int
     {
         // For now, take the first available endpoint (usually ID 2 for Local Agent or Docker)
         // In the future this could be configurable or passed via request
-        $endpoints = $this->client->getEndpoints();
+        $endpoints = $client->getEndpoints();
 
         return $endpoints->first()['id'] ?? 1;
     }
@@ -86,7 +100,12 @@ class PortainerStacksController extends Controller
     public function start(string $id): JsonResponse
     {
         try {
-            return response()->json($this->client->startStack((int) $id, $this->getEndpointId()));
+            $client = $this->getClient();
+            if (! $client) {
+                return response()->json(['message' => 'Not Configured'], 404);
+            }
+
+            return response()->json($client->startStack((int) $id, $this->getEndpointId($client)));
         } catch (\Exception $e) {
             Log::error("Failed to start stack {$id}: ".$e->getMessage());
 
@@ -97,7 +116,12 @@ class PortainerStacksController extends Controller
     public function stop(string $id): JsonResponse
     {
         try {
-            return response()->json($this->client->stopStack((int) $id, $this->getEndpointId()));
+            $client = $this->getClient();
+            if (! $client) {
+                return response()->json(['message' => 'Not Configured'], 404);
+            }
+
+            return response()->json($client->stopStack((int) $id, $this->getEndpointId($client)));
         } catch (\Exception $e) {
             Log::error("Failed to stop stack {$id}: ".$e->getMessage());
 
@@ -108,18 +132,23 @@ class PortainerStacksController extends Controller
     public function restart(string $id): JsonResponse
     {
         try {
-            $endpointId = $this->getEndpointId();
+            $client = $this->getClient();
+            if (! $client) {
+                return response()->json(['message' => 'Not Configured'], 404);
+            }
+
+            $endpointId = $this->getEndpointId($client);
 
             // Attempt to stop then start
             try {
-                $this->client->stopStack((int) $id, $endpointId);
+                $client->stopStack((int) $id, $endpointId);
             } catch (\Exception $e) {
                 // Continue to start
             }
 
             sleep(2);
 
-            return response()->json($this->client->startStack((int) $id, $endpointId));
+            return response()->json($client->startStack((int) $id, $endpointId));
         } catch (\Exception $e) {
             Log::error("Failed to restart stack {$id}: ".$e->getMessage());
 
@@ -130,8 +159,13 @@ class PortainerStacksController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         try {
+            $client = $this->getClient();
+            if (! $client) {
+                return response()->json(['message' => 'Not Configured'], 404);
+            }
+
             // Validate request if needed, for now pass all
-            return response()->json($this->client->updateStack((int) $id, $this->getEndpointId(), $request->all()));
+            return response()->json($client->updateStack((int) $id, $this->getEndpointId($client), $request->all()));
         } catch (\Exception $e) {
             Log::error("Failed to update stack {$id}: ".$e->getMessage());
 

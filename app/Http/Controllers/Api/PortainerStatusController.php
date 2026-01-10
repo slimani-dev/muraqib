@@ -3,15 +3,26 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\Portainer\PortainerClient;
+use App\Models\Portainer;
+use App\Services\Portainer\PortainerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
 class PortainerStatusController extends Controller
 {
-    public function check(PortainerClient $client): JsonResponse
+    public function check(): JsonResponse
     {
         try {
+            $portainer = Portainer::first();
+
+            if (! $portainer) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No Portainer configuration found.',
+                ], 404);
+            }
+
+            $client = new PortainerService($portainer);
             $start = microtime(true);
             $client->getEndpoints();
             $duration = round((microtime(true) - $start) * 1000);
@@ -30,9 +41,22 @@ class PortainerStatusController extends Controller
         }
     }
 
-    public function containers(PortainerClient $client): JsonResponse
+    public function containers(): JsonResponse
     {
         try {
+            $portainer = Portainer::first();
+
+            if (! $portainer) {
+                return response()->json([
+                    'total' => 0,
+                    'running' => 0,
+                    'stopped' => 0,
+                    'other' => 0,
+                ]);
+            }
+
+            $client = new PortainerService($portainer);
+
             // Get endpoints to find the primary one
             $endpoints = $client->getEndpoints();
 
@@ -70,9 +94,20 @@ class PortainerStatusController extends Controller
         }
     }
 
-    public function stacks(PortainerClient $client): JsonResponse
+    public function stacks(): JsonResponse
     {
         try {
+            $portainer = Portainer::first();
+
+            if (! $portainer) {
+                return response()->json([
+                    'total' => 0,
+                    'active' => 0,
+                    'inactive' => 0,
+                ]);
+            }
+
+            $client = new PortainerService($portainer);
             $stacks = collect($client->getStacks());
 
             // Status: 1 = Active, 2 = Inactive

@@ -18,12 +18,6 @@ class InfrastructureSettings extends Settings
 
     public ?string $proxmox_secret;
 
-    public string $cloudflare_email;
-
-    public ?string $cloudflare_api_token;
-
-    public string $cloudflare_account_id;
-
     public static function group(): string
     {
         return 'infrastructure';
@@ -34,7 +28,6 @@ class InfrastructureSettings extends Settings
         return [
             'portainer_api_key',
             'proxmox_secret',
-            'cloudflare_api_token',
         ];
     }
 }

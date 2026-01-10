@@ -12,8 +12,16 @@ export const sidebarNavItems: NavItem[] = [
         href: routeSettings.general.url(),
     },
     {
-        title: 'Infrastructure',
-        href: routeSettings.infrastructure.url(),
+        title: 'Cloudflare',
+        href: routeSettings.infrastructure.cloudflare.url(),
+    },
+    {
+        title: 'Portainer',
+        href: routeSettings.infrastructure.portainer.url(),
+    },
+    {
+        title: 'Proxmox',
+        href: routeSettings.infrastructure.proxmox.url(),
     },
     {
         title: 'Media',

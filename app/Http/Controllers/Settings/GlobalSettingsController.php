@@ -69,60 +69,87 @@ class GlobalSettingsController extends Controller
         return redirect()->back()->with('success', 'General settings updated successfully.');
     }
 
-    public function infrastructure(InfrastructureSettings $infrastructure): Response
+    public function portainer(InfrastructureSettings $settings): Response
     {
-        return Inertia::render('settings/vault/Infrastructure', [
-            'settings' => $infrastructure->toArray(),
+        return Inertia::render('settings/vault/Portainer', [
+            'settings' => $settings->toArray(),
         ]);
     }
 
-    public function updateInfrastructure(Request $request, InfrastructureSettings $infrastructure): RedirectResponse
+    public function updatePortainer(Request $request, InfrastructureSettings $settings): RedirectResponse
     {
         $data = $request->validate([
-            'portainer_url' => ['sometimes', 'required', 'url'],
+            'portainer_url' => ['required', 'url'],
             'portainer_api_key' => ['nullable', 'string'],
-            'proxmox_url' => ['sometimes', 'required', 'url'],
-            'proxmox_user' => ['sometimes', 'required', 'string'],
-            'proxmox_token_id' => ['sometimes', 'required', 'string'],
-            'proxmox_secret' => ['nullable', 'string'],
-            'cloudflare_email' => ['sometimes', 'required', 'email'],
-            'cloudflare_api_token' => ['nullable', 'string'],
-            'cloudflare_account_id' => ['sometimes', 'required', 'string'],
         ]);
 
-        if (array_key_exists('portainer_url', $data)) {
-            $infrastructure->portainer_url = $data['portainer_url'];
-        }
+        $settings->portainer_url = $data['portainer_url'];
         if (! empty($data['portainer_api_key'])) {
-            $infrastructure->portainer_api_key = $data['portainer_api_key'];
+            $settings->portainer_api_key = $data['portainer_api_key'];
         }
 
-        if (array_key_exists('proxmox_url', $data)) {
-            $infrastructure->proxmox_url = $data['proxmox_url'];
-        }
-        if (array_key_exists('proxmox_user', $data)) {
-            $infrastructure->proxmox_user = $data['proxmox_user'];
-        }
-        if (array_key_exists('proxmox_token_id', $data)) {
-            $infrastructure->proxmox_token_id = $data['proxmox_token_id'];
-        }
-        if (! empty($data['proxmox_secret'])) {
-            $infrastructure->proxmox_secret = $data['proxmox_secret'];
-        }
+        $settings->save();
 
-        if (array_key_exists('cloudflare_email', $data)) {
-            $infrastructure->cloudflare_email = $data['cloudflare_email'];
-        }
+        return redirect()->back()->with('success', 'Portainer settings updated.');
+    }
+
+    public function cloudflare(InfrastructureSettings $settings): Response
+    {
+        $config = \App\Models\Cloudflare::first();
+
+        return Inertia::render('settings/vault/Cloudflare', [
+            'settings' => $settings->toArray(),
+            'cloudflare_config' => $config ? $config->toArray() : null,
+        ]);
+    }
+
+    public function updateCloudflare(Request $request, InfrastructureSettings $settings): RedirectResponse
+    {
+        $data = $request->validate([
+            'cloudflare_email' => ['required', 'email'],
+            'cloudflare_api_token' => ['nullable', 'string'],
+            'cloudflare_account_id' => ['required', 'string'],
+        ]);
+
+        $settings->cloudflare_email = $data['cloudflare_email'];
+        $settings->cloudflare_account_id = $data['cloudflare_account_id'];
+
         if (! empty($data['cloudflare_api_token'])) {
-            $infrastructure->cloudflare_api_token = $data['cloudflare_api_token'];
-        }
-        if (array_key_exists('cloudflare_account_id', $data)) {
-            $infrastructure->cloudflare_account_id = $data['cloudflare_account_id'];
+            $settings->cloudflare_api_token = $data['cloudflare_api_token'];
         }
 
-        $infrastructure->save();
+        $settings->save();
 
-        return redirect()->back()->with('success', 'Infrastructure settings updated successfully.');
+        return redirect()->back()->with('success', 'Cloudflare settings updated.');
+    }
+
+    public function proxmox(InfrastructureSettings $settings): Response
+    {
+        return Inertia::render('settings/vault/Proxmox', [
+            'settings' => $settings->toArray(),
+        ]);
+    }
+
+    public function updateProxmox(Request $request, InfrastructureSettings $settings): RedirectResponse
+    {
+        $data = $request->validate([
+            'proxmox_url' => ['required', 'url'],
+            'proxmox_user' => ['required', 'string'],
+            'proxmox_token_id' => ['required', 'string'],
+            'proxmox_secret' => ['nullable', 'string'],
+        ]);
+
+        $settings->proxmox_url = $data['proxmox_url'];
+        $settings->proxmox_user = $data['proxmox_user'];
+        $settings->proxmox_token_id = $data['proxmox_token_id'];
+
+        if (! empty($data['proxmox_secret'])) {
+            $settings->proxmox_secret = $data['proxmox_secret'];
+        }
+
+        $settings->save();
+
+        return redirect()->back()->with('success', 'Proxmox settings updated.');
     }
 
     public function media(MediaSettings $media): Response

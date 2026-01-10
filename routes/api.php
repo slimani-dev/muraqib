@@ -21,4 +21,7 @@ Route::group(['prefix' => 'portainer', 'as' => 'portainer.'], function () {
     Route::post('stacks/{id}/stop', [PortainerStacksController::class, 'stop'])->name('stacks.stop');
     Route::post('stacks/{id}/restart', [PortainerStacksController::class, 'restart'])->name('stacks.restart');
     Route::put('stacks/{id}', [PortainerStacksController::class, 'update'])->name('stacks.update');
+
+    // Events
+
 });

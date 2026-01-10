@@ -11,8 +11,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('settings/general', [\App\Http\Controllers\Settings\GlobalSettingsController::class, 'general'])->name('settings.general');
         Route::put('settings/general', [\App\Http\Controllers\Settings\GlobalSettingsController::class, 'updateGeneral'])->name('settings.general.update');
 
-        Route::get('settings/infrastructure', [\App\Http\Controllers\Settings\GlobalSettingsController::class, 'infrastructure'])->name('settings.infrastructure');
-        Route::put('settings/infrastructure', [\App\Http\Controllers\Settings\GlobalSettingsController::class, 'updateInfrastructure'])->name('settings.infrastructure.update');
+        Route::get('settings/infrastructure/portainer', [\App\Http\Controllers\Settings\GlobalSettingsController::class, 'portainer'])->name('settings.infrastructure.portainer');
+        Route::put('settings/infrastructure/portainer', [\App\Http\Controllers\Settings\GlobalSettingsController::class, 'updatePortainer'])->name('settings.infrastructure.portainer.update');
+
+        Route::get('settings/infrastructure/cloudflare', [\App\Http\Controllers\Settings\GlobalSettingsController::class, 'cloudflare'])->name('settings.infrastructure.cloudflare');
+        Route::put('settings/infrastructure/cloudflare', [\App\Http\Controllers\Settings\GlobalSettingsController::class, 'updateCloudflare'])->name('settings.infrastructure.cloudflare.update');
+
+        Route::get('settings/infrastructure/proxmox', [\App\Http\Controllers\Settings\GlobalSettingsController::class, 'proxmox'])->name('settings.infrastructure.proxmox');
+        Route::put('settings/infrastructure/proxmox', [\App\Http\Controllers\Settings\GlobalSettingsController::class, 'updateProxmox'])->name('settings.infrastructure.proxmox.update');
 
         Route::get('settings/media', [\App\Http\Controllers\Settings\GlobalSettingsController::class, 'media'])->name('settings.media');
         Route::put('settings/media', [\App\Http\Controllers\Settings\GlobalSettingsController::class, 'updateMedia'])->name('settings.media.update');
@@ -23,6 +29,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Test Connection (ajax)
     Route::post('settings/test-connection', [\App\Http\Controllers\Settings\ConnectionTesterController::class, 'test'])->name('settings.test-connection');
+
+    // Cloudflare Tunnel Wizard (ajax)
+    Route::prefix('settings/cloudflare')->name('settings.cloudflare.')->group(function () {
+        Route::get('status', [\App\Http\Controllers\Api\CloudflareController::class, 'status'])->name('status');
+        Route::post('verify', [\App\Http\Controllers\Api\CloudflareController::class, 'verifyToken'])->name('verify');
+        Route::post('tunnel', [\App\Http\Controllers\Api\CloudflareController::class, 'createTunnel'])->name('tunnel');
+        Route::get('ingress', [\App\Http\Controllers\Api\CloudflareController::class, 'getIngress'])->name('ingress.index');
+        Route::post('ingress', [\App\Http\Controllers\Api\CloudflareController::class, 'updateIngress'])->name('ingress.update');
+        Route::get('zones', [\App\Http\Controllers\Api\CloudflareController::class, 'listZones'])->name('zones');
+        Route::get('records', [\App\Http\Controllers\Api\CloudflareController::class, 'getDnsRecords'])->name('records');
+    });
 
     // Redirect /settings to /settings/general
     Route::get('settings', function () {
