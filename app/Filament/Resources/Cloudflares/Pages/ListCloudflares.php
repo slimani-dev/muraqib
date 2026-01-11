@@ -68,8 +68,9 @@ class ListCloudflares extends ListRecords
                                 $tunnel->update([
                                     'status' => $details['status'],
                                     'conns_active_at' => $details['conns_active_at'] ?? null,
-                                    'client_version' => $details['client_version'] ?? null,
+                                    'client_version' => $details['connections'][0]['client_version'] ?? null,
                                     'is_active' => ($details['status'] === 'healthy'),
+                                    'status_checked_at' => now(),
                                 ]);
                             }
                         } catch (\Exception $e) {

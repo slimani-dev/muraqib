@@ -20,6 +20,8 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 class TunnelsRelationManager extends RelationManager
 {
@@ -146,13 +148,92 @@ class TunnelsRelationManager extends RelationManager
                     ->searchable()
                     ->description(fn ($record) => $record->tunnel_id),
                 TextColumn::make('status')
-                    ->badge(),
+                    ->badge()
+                    ->description(fn ($record) => new \Illuminate\Support\HtmlString(
+                        '<span class="text-xs text-gray-400">' . 
+                        ($record->status_checked_at ? $record->status_checked_at->diffForHumans(short: true) : 'Not checked') . 
+                        '</span>'
+                    )),
                 TextColumn::make('client_version')
                     ->label('Version')
+                    ->formatStateUsing(function ($state) {
+                        if (! $state) {
+                            return 'Unknown';
+                        }
+
+                        // Get latest version from cache or fetch
+                        $latestVersion = Cache::remember('cloudflared_latest_version', 3600, function () {
+                            try {
+                                $response = Http::timeout(5)->get('https://api.github.com/repos/cloudflare/cloudflared/releases/latest');
+                                if ($response->successful()) {
+                                    $tag = $response->json('tag_name');
+
+                                    return ltrim($tag, 'v');
+                                }
+                            } catch (\Exception $e) {
+                            }
+
+                            return null;
+                        });
+
+                        if (! $latestVersion) {
+                            return $state;
+                        }
+
+                        // Compare versions
+                        $current = ltrim($state, 'v');
+                        if (version_compare($current, $latestVersion, '>=')) {
+                            return $state.' ✓';
+                        }
+
+                        return $state.' ⚠️';
+                    })
+                    ->description(function ($state) {
+                        if (! $state) {
+                            return null;
+                        }
+
+                        $latestVersion = Cache::get('cloudflared_latest_version');
+                        if (! $latestVersion) {
+                            return null;
+                        }
+
+                        $current = ltrim($state, 'v');
+                        if (version_compare($current, $latestVersion, '>=')) {
+                            $text = 'Up to date';
+                        } else {
+                            $text = 'Update available: '.$latestVersion;
+                        }
+
+                        return new \Illuminate\Support\HtmlString('<span class="text-xs text-gray-400">'.$text.'</span>');
+                    })
+                    ->color(function ($state) {
+                        if (! $state) {
+                            return 'gray';
+                        }
+
+                        $latestVersion = Cache::get('cloudflared_latest_version');
+                        if (! $latestVersion) {
+                            return 'gray';
+                        }
+
+                        $current = ltrim($state, 'v');
+                        if (version_compare($current, $latestVersion, '>=')) {
+                            return 'success';
+                        }
+
+                        return 'warning';
+                    })
                     ->toggleable(),
                 TextColumn::make('conns_active_at')
                     ->label('Active Since')
+                    ->description(fn ($record) => new \Illuminate\Support\HtmlString(
+                        '<span class="text-xs text-gray-400">'.
+                        ($record->status ? ucfirst($record->status->value) : 'Unknown').
+                        '</span>'
+                    ))
                     ->dateTime()
+                    ->since()
                     ->sortable()
                     ->toggleable(),
                 \Filament\Tables\Columns\IconColumn::make('is_active')
@@ -174,19 +255,19 @@ class TunnelsRelationManager extends RelationManager
                         try {
                             // 1. Create tunnel locally with data from step 1
                             $tunnelName = $data['name'] ?? null;
-                            
+
                             // If name is missing (e.g., existing tunnel mode), fetch it from Cloudflare
-                            if (!$tunnelName && isset($data['tunnel_id_created'])) {
+                            if (! $tunnelName && isset($data['tunnel_id_created'])) {
                                 try {
                                     $service = app(\App\Services\Cloudflare\CloudflareService::class);
                                     $tunnels = $service->listTunnels($account);
                                     $matchedTunnel = collect($tunnels)->firstWhere('id', $data['tunnel_id_created']);
-                                    $tunnelName = $matchedTunnel['name'] ?? 'tunnel-' . substr($data['tunnel_id_created'], 0, 8);
+                                    $tunnelName = $matchedTunnel['name'] ?? 'tunnel-'.substr($data['tunnel_id_created'], 0, 8);
                                 } catch (\Exception $e) {
-                                    $tunnelName = 'tunnel-' . substr($data['tunnel_id_created'], 0, 8);
+                                    $tunnelName = 'tunnel-'.substr($data['tunnel_id_created'], 0, 8);
                                 }
                             }
-                            
+
                             $tunnel = $account->tunnels()->create([
                                 'tunnel_id' => $data['tunnel_id_created'],
                                 'name' => $tunnelName,
@@ -203,8 +284,9 @@ class TunnelsRelationManager extends RelationManager
                                     $tunnel->update([
                                         'status' => $details['status'],
                                         'conns_active_at' => $details['conns_active_at'] ?? null,
-                                        'client_version' => $details['client_version'] ?? null,
+                                        'client_version' => $details['connections'][0]['client_version'] ?? null,
                                         'is_active' => ($details['status'] === 'healthy'),
+                                        'status_checked_at' => now(),
                                     ]);
                                 }
                             } catch (\Exception $e) {
@@ -227,7 +309,7 @@ class TunnelsRelationManager extends RelationManager
                                 ]);
 
                                 // Create DNS record
-                                if (!empty($ruleData['cloudflare_domain_id'])) {
+                                if (! empty($ruleData['cloudflare_domain_id'])) {
                                     $domain = \App\Models\CloudflareDomain::find($ruleData['cloudflare_domain_id']);
                                     if ($domain) {
                                         try {
@@ -321,7 +403,8 @@ class TunnelsRelationManager extends RelationManager
                                     'status' => $details['status'],
                                     'is_active' => ($details['status'] === 'healthy'),
                                     'conns_active_at' => $details['conns_active_at'] ?? null,
-                                    'client_version' => $details['client_version'] ?? null,
+                                    'client_version' => $details['connections'][0]['client_version'] ?? null,
+                                    'status_checked_at' => now(),
                                 ]);
                             }
                         } catch (\Exception $e) {
@@ -351,8 +434,9 @@ class TunnelsRelationManager extends RelationManager
                                         $localTunnel->update([
                                             'status' => $details['status'],
                                             'conns_active_at' => $details['conns_active_at'] ?? null,
-                                            'client_version' => $details['client_version'] ?? null,
+                                            'client_version' => $details['connections'][0]['client_version'] ?? null,
                                             'is_active' => ($details['status'] === 'healthy'),
+                                            'status_checked_at' => now(),
                                         ]);
                                         $updatedCount++;
                                     }
@@ -469,7 +553,7 @@ class TunnelsRelationManager extends RelationManager
                                     ]);
 
                                     // Update DNS record
-                                    if (!empty($ruleData['cloudflare_domain_id'])) {
+                                    if (! empty($ruleData['cloudflare_domain_id'])) {
                                         $domain = \App\Models\CloudflareDomain::find($ruleData['cloudflare_domain_id']);
                                         if ($domain) {
                                             try {

@@ -294,6 +294,19 @@ class TunnelWizardForm
                                     $status = $details['status'] ?? 'down';
                                     $set('tunnel_status', $status);
 
+                                    // Save client_version and timestamp if in edit mode
+                                    if ($isEdit && $record) {
+                                        $clientVersion = $details['connections'][0]['client_version'] ?? null;
+                                        $connsActiveAt = $details['conns_active_at'] ?? now();
+
+                                        $record->update([
+                                            'status' => $status,
+                                            'client_version' => $clientVersion,
+                                            'conns_active_at' => $connsActiveAt,
+                                            'status_checked_at' => now(),
+                                        ]);
+                                    }
+
                                     if ($status === 'healthy') {
                                         $set('connection_status', 'success');
                                         $set('connection_message', 'Tunnel is connected and healthy');

@@ -24,6 +24,7 @@ class CloudflareTunnel extends Model
         'conns_inactive_at',
         'client_version',
         'remote_config',
+        'status_checked_at',
     ];
 
     protected $casts = [
@@ -34,7 +35,8 @@ class CloudflareTunnel extends Model
         'remote_config' => 'boolean',
         'conns_active_at' => 'datetime',
         'conns_inactive_at' => 'datetime',
-        'status' => \App\Enums\CloudflareStatus::class, // Assuming we want this casted if possible, or keep as string? The migration kept it as string, let's stick to simple string or enum if available. Wait, Cloudflare model uses Enum. Let's check consistency later. For now, strict update.
+        'status_checked_at' => 'datetime',
+        'status' => \App\Enums\CloudflareStatus::class,
     ];
 
     public function cloudflare(): \Illuminate\Database\Eloquent\Relations\BelongsTo
