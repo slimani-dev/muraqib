@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Cloudflares;
 
+use App\Filament\Resources\Cloudflares\Pages\EditCloudflare;
 use App\Filament\Resources\Cloudflares\Pages\ListCloudflares;
 use App\Filament\Resources\Cloudflares\Pages\ViewCloudflare;
 use App\Filament\Resources\Cloudflares\Schemas\CloudflareForm;
@@ -11,14 +12,13 @@ use App\Models\Cloudflare;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class CloudflareResource extends Resource
 {
     protected static ?string $model = Cloudflare::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'si-cloudflare';
 
     public static function form(Schema $schema): Schema
     {

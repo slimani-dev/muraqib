@@ -9,14 +9,13 @@ use App\Models\Portainer;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class PortainerResource extends Resource
 {
     protected static ?string $model = Portainer::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'si-portainer';
 
     public static function form(Schema $schema): Schema
     {

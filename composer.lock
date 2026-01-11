@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "41734c69cde7ae9ad5c709a7f43cede6",
+    "content-hash": "c640a9bc3794e2fae217ef68404f5ffa",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -564,6 +564,150 @@
                 }
             ],
             "time": "2024-07-16T11:13:48+00:00"
+        },
+        {
+            "name": "codeat3/blade-simple-icons",
+            "version": "8.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/codeat3/blade-simple-icons.git",
+                "reference": "293b72338db5a2e6a4958ea190e2727bdeb462a0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/codeat3/blade-simple-icons/zipball/293b72338db5a2e6a4958ea190e2727bdeb462a0",
+                "reference": "293b72338db5a2e6a4958ea190e2727bdeb462a0",
+                "shasum": ""
+            },
+            "require": {
+                "blade-ui-kit/blade-icons": "^1.1",
+                "illuminate/support": "^8.0|^9.0|^10.0|^11.0|^12.0",
+                "php": "^7.4|^8.0"
+            },
+            "require-dev": {
+                "codeat3/blade-icon-generation-helpers": "^0.10",
+                "codeat3/phpcs-styles": "^1.0",
+                "orchestra/testbench": "^6.0|^7.0|^8.0|^9.0|^10.0",
+                "phpunit/phpunit": "^9.0|^10.5|^11.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Codeat3\\BladeSimpleIcons\\BladeSimpleIconsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Codeat3\\BladeSimpleIcons\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Swapnil Sarwe",
+                    "homepage": "https://swapnilsarwe.com"
+                },
+                {
+                    "name": "Dries Vints",
+                    "homepage": "https://driesvints.com"
+                }
+            ],
+            "description": "A package to easily make use of \"Simple Icons\" in your Laravel Blade views. ",
+            "homepage": "https://github.com/codeat3/blade-simple-icons",
+            "keywords": [
+                "blade",
+                "laravel",
+                "simpleicons"
+            ],
+            "support": {
+                "issues": "https://github.com/codeat3/blade-simple-icons/issues",
+                "source": "https://github.com/codeat3/blade-simple-icons/tree/8.1.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/swapnilsarwe",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-12-15T06:07:14+00:00"
+        },
+        {
+            "name": "codewithdennis/filament-simple-alert",
+            "version": "v4.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/CodeWithDennis/filament-simple-alert.git",
+                "reference": "d30b0cad908f3ade1bed153d486fd564ac312ffd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/CodeWithDennis/filament-simple-alert/zipball/d30b0cad908f3ade1bed153d486fd564ac312ffd",
+                "reference": "d30b0cad908f3ade1bed153d486fd564ac312ffd",
+                "shasum": ""
+            },
+            "require": {
+                "filament/filament": "^4.0",
+                "php": "^8.1",
+                "spatie/laravel-package-tools": "^1.15.0"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.16",
+                "nunomaduro/collision": "^7.9",
+                "orchestra/testbench": "^8.0",
+                "pestphp/pest": "^2.1",
+                "pestphp/pest-plugin-arch": "^2.0",
+                "pestphp/pest-plugin-laravel": "^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "SimpleAlert": "CodeWithDennis\\SimpleAlert\\Facades\\SimpleAlert"
+                    },
+                    "providers": [
+                        "CodeWithDennis\\SimpleAlert\\SimpleAlertServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "CodeWithDennis\\SimpleAlert\\": "src/",
+                    "CodeWithDennis\\SimpleAlert\\Database\\Factories\\": "database/factories/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "CodeWithDennis",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A plugin for adding straightforward alerts to your filament pages",
+            "homepage": "https://github.com/codewithdennis/filament-simple-alert",
+            "keywords": [
+                "CodeWithDennis",
+                "filament-simple-alert",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/codewithdennis/filament-simple-alert/issues",
+                "source": "https://github.com/codewithdennis/filament-simple-alert"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/CodeWithDennis",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-06-21T18:43:06+00:00"
         },
         {
             "name": "danharrin/date-format-converter",
@@ -2304,6 +2448,87 @@
                 "source": "https://github.com/kirschbaum-development/eloquent-power-joins/tree/4.2.11"
             },
             "time": "2025-12-17T00:37:48+00:00"
+        },
+        {
+            "name": "lara-zeus/torch-filament",
+            "version": "2.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/lara-zeus/torch-filament.git",
+                "reference": "71dbe8df4a558a80308781ba20c5922943b33009"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/lara-zeus/torch-filament/zipball/71dbe8df4a558a80308781ba20c5922943b33009",
+                "reference": "71dbe8df4a558a80308781ba20c5922943b33009",
+                "shasum": ""
+            },
+            "require": {
+                "filament/filament": "^4.0",
+                "php": "^8.1",
+                "spatie/laravel-package-tools": "^1.16",
+                "torchlight/engine": "^0.1.0"
+            },
+            "require-dev": {
+                "larastan/larastan": "^2.0",
+                "laravel/pint": "^1.0",
+                "nunomaduro/collision": "^7.0",
+                "nunomaduro/phpinsights": "^2.8",
+                "orchestra/testbench": "^8.0",
+                "phpstan/extension-installer": "^1.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "LaraZeus\\TorchFilament\\TorchFilamentServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "LaraZeus\\TorchFilament\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Lara Zeus",
+                    "email": "info@larazeus.com"
+                }
+            ],
+            "description": "Infolist component to highlight code using Torchlight Engine",
+            "homepage": "https://larazeus.com/torch-filament",
+            "keywords": [
+                "code",
+                "design",
+                "engine",
+                "filamentphp",
+                "highlight",
+                "input",
+                "lara-zeus",
+                "laravel",
+                "torchlight",
+                "ui"
+            ],
+            "support": {
+                "issues": "https://github.com/lara-zeus/torch-filament/issues",
+                "source": "https://github.com/lara-zeus/torch-filament"
+            },
+            "funding": [
+                {
+                    "url": "https://www.buymeacoffee.com/larazeus",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/atmonshi",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-06-11T19:32:10+00:00"
         },
         {
             "name": "laravel/fortify",
@@ -4522,6 +4747,60 @@
             "time": "2025-09-24T15:06:41+00:00"
         },
         {
+            "name": "phiki/phiki",
+            "version": "v1.1.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phikiphp/phiki.git",
+                "reference": "3174d8cb309bdccc32b7a33500379de76148256b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phikiphp/phiki/zipball/3174d8cb309bdccc32b7a33500379de76148256b",
+                "reference": "3174d8cb309bdccc32b7a33500379de76148256b",
+                "shasum": ""
+            },
+            "require": {
+                "league/commonmark": "^2.5.3",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "illuminate/support": "^11.30",
+                "laravel/pint": "^1.18.1",
+                "pestphp/pest": "^3.5.1",
+                "phpstan/extension-installer": "^1.4.3",
+                "phpstan/phpstan": "^2.0",
+                "symfony/var-dumper": "^7.1.6"
+            },
+            "bin": [
+                "bin/phiki"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Phiki\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ryan Chandler",
+                    "email": "support@ryangjchandler.co.uk",
+                    "homepage": "https://ryangjchandler.co.uk",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Syntax highlighting using TextMate grammars in PHP.",
+            "support": {
+                "issues": "https://github.com/phikiphp/phiki/issues",
+                "source": "https://github.com/phikiphp/phiki/tree/v1.1.6"
+            },
+            "time": "2025-06-06T20:18:29+00:00"
+        },
+        {
             "name": "phpdocumentor/reflection-common",
             "version": "2.2.0",
             "source": {
@@ -4753,6 +5032,77 @@
                 "source": "https://github.com/phpstan/phpdoc-parser/tree/2.3.0"
             },
             "time": "2025-08-30T15:50:23+00:00"
+        },
+        {
+            "name": "postare/blade-mdi",
+            "version": "v1.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/postare/blade-mdi.git",
+                "reference": "4c6c8d0538476d47a47511ae189acd3c8e5969c3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/postare/blade-mdi/zipball/4c6c8d0538476d47a47511ae189acd3c8e5969c3",
+                "reference": "4c6c8d0538476d47a47511ae189acd3c8e5969c3",
+                "shasum": ""
+            },
+            "require": {
+                "blade-ui-kit/blade-icons": "^1.5",
+                "illuminate/support": "^8.0|^9.0|^10.0|^11.0|^12.0",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^7.0|^8.0",
+                "phpunit/phpunit": "^9.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Postare\\BladeMdi\\BladeMdiServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Postare\\BladeMdi\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "inerba",
+                    "homepage": "https://github.com/inerba",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Material Design Icons for Laravel Blade views.",
+            "homepage": "https://github.com/renoki-co/blade-mdi",
+            "keywords": [
+                "blade",
+                "design",
+                "icons",
+                "kit",
+                "laravel",
+                "material",
+                "mdi",
+                "php",
+                "ui"
+            ],
+            "support": {
+                "source": "https://github.com/postare/blade-mdi/tree/v1.1.2"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/renoki-co",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-04-02T08:15:46+00:00"
         },
         {
             "name": "pragmarx/google2fa",
@@ -8740,6 +9090,62 @@
             "time": "2025-12-02T11:56:42+00:00"
         },
         {
+            "name": "torchlight/engine",
+            "version": "v0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/torchlight-api/engine.git",
+                "reference": "8d12f611efb0b22406ec0744abb453ddd2f1fe9d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/torchlight-api/engine/zipball/8d12f611efb0b22406ec0744abb453ddd2f1fe9d",
+                "reference": "8d12f611efb0b22406ec0744abb453ddd2f1fe9d",
+                "shasum": ""
+            },
+            "require": {
+                "league/commonmark": "^2.5.3",
+                "phiki/phiki": "^1.1.4",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "ext-dom": "*",
+                "ext-libxml": "*",
+                "laravel/pint": "^1.13",
+                "pestphp/pest": "^2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Torchlight\\Engine\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Aaron Francis",
+                    "email": "aaron@hammerstone.dev"
+                },
+                {
+                    "name": "John Koster",
+                    "email": "john@stillat.com"
+                }
+            ],
+            "description": "The PHP-based Torchlight code annotation and rendering engine.",
+            "keywords": [
+                "Code highlighting",
+                "syntax highlighting"
+            ],
+            "support": {
+                "issues": "https://github.com/torchlight-api/engine/issues",
+                "source": "https://github.com/torchlight-api/engine/tree/v0.1.0"
+            },
+            "time": "2025-04-02T01:47:48+00:00"
+        },
+        {
             "name": "ueberdosis/tiptap-php",
             "version": "2.0.0",
             "source": {
@@ -8965,6 +9371,60 @@
                 }
             ],
             "time": "2024-11-21T01:49:47+00:00"
+        },
+        {
+            "name": "webbingbrasil/filament-copyactions",
+            "version": "4.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/webbingbrasil/filament-copyactions.git",
+                "reference": "9c2086e2517ad9f394bcd649b06443c82901a72c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/webbingbrasil/filament-copyactions/zipball/9c2086e2517ad9f394bcd649b06443c82901a72c",
+                "reference": "9c2086e2517ad9f394bcd649b06443c82901a72c",
+                "shasum": ""
+            },
+            "require": {
+                "filament/filament": "^4.0",
+                "php": "^8.2"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Webbingbrasil\\FilamentCopyActions\\FilamentCopyActionsProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Webbingbrasil\\FilamentCopyActions\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Danilo Andrade",
+                    "email": "danilo@webbingbrasil.com.br",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A easy-to-use copy actions for Filament Admin.",
+            "homepage": "https://github.com/webbingbrasil/filament-copyactions",
+            "keywords": [
+                "filament",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/webbingbrasil/filament-copyactions/issues",
+                "source": "https://github.com/webbingbrasil/filament-copyactions/tree/4.0.2"
+            },
+            "time": "2025-09-25T19:17:34+00:00"
         }
     ],
     "packages-dev": [

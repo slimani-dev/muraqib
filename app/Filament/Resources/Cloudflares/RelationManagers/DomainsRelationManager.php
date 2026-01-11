@@ -83,7 +83,7 @@ class DomainsRelationManager extends RelationManager
             ->headerActions([
                 \Filament\Actions\Action::make('sync_zones')
                     ->label('Pull Zones')
-                    ->icon('heroicon-o-arrow-down-tray')
+                    ->icon('mdi-cloud-sync')
                     ->action(function ($livewire) {
                         /** @var \App\Models\Cloudflare $account */
                         $account = $this->getOwnerRecord();
@@ -124,7 +124,7 @@ class DomainsRelationManager extends RelationManager
             ->recordActions([
                 \Filament\Actions\Action::make('sync_dns_records')
                     ->label('Pull Records')
-                    ->icon('heroicon-o-list-bullet')
+                    ->icon('mdi-dns')
                     ->action(function ($record) {
                         try {
                             $service = app(\App\Services\Cloudflare\CloudflareService::class);

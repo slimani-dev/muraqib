@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Cloudflares\RelationManagers;
 
 use App\Models\Cloudflare;
+use App\Models\CloudflareDomain;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -29,47 +31,7 @@ class DnsRecordsRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema
-            ->columns(1)
-            ->components([
-                Select::make('cloudflare_domain_id')
-                    ->label('Zone')
-                    ->options(function ($livewire) {
-                        /** @var Cloudflare $account */
-                        $account = $this->getOwnerRecord();
-
-                        return $account->domains->pluck('name', 'id');
-                    })
-                    ->searchable()
-                    ->required(),
-                Select::make('type')
-                    ->options([
-                        'A' => 'A',
-                        'AAAA' => 'AAAA',
-                        'CNAME' => 'CNAME',
-                        'TXT' => 'TXT',
-                        'MX' => 'MX',
-                        'NS' => 'NS',
-                        'SRV' => 'SRV',
-                    ])
-                    ->default('CNAME')
-                    ->required(),
-                TextInput::make('name')
-                    ->required()
-                    ->maxLength(255)
-                    ->placeholder('subdomain or @'),
-                TextInput::make('content')
-                    ->required()
-                    ->maxLength(255)
-                    ->placeholder('IPv4 or target'),
-                TextInput::make('ttl')
-                    ->label('TTL')
-                    ->numeric()
-                    ->default(1) // Auto
-                    ->helperText('1 for Auto'),
-                Toggle::make('proxied')
-                    ->default(true),
-            ]);
+        return \App\Filament\Resources\Cloudflares\Schemas\DnsRecordForm::configure($schema);
     }
 
     public function table(Table $table): Table
@@ -82,7 +44,7 @@ class DnsRecordsRelationManager extends RelationManager
                     ->sortable(),
                 TextColumn::make('type')
                     ->badge()
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'A', 'AAAA' => 'success',
                         'CNAME' => 'info',
                         'TXT' => 'gray',
@@ -99,7 +61,7 @@ class DnsRecordsRelationManager extends RelationManager
                             $uuid = $matches[1];
                             $tunnel = \App\Models\CloudflareTunnel::where('tunnel_id', $uuid)->first();
                             if ($tunnel) {
-                                return $state . ' (' . $tunnel->name . ')';
+                                return $state.' ('.$tunnel->name.')';
                             }
                         }
 
@@ -119,7 +81,7 @@ class DnsRecordsRelationManager extends RelationManager
                     ->boolean(),
                 TextColumn::make('ttl')
                     ->label('TTL')
-                    ->formatStateUsing(fn($state) => $state == 1 ? 'Auto' : $state),
+                    ->formatStateUsing(fn ($state) => $state == 1 ? 'Auto' : $state),
                 TextColumn::make('domain.name')
                     ->label('Zone')
                     ->searchable()
@@ -164,7 +126,7 @@ class DnsRecordsRelationManager extends RelationManager
             ->headerActions([
                 \Filament\Actions\Action::make('sync_dns_records')
                     ->label('Pull Records')
-                    ->icon('heroicon-o-arrow-down-tray')
+                    ->icon('mdi-cloud-download')
                     ->slideOver(false)
                     ->schema([
                         \Filament\Forms\Components\Select::make('domain_id')
@@ -186,7 +148,8 @@ class DnsRecordsRelationManager extends RelationManager
                     ])
                     ->action(function (array $data, $livewire) {
                         try {
-                            $domain = \App\Models\CloudflareDomain::findOrFail($data['domain_id']);
+                            /** @var CloudflareDomain $domain */
+                            $domain = CloudflareDomain::findOrFail($data['domain_id']);
                             $service = app(\App\Services\Cloudflare\CloudflareService::class);
 
                             $records = $service->listDnsRecords($domain);
@@ -218,88 +181,11 @@ class DnsRecordsRelationManager extends RelationManager
                                 ->send();
                         }
                     }),
-                \Filament\Actions\Action::make('sync_from_ingress')
-                    ->slideOver(false)
-                    ->label('Sync from Ingress')
-                    ->icon('heroicon-o-globe-alt')
-                    ->color('warning')
-                    ->schema([
-                        \Filament\Forms\Components\Select::make('tunnel_id')
-                            ->label('Select Tunnel')
-                            ->options(function ($livewire) {
-                                /** @var Cloudflare $account */
-                                $account = $this->getOwnerRecord();
 
-                                return $account->tunnels->pluck('name', 'id');
-                            })
-                            ->default(function ($livewire) {
-                                /** @var Cloudflare $account */
-                                $account = $this->getOwnerRecord();
-
-                                return $account->tunnels->count() === 1 ? $account->tunnels->first()->id : null;
-                            })
-                            ->searchable()
-                            ->required(),
-                    ])
-                    ->action(function (array $data, $livewire) {
-                         try {
-                            /** @var \App\Models\CloudflareTunnel $tunnel */
-                            $tunnel = \App\Models\CloudflareTunnel::with('ingressRules')->findOrFail($data['tunnel_id']);
-                            
-                            /** @var Cloudflare $account */
-                            $account = $this->getOwnerRecord();
-                            $domains = $account->domains;
-                            
-                            $service = app(\App\Services\Cloudflare\CloudflareService::class);
-                            $results = ['created' => 0, 'updated' => 0, 'skipped' => 0, 'error' => 0];
-
-                            foreach ($tunnel->ingressRules as $rule) {
-                                if (empty($rule->hostname) || $rule->hostname === '*') {
-                                    continue;
-                                }
-
-                                // Find matching zone
-                                $matchedDomain = $domains->first(function($domain) use ($rule) {
-                                    return str_ends_with($rule->hostname, $domain->name);
-                                });
-
-                                if (! $matchedDomain) {
-                                    continue;
-                                }
-
-                                try {
-                                    $status = $service->ensureCnameRecord(
-                                        $matchedDomain, 
-                                        $rule->hostname, 
-                                        "{$tunnel->tunnel_id}.cfargotunnel.com"
-                                    );
-                                    
-                                    if (isset($results[$status])) {
-                                        $results[$status]++;
-                                    }
-                                } catch (\Exception $e) {
-                                    $results['error']++;
-                                }
-                            }
-
-                            \Filament\Notifications\Notification::make()
-                                ->title('DNS Records from Ingress Synced')
-                                ->body("Created: {$results['created']}, Updated: {$results['updated']}, Skipped: {$results['skipped']}, Errors: {$results['error']}")
-                                ->success()
-                                ->send();
-
-                        } catch (\Exception $e) {
-                            \Filament\Notifications\Notification::make()
-                                ->title('Sync Failed')
-                                ->body($e->getMessage())
-                                ->danger()
-                                ->send();
-                        }
-                    }),
                 CreateAction::make()
                     ->label('New DNS Record')
                     ->using(function (array $data, string $model) {
-                        $domain = \App\Models\CloudflareDomain::findOrFail($data['cloudflare_domain_id']);
+                        $domain = CloudflareDomain::findOrFail($data['cloudflare_domain_id']);
                         $service = app(\App\Services\Cloudflare\CloudflareService::class);
 
                         // Create Remote
@@ -307,8 +193,8 @@ class DnsRecordsRelationManager extends RelationManager
                             'type' => $data['type'],
                             'name' => $data['name'],
                             'content' => $data['content'],
-                            'ttl' => (int)$data['ttl'],
-                            'proxied' => (bool)($data['proxied'] ?? false),
+                            'ttl' => (int) $data['ttl'],
+                            'proxied' => (bool) ($data['proxied'] ?? false),
                         ]);
 
                         // Create Local
@@ -317,48 +203,98 @@ class DnsRecordsRelationManager extends RelationManager
                         return \App\Models\CloudflareDnsRecord::create($data);
                     }),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make()
                     ->using(function (\Illuminate\Database\Eloquent\Model $record, array $data) {
                         $service = app(\App\Services\Cloudflare\CloudflareService::class);
                         $domain = $record->domain;
 
-                        // Update Remote
+                        // Check if record_id exists
                         if ($record->record_id) {
+                            // Update Remote
                             $service->updateRemoteDnsRecord($domain, $record->record_id, [
                                 'type' => $data['type'],
                                 'name' => $data['name'],
                                 'content' => $data['content'],
-                                'ttl' => (int)$data['ttl'],
-                                'proxied' => (bool)($data['proxied'] ?? false),
-                                // 'comment' => ...
+                                'ttl' => (int) $data['ttl'],
+                                'proxied' => (bool) ($data['proxied'] ?? false),
                             ]);
+                        } else {
+                            // Create Remote (Push logic for previously unsynced record)
+                            $remote = $service->createRemoteDnsRecord($domain, [
+                                'type' => $data['type'],
+                                'name' => $data['name'],
+                                'content' => $data['content'],
+                                'ttl' => (int) $data['ttl'],
+                                'proxied' => (bool) ($data['proxied'] ?? false),
+                            ]);
+                            $data['record_id'] = $remote['id'];
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Record Synced')
+                                ->body('Local record was unsynced; created on Cloudflare.')
+                                ->success()
+                                ->send();
                         }
 
                         $record->update($data);
 
                         return $record;
                     }),
-                DeleteAction::make()
-                    ->before(function (\Illuminate\Database\Eloquent\Model $record) {
-                        try {
-                            if ($record->record_id) {
+                ActionGroup::make([
+                    \Filament\Actions\Action::make('push_dns_record')
+                        ->label('Push to Cloudflare')
+                        ->icon('mdi-cloud-upload')
+                        ->color('success')
+                        ->visible(fn ($record) => empty($record->record_id))
+                        ->action(function ($record) {
+                            try {
                                 $service = app(\App\Services\Cloudflare\CloudflareService::class);
-                                $service->deleteRemoteDnsRecord($record->domain, $record->record_id);
+
+                                $remote = $service->createRemoteDnsRecord($record->domain, [
+                                    'type' => $record->type,
+                                    'name' => $record->name,
+                                    'content' => $record->content,
+                                    'ttl' => (int) $record->ttl,
+                                    'proxied' => (bool) $record->proxied,
+                                ]);
+
+                                $record->update(['record_id' => $remote['id']]);
+
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Record Pushed')
+                                    ->body("{$record->name} synced to Cloudflare.")
+                                    ->success()
+                                    ->send();
+                            } catch (\Exception $e) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Push Failed')
+                                    ->body($e->getMessage())
+                                    ->danger()
+                                    ->send();
                             }
-                        } catch (\Exception $e) {
-                            // Log or notify, but proceed with local delete?
-                            // Or fail? Best to fail and notify.
-                            \Filament\Notifications\Notification::make()
-                                ->title('Remote Delete Failed')
-                                ->body($e->getMessage())
-                                ->warning()
-                                ->send();
-                            // throw $e; // Throwing prevents local delete? Yes.
-                        }
-                    }),
+                        }),
+                    DeleteAction::make()
+                        ->before(function (\App\Models\CloudflareDnsRecord $record) {
+                            try {
+                                if ($record->record_id) {
+                                    $service = app(\App\Services\Cloudflare\CloudflareService::class);
+                                    $service->deleteRemoteDnsRecord($record->domain, $record->record_id);
+                                }
+                            } catch (\Exception $e) {
+                                // Log or notify, but proceed with local delete?
+                                // Or fail? Best to fail and notify.
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Remote Delete Failed')
+                                    ->body($e->getMessage())
+                                    ->warning()
+                                    ->send();
+                                // throw $e; // Throwing prevents local delete? Yes.
+                            }
+                        }),
+                ]),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

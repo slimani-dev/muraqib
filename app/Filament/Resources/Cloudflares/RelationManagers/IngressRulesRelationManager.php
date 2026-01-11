@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Cloudflares\RelationManagers;
 
 use App\Models\Cloudflare;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -82,7 +83,8 @@ class IngressRulesRelationManager extends RelationManager
                 Section::make('Origin Request Settings')
                     ->schema([
                         Checkbox::make('noTLSVerify')
-                            ->label('No TLS Verify'),
+                            ->label('No TLS Verify')
+                            ->inline(),
                         TextInput::make('httpHostHeader')
                             ->label('HTTP Host Header'),
                         TextInput::make('originServerName')
@@ -124,17 +126,48 @@ class IngressRulesRelationManager extends RelationManager
                         if (! empty($data['is_catch_all']) && empty($data['service'])) {
                             $data['service'] = 'http_status:404';
                         }
+
                         return \App\Models\CloudflareIngressRule::create($data);
+                    })
+                    ->after(function ($record) {
+                        $tunnel = $record->tunnel;
+                        $service = app(\App\Services\Cloudflare\CloudflareService::class);
+
+                        // 1. Push Rules
+                        try {
+                            $service->updateIngressRules($tunnel);
+                            \Filament\Notifications\Notification::make()->title('Rules Pushed')->success()->send();
+                        } catch (\Exception $e) {
+                            \Filament\Notifications\Notification::make()->title('Push Failed')->body($e->getMessage())->warning()->send();
+                        }
+
+                        // 2. Publish DNS
+                        if (empty($record->hostname) || $record->hostname === '*') {
+                            return;
+                        }
+
+                        $account = $tunnel->cloudflare;
+                        if (! $account) {
+                            return;
+                        }
+
+                        $matchedDomain = $account->domains->first(function ($domain) use ($record) {
+                            return str_ends_with($record->hostname, $domain->name);
+                        });
+
+                        if ($matchedDomain) {
+                            try {
+                                $service->ensureCnameRecord($matchedDomain, $record->hostname, "{$tunnel->tunnel_id}.cfargotunnel.com");
+                                \Filament\Notifications\Notification::make()->title('DNS Published')->success()->send();
+                            } catch (\Exception $e) {
+                                \Filament\Notifications\Notification::make()->title('DNS Publish Failed')->body($e->getMessage())->warning()->send();
+                            }
+                        }
                     }),
                 Action::make('sync_ingress_rules')
                     ->slideOver(false)
                     ->label('Pull Rules')
-// ... (omitted sync_ingress_rules content for brevity as it shouldn't change, but I need to target correctly)
-// Wait, replacing a large block to target CreateAction and EditAction is risky if lines shift.
-// CreateAction is at the start of headerActions (line ~137). EditAction is in recordActions (line ~323).
-// I should split this into two replacements.
-
-                    ->icon('heroicon-o-arrow-down-tray')
+                    ->icon('mdi-cloud-download')
                     ->schema([
                         Select::make('tunnel_id')
                             ->label('Select Tunnel')
@@ -144,7 +177,14 @@ class IngressRulesRelationManager extends RelationManager
 
                                 return $account->tunnels->pluck('name', 'id');
                             })
+                            ->default(function ($livewire) {
+                                /** @var Cloudflare $account */
+                                $account = $this->getOwnerRecord();
+
+                                return $account->tunnels->count() === 1 ? $account->tunnels->first()->id : null;
+                            })
                             ->searchable()
+                            ->preload()
                             ->required(),
                     ])
                     ->action(function (array $data, $livewire) {
@@ -189,65 +229,157 @@ class IngressRulesRelationManager extends RelationManager
                                 ->send();
                         }
                     }),
-                Action::make('deploy_ingress_rules')
-                    ->slideOver(false)
-                    ->label('Push Rules')
-                    ->icon('heroicon-o-arrow-up-tray')
-                    ->color('danger')
-                    ->schema([
-                        Select::make('tunnel_id')
-                            ->label('Select Tunnel')
-                            ->options(function ($livewire) {
-                                /** @var Cloudflare $account */
-                                $account = $this->getOwnerRecord();
-
-                                return $account->tunnels->pluck('name', 'id');
-                            })
-                            ->default(function ($livewire) {
-                                /** @var Cloudflare $account */
-                                $account = $this->getOwnerRecord();
-
-                                return $account->tunnels->count() === 1 ? $account->tunnels->first()->id : null;
-                            })
-                            ->searchable()
-                            ->required(),
-                    ])
-                    ->action(function (array $data, $livewire) {
-                        try {
-                            $tunnel = \App\Models\CloudflareTunnel::findOrFail($data['tunnel_id']);
-                            $service = app(\App\Services\Cloudflare\CloudflareService::class);
-
-                            $success = $service->updateIngressRules($tunnel);
-
-                            if ($success) {
-                                \Filament\Notifications\Notification::make()
-                                    ->title("Pushed Rules to {$tunnel->name}")
-                                    ->body("Configuration updated on Cloudflare.")
-                                    ->success()
-                                    ->send();
-                            } else {
-                                throw new \Exception('Cloudflare API returned failure.');
-                            }
-
-                        } catch (\Exception $e) {
-                            \Filament\Notifications\Notification::make()
-                                ->title('Push Failed')
-                                ->body($e->getMessage())
-                                ->danger()
-                                ->send();
-                        }
-                    }),
-
             ])
             ->recordActions([
                 EditAction::make()
-                    ->using(function (array $data, $record, $livewire) {
+                    ->using(function (array $data, \App\Models\CloudflareIngressRule $record, $livewire) {
                         if (! empty($data['is_catch_all']) && empty($data['service'])) {
                             $data['service'] = 'http_status:404';
                         }
-                        return $record->update($data);
+                        $record->update($data);
+
+                        return $record;
+                    })
+                    ->after(function ($record) {
+                        $tunnel = $record->tunnel;
+                        $service = app(\App\Services\Cloudflare\CloudflareService::class);
+
+                        // 1. Push Rules
+                        try {
+                            $service->updateIngressRules($tunnel);
+                            \Filament\Notifications\Notification::make()->title('Rules Pushed')->success()->send();
+                        } catch (\Exception $e) {
+                            \Filament\Notifications\Notification::make()->title('Push Failed')->body($e->getMessage())->warning()->send();
+                        }
+
+                        // 2. Publish DNS
+                        if (empty($record->hostname) || $record->hostname === '*') {
+                            return;
+                        }
+
+                        $account = $tunnel->cloudflare;
+                        if (! $account) {
+                            return;
+                        }
+
+                        $matchedDomain = $account->domains->first(function ($domain) use ($record) {
+                            return str_ends_with($record->hostname, $domain->name);
+                        });
+
+                        if ($matchedDomain) {
+                            try {
+                                $service->ensureCnameRecord($matchedDomain, $record->hostname, "{$tunnel->tunnel_id}.cfargotunnel.com");
+                                \Filament\Notifications\Notification::make()->title('DNS Published')->success()->send();
+                            } catch (\Exception $e) {
+                                \Filament\Notifications\Notification::make()->title('DNS Publish Failed')->body($e->getMessage())->warning()->send();
+                            }
+                        }
                     }),
-                DeleteAction::make(),
+                ActionGroup::make([
+                    Action::make('deploy_ingress_rules')
+                        ->slideOver(false)
+                        ->label('Push Rule')
+                        ->icon('mdi-cloud-upload')
+                        ->color('danger')
+                        ->action(function ($record) {
+                            try {
+                                $tunnel = $record->tunnel;
+                                $service = app(\App\Services\Cloudflare\CloudflareService::class);
+
+                                $success = $service->updateIngressRules($tunnel);
+
+                                if ($success) {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title("Pushed Rules to {$tunnel->name}")
+                                        ->body('Configuration updated on Cloudflare.')
+                                        ->success()
+                                        ->send();
+                                } else {
+                                    throw new \Exception('Cloudflare API returned failure.');
+                                }
+
+                            } catch (\Exception $e) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Push Failed')
+                                    ->body($e->getMessage())
+                                    ->danger()
+                                    ->send();
+                            }
+                        }),
+                    Action::make('sync_from_ingress')
+                        ->slideOver(false)
+                        ->label('Publish to DNS')
+                        ->icon('mdi-earth-arrow-right')
+                        ->color('warning')
+                        ->action(function ($record, $livewire) {
+                            try {
+                                /** @var \App\Models\CloudflareTunnel $tunnel */
+                                $tunnel = $record->tunnel;
+
+                                /** @var Cloudflare $account */
+                                $account = $this->getOwnerRecord();
+                                $domains = $account->domains;
+
+                                $service = app(\App\Services\Cloudflare\CloudflareService::class);
+                                $results = ['created' => 0, 'updated' => 0, 'skipped' => 0, 'error' => 0];
+
+                                // Act on just this single rule ($record)
+                                if (empty($record->hostname) || $record->hostname === '*') {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('Skipped')
+                                        ->body('Hostname is empty or wildcard.')
+                                        ->warning()
+                                        ->send();
+
+                                    return;
+                                }
+
+                                // Find matching zone
+                                $matchedDomain = $domains->first(function ($domain) use ($record) {
+                                    return str_ends_with($record->hostname, $domain->name);
+                                });
+
+                                if (! $matchedDomain) {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('No Zone Found')
+                                        ->body("No matching zone found for {$record->hostname}")
+                                        ->danger()
+                                        ->send();
+
+                                    return;
+                                }
+
+                                try {
+                                    $status = $service->ensureCnameRecord(
+                                        $matchedDomain,
+                                        $record->hostname,
+                                        "{$tunnel->tunnel_id}.cfargotunnel.com"
+                                    );
+
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('DNS Published')
+                                        ->body("Record {$status} for {$record->hostname}")
+                                        ->success()
+                                        ->send();
+
+                                } catch (\Exception $e) {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('Publication Error')
+                                        ->body($e->getMessage())
+                                        ->danger()
+                                        ->send();
+                                }
+
+                            } catch (\Exception $e) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Sync Failed')
+                                    ->body($e->getMessage())
+                                    ->danger()
+                                    ->send();
+                            }
+                        }),
+                    DeleteAction::make(),
+                ]),
             ])
             ->toolbarActions([
                 \Filament\Actions\DeleteBulkAction::make(),

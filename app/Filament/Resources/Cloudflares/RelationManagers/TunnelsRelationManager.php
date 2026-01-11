@@ -37,7 +37,7 @@ class TunnelsRelationManager extends RelationManager
                 Tabs::make('Tunnel Configuration')
                     ->tabs([
                         Tab::make('General')
-                            ->icon('heroicon-o-information-circle')
+                            ->icon('mdi-information')
                             ->schema([
                                 TextInput::make('name')
                                     ->required()
@@ -56,7 +56,7 @@ class TunnelsRelationManager extends RelationManager
                                     ->hiddenOn('create')
                                     ->suffixAction(
                                         Action::make('fetchToken')
-                                            ->icon('heroicon-o-key')
+                                            ->icon('mdi-key')
                                             ->label('Fetch Token')
                                             ->tooltip('Fetch existing token from Cloudflare')
                                             ->visible(fn ($record) => $record?->tunnel_id)
@@ -86,7 +86,7 @@ class TunnelsRelationManager extends RelationManager
                             ]),
 
                         Tab::make('Advanced')
-                            ->icon('heroicon-o-cog')
+                            ->icon('mdi-cog')
                             ->schema([
                                 Select::make('protocol')
                                     ->label('Tunnel Protocol')
@@ -164,32 +164,101 @@ class TunnelsRelationManager extends RelationManager
             ->headerActions([
                 CreateAction::make()
                     ->label('New Tunnel')
-                    ->using(function (array $data, string $model, $livewire) {
+                    ->slideOver(false)
+                    ->modalWidth('7xl')
+                    ->steps(\App\Filament\Resources\Cloudflares\Schemas\TunnelWizardForm::getSteps())
+                    ->action(function (array $data, $livewire) {
                         $account = $livewire->ownerRecord;
                         $service = app(\App\Services\Cloudflare\CloudflareService::class);
 
                         try {
-                            // 1. Create remote tunnel
-                            $remoteTunnel = $service->findOrCreateTunnel($account, $data['name']);
+                            // 1. Create tunnel locally with data from step 1
+                            $tunnelName = $data['name'] ?? null;
+                            
+                            // If name is missing (e.g., existing tunnel mode), fetch it from Cloudflare
+                            if (!$tunnelName && isset($data['tunnel_id_created'])) {
+                                try {
+                                    $service = app(\App\Services\Cloudflare\CloudflareService::class);
+                                    $tunnels = $service->listTunnels($account);
+                                    $matchedTunnel = collect($tunnels)->firstWhere('id', $data['tunnel_id_created']);
+                                    $tunnelName = $matchedTunnel['name'] ?? 'tunnel-' . substr($data['tunnel_id_created'], 0, 8);
+                                } catch (\Exception $e) {
+                                    $tunnelName = 'tunnel-' . substr($data['tunnel_id_created'], 0, 8);
+                                }
+                            }
+                            
+                            $tunnel = $account->tunnels()->create([
+                                'tunnel_id' => $data['tunnel_id_created'],
+                                'name' => $tunnelName,
+                                'description' => $data['description'] ?? null,
+                                'token' => $data['tunnel_token_created'],
+                                'status' => 'inactive',
+                                'is_active' => true,
+                            ]);
 
-                            $data['tunnel_id'] = $remoteTunnel['id'];
-                            $data['status'] = 'inactive';
-
-                            // 2. Create local record
-                            $tunnel = $account->tunnels()->create($data);
-
-                            // 3. Fetch token immediately
+                            // 2. Sync tunnel status
                             try {
-                                $token = $service->getTunnelToken($tunnel);
-                                $tunnel->update(['token' => $token]);
+                                $details = $service->getTunnelDetails($tunnel);
+                                if ($details) {
+                                    $tunnel->update([
+                                        'status' => $details['status'],
+                                        'conns_active_at' => $details['conns_active_at'] ?? null,
+                                        'client_version' => $details['client_version'] ?? null,
+                                        'is_active' => ($details['status'] === 'healthy'),
+                                    ]);
+                                }
                             } catch (\Exception $e) {
-                                // Token fetch failed, user can retry manually
+                                // Ignore status sync errors
+                            }
+
+                            // 3. Create ingress rules and DNS
+                            foreach ($data['ingress_rules'] as $ruleData) {
+                                if (empty($ruleData['hostname'])) {
+                                    continue;
+                                }
+
+                                // Create local ingress rule
+                                $tunnel->ingressRules()->create([
+                                    'hostname' => $ruleData['hostname'],
+                                    'service' => $ruleData['service'],
+                                    'path' => $ruleData['path'] ?? null,
+                                    'origin_request' => $ruleData['origin_request'] ?? null,
+                                    'is_catch_all' => false,
+                                ]);
+
+                                // Create DNS record
+                                if (!empty($ruleData['cloudflare_domain_id'])) {
+                                    $domain = \App\Models\CloudflareDomain::find($ruleData['cloudflare_domain_id']);
+                                    if ($domain) {
+                                        try {
+                                            $service->ensureCnameRecord(
+                                                $domain,
+                                                $ruleData['hostname'],
+                                                "{$tunnel->tunnel_id}.cfargotunnel.com"
+                                            );
+                                        } catch (\Exception $e) {
+                                            // Ignore DNS errors, can be done manually
+                                        }
+                                    }
+                                }
+                            }
+
+                            // 4. Push configuration to Cloudflare
+                            try {
+                                $service->updateIngressRules($tunnel);
+                            } catch (\Exception $e) {
                                 \Filament\Notifications\Notification::make()
-                                    ->title('Tunnel Created but Token Fetch Failed')
+                                    ->title('Tunnel Created, Config Push Failed')
                                     ->body($e->getMessage())
                                     ->warning()
                                     ->send();
                             }
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Tunnel Created Successfully')
+                                ->body("Tunnel {$tunnel->name} is ready!")
+                                ->success()
+                                ->send();
 
                             return $tunnel;
                         } catch (\Exception $e) {
@@ -199,13 +268,12 @@ class TunnelsRelationManager extends RelationManager
                                 ->danger()
                                 ->send();
 
-                            // Re-throw to prevent modal closing if possible, or just halt
                             throw $e;
                         }
                     }),
                 Action::make('attach_existing')
                     ->label('Attach Tunnel')
-                    ->icon('heroicon-o-link')
+                    ->icon('mdi-link')
                     ->schema([
                         Select::make('tunnel_id')
                             ->label('Select Tunnel')
@@ -267,7 +335,7 @@ class TunnelsRelationManager extends RelationManager
                     }),
                 Action::make('sync_status')
                     ->label('Sync Status')
-                    ->icon('heroicon-o-arrow-path')
+                    ->icon('mdi-refresh')
                     ->action(function ($livewire) {
                         /** @var \App\Models\Cloudflare $account */
                         $account = $this->getOwnerRecord();
@@ -307,7 +375,7 @@ class TunnelsRelationManager extends RelationManager
                 Action::make('sync_ingress_rules')
                     ->label('Pull Rules')
                     ->slideOver(false)
-                    ->icon('heroicon-o-arrow-down-tray')
+                    ->icon('mdi-cloud-download')
                     ->requiresConfirmation()
                     ->modalHeading('Sync Ingress Rules')
                     ->modalDescription('This will replace all local ingress rules for this tunnel with the configuration from Cloudflare. Are you sure?')
@@ -359,7 +427,92 @@ class TunnelsRelationManager extends RelationManager
                                 ->send();
                         }
                     }),
-                EditAction::make(),
+                EditAction::make()
+                    ->slideOver(false)
+                    ->modalWidth('7xl')
+                    ->steps(fn ($record) => \App\Filament\Resources\Cloudflares\Schemas\TunnelWizardForm::getSteps($record))
+                    ->fillForm(function ($record) {
+                        // Pre-fill form with tunnel and ingress data
+                        return [
+                            'name' => $record->name,
+                            'description' => $record->description,
+                            'tunnel_id' => $record->tunnel_id,
+                            'token' => $record->token,
+                        ];
+                    })
+                    ->action(function (array $data, $record) {
+                        $service = app(\App\Services\Cloudflare\CloudflareService::class);
+
+                        try {
+                            // 1. Update tunnel metadata
+                            $record->update([
+                                'description' => $data['description'] ?? null,
+                            ]);
+
+                            // 2. Sync ingress rules from form
+                            if (isset($data['ingress_rules'])) {
+                                // Delete old rules
+                                $record->ingressRules()->delete();
+
+                                // Create new rules and DNS
+                                foreach ($data['ingress_rules'] as $ruleData) {
+                                    if (empty($ruleData['hostname'])) {
+                                        continue;
+                                    }
+
+                                    $record->ingressRules()->create([
+                                        'hostname' => $ruleData['hostname'],
+                                        'service' => $ruleData['service'],
+                                        'path' => $ruleData['path'] ?? null,
+                                        'origin_request' => $ruleData['origin_request'] ?? null,
+                                        'is_catch_all' => false,
+                                    ]);
+
+                                    // Update DNS record
+                                    if (!empty($ruleData['cloudflare_domain_id'])) {
+                                        $domain = \App\Models\CloudflareDomain::find($ruleData['cloudflare_domain_id']);
+                                        if ($domain) {
+                                            try {
+                                                $service->ensureCnameRecord(
+                                                    $domain,
+                                                    $ruleData['hostname'],
+                                                    "{$record->tunnel_id}.cfargotunnel.com"
+                                                );
+                                            } catch (\Exception $e) {
+                                                // Ignore DNS errors
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // 3. Push updated configuration to Cloudflare
+                                try {
+                                    $service->updateIngressRules($record);
+                                } catch (\Exception $e) {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('Tunnel Updated, Config Push Failed')
+                                        ->body($e->getMessage())
+                                        ->warning()
+                                        ->send();
+                                }
+                            }
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Tunnel Updated Successfully')
+                                ->success()
+                                ->send();
+
+                            return $record;
+                        } catch (\Exception $e) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Tunnel Update Failed')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+
+                            throw $e;
+                        }
+                    }),
                 DeleteAction::make(),
             ])
             ->toolbarActions([
