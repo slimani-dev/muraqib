@@ -120,14 +120,16 @@ class CloudflareService
             if ($rule->is_catch_all) {
                 // Keep the last defined catch-all
                 $userCatchAll = $rule;
+
                 continue;
             }
-            
+
             // Skip rules without hostname that are NOT marked catch-all (invalid state, but safe to skip or treat as catch-all)
             // For now, let's assume if hostname is empty, it's a catch-all
             if (empty($rule->hostname)) {
-                 $userCatchAll = $rule;
-                 continue;
+                $userCatchAll = $rule;
+
+                continue;
             }
 
             $item = [
@@ -142,22 +144,22 @@ class CloudflareService
             if ($rule->origin_request) {
                 $item['originRequest'] = $rule->origin_request;
             }
-            
+
             $ingress[] = $item;
         }
 
         // 2. Append Catch-All Rule (User's or Default)
         if ($userCatchAll) {
-             $item = [
-                 'service' => $userCatchAll->service,
-             ];
-             if ($userCatchAll->origin_request) {
-                 $item['originRequest'] = $userCatchAll->origin_request;
-             }
-             $ingress[] = $item;
+            $item = [
+                'service' => $userCatchAll->service,
+            ];
+            if ($userCatchAll->origin_request) {
+                $item['originRequest'] = $userCatchAll->origin_request;
+            }
+            $ingress[] = $item;
         } else {
-             // Force Default Catch-all 404
-             $ingress[] = ['service' => 'http_status:404'];
+            // Force Default Catch-all 404
+            $ingress[] = ['service' => 'http_status:404'];
         }
 
         $config = [
@@ -175,7 +177,7 @@ class CloudflareService
             ]);
 
         if (! $response->successful()) {
-             throw new \Exception('Cloudflare Error: ' . $response->body());
+            throw new \Exception('Cloudflare Error: '.$response->body());
         }
 
         return true;
@@ -204,12 +206,12 @@ class CloudflareService
         $existing = collect($response->json('result'))->first();
 
         if ($existing) {
-             if ($existing['content'] === $target) {
-                 return 'skipped';
-             }
+            if ($existing['content'] === $target) {
+                return 'skipped';
+            }
 
-             // Update existing
-             $update = Http::withToken($account->api_token)
+            // Update existing
+            $update = Http::withToken($account->api_token)
                 ->put("$this->baseUrl/zones/{$domain->zone_id}/dns_records/{$existing['id']}", [
                     'type' => 'CNAME',
                     'name' => $name,
@@ -217,8 +219,8 @@ class CloudflareService
                     'proxied' => true,
                     'ttl' => 1, // Auto
                 ]);
-             
-             return $update->successful() ? 'updated' : 'error';
+
+            return $update->successful() ? 'updated' : 'error';
         }
 
         // 2. Create new

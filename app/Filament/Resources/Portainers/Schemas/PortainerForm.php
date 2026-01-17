@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\Portainers\Schemas;
 
+use App\Enums\PortainerStatus;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
 class PortainerForm
@@ -11,22 +14,14 @@ class PortainerForm
         return $schema
             ->columns(1)
             ->components([
-                \Filament\Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
-                \Filament\Forms\Components\TextInput::make('url')
-                    ->required()
+                TextInput::make('name')
+                    ->required(),
+                TextInput::make('url')
                     ->url()
-                    ->maxLength(255),
-                \Filament\Forms\Components\TextInput::make('access_token')
-                    ->required()
+                    ->required(),
+                TextInput::make('access_token')
                     ->password()
-                    ->revealable()
-                    ->maxLength(255),
-                \Filament\Forms\Components\ToggleButtons::make('status')
-                    ->options(\App\Enums\PortainerStatus::class)
-                    ->inline()
-                    ->default(\App\Enums\PortainerStatus::Active),
+                    ->required(),
             ]);
     }
 }

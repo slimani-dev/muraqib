@@ -3,9 +3,16 @@
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
 @source '../../../../vendor/codewithdennis/filament-simple-alert/resources/**/*.blade.php';
+@source '../../../../resources/views/vendor/filament-ace-editor/**/*.blade.php';
 
 @source inline('animate-{spin,pulse,bounce}');
 
 .torchlight .line {
     @apply whitespace-pre-wrap break-all;
+}
+
+.no-header {
+    thead {
+        @apply hidden
+    }
 }

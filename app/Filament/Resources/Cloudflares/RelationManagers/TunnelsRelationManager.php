@@ -150,8 +150,8 @@ class TunnelsRelationManager extends RelationManager
                 TextColumn::make('status')
                     ->badge()
                     ->description(fn ($record) => new \Illuminate\Support\HtmlString(
-                        '<span class="text-xs text-gray-400">' . 
-                        ($record->status_checked_at ? $record->status_checked_at->diffForHumans(short: true) : 'Not checked') . 
+                        '<span class="text-xs text-gray-400">'.
+                        ($record->status_checked_at ? $record->status_checked_at->diffForHumans(short: true) : 'Not checked').
                         '</span>'
                     )),
                 TextColumn::make('client_version')

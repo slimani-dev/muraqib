@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@inertiajs/core':
+        specifier: ^2.3.8
+        version: 2.3.8
       '@inertiajs/vue3':
         specifier: ^2.3.7
         version: 2.3.7(vue@3.5.26(typescript@5.9.3))
@@ -429,6 +432,9 @@ packages:
 
   '@inertiajs/core@2.3.7':
     resolution: {integrity: sha512-gBu2m71KoAu3kyaBDeszYiInkPqR0lIe+mRpI1JQyOlX1CT+Hwn+Tk5O7Dsr3dRMphEkRj6H9oVmJ19jHSNTIA==}
+
+  '@inertiajs/core@2.3.8':
+    resolution: {integrity: sha512-WIF/ea9FH+yR/nLLrOX9TNN20X2pcHZBLQJYCLZ/oLMaS6GSlnMtHZv5GtKNjmIpSiMvg2PiAqtDF/mvbnr+rQ==}
 
   '@inertiajs/vue3@2.3.7':
     resolution: {integrity: sha512-jaJtOPjulmLy4uKHL8BlYRjXGKk5FMccjczCePJzKS1JJYaF0aixpY046HzlKDtbnU9xn2h2tZRwu4kQ1uoTTg==}
@@ -2677,6 +2683,16 @@ snapshots:
   '@humanwhocodes/retry@0.4.3': {}
 
   '@inertiajs/core@2.3.7':
+    dependencies:
+      '@types/lodash-es': 4.17.12
+      axios: 1.13.2
+      laravel-precognition: 1.0.0
+      lodash-es: 4.17.22
+      qs: 6.14.1
+    transitivePeerDependencies:
+      - debug
+
+  '@inertiajs/core@2.3.8':
     dependencies:
       '@types/lodash-es': 4.17.12
       axios: 1.13.2

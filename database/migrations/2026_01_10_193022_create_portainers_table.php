@@ -17,6 +17,10 @@ return new class extends Migration
             $table->string('url');
             $table->string('access_token');
             $table->string('status')->default('active');
+            $table->string('version')->nullable();
+            $table->string('uptime')->nullable();
+            $table->timestamp('last_synced_at')->nullable();
+            $table->json('data')->nullable();
             $table->timestamps();
         });
     }

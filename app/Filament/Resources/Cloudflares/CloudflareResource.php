@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Cloudflares;
 
-use App\Filament\Resources\Cloudflares\Pages\EditCloudflare;
 use App\Filament\Resources\Cloudflares\Pages\ListCloudflares;
 use App\Filament\Resources\Cloudflares\Pages\ViewCloudflare;
 use App\Filament\Resources\Cloudflares\Schemas\CloudflareForm;

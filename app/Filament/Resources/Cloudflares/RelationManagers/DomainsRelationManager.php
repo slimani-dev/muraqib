@@ -119,7 +119,7 @@ class DomainsRelationManager extends RelationManager
                                 ->send();
                         }
                     }),
-                //CreateAction::make(),
+                // CreateAction::make(),
             ])
             ->recordActions([
                 \Filament\Actions\Action::make('sync_dns_records')
@@ -161,12 +161,12 @@ class DomainsRelationManager extends RelationManager
                                 ->send();
                         }
                     }),
-                //EditAction::make(),
-                //DeleteAction::make(),
+                // EditAction::make(),
+                // DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    //DeleteBulkAction::make(),
+                    // DeleteBulkAction::make(),
                 ]),
             ]);
     }

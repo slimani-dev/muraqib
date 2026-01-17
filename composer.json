@@ -6,7 +6,7 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "codeat3/blade-simple-icons": "^8.1",
         "codewithdennis/filament-simple-alert": "^4.0",
         "filament/filament": "^4.0",
@@ -18,6 +18,7 @@
         "laravel/tinker": "^2.10.1",
         "laravel/wayfinder": "^0.1.9",
         "postare/blade-mdi": "^1.1",
+        "riodwanto/filament-ace-editor": "4.x-dev@dev",
         "spatie/laravel-settings": "^3.6",
         "syamsoul/laravel-set-env": "^1.3",
         "webbingbrasil/filament-copyactions": "^4.0"
