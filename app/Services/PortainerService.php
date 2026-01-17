@@ -212,11 +212,12 @@ class PortainerService
 
         if ($info) {
             $results['connected'] = true;
+            // Update initial info
             $this->portainer->update([
                 'version' => $info['Version'] ?? null,
                 'uptime' => null, // Not available in API
                 'last_synced_at' => now(),
-                'data' => $info,
+                'data' => array_merge($this->portainer->data ?? [], ['info' => $info]),
             ]);
         } else {
             return $results; // Stop if no connection
@@ -230,6 +231,28 @@ class PortainerService
 
         // 4. Sync Containers
         $this->syncContainers(true);
+
+        // 5. Cache Stats
+        // We fetch endpoints again here to get the count. 
+        // This is an extra request but necessary since we don't store endpoints locally.
+        $endpoints = $this->getEndpoints();
+        
+        $stats = [
+            'endpoints_count' => count($endpoints),
+            // We can also cache DB counts if we really want to avoid even those DB queries, 
+            // but Model::count() is usually fast enough. 
+            // Let's cache them for consistency so the infolist is purely reading from the cached JSON if desired,
+            // but the plan was to use relations for these.
+            // I'll stick to just endpoints_count here as per plan, but adding others wouldn't hurt.
+        ];
+
+        $data = $this->portainer->data ?? [];
+        $data['stats'] = $stats;
+
+        // Perform a final quiet update to save the stats
+        $this->portainer->updateQuietly([
+            'data' => $data,
+        ]);
 
         return $results;
     }

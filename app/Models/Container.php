@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Container extends Model
 {
@@ -32,7 +33,7 @@ class Container extends Model
         'is_main' => 'boolean',
     ];
 
-    public function portainer()
+    public function portainer(): BelongsTo
     {
         return $this->belongsTo(Portainer::class);
     }

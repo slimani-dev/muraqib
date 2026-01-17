@@ -26,7 +26,6 @@ class ListCloudflares extends ListRecords
                             'name' => $data['name'],
                             'account_id' => $data['account_id'],
                             'api_token' => $data['api_token'],
-                            'account_email' => 'wizard@custom.com',
                         ]);
 
                         $service = app(\App\Services\Cloudflare\CloudflareService::class);
@@ -123,7 +122,18 @@ class ListCloudflares extends ListRecords
                             ->send();
                     }
                 }),
-            CreateAction::make(),
+            CreateAction::make()
+                ->createAnother(false)
+                ->before(function (CreateAction $action, array $data) {
+                    if (($data['connection_status'] ?? null) !== 'success') {
+                        $data['connection_status'] = 'error';
+                        $data['connection_message'] = 'Please test the connection before creating.';
+
+                        $action->getLivewire()->getMountedActionForm()->fill($data);
+
+                        $action->halt();
+                    }
+                }),
         ];
     }
 }

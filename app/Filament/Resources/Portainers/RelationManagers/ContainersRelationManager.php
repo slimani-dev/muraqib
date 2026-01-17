@@ -90,7 +90,7 @@ class ContainersRelationManager extends RelationManager
 
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('stack_name')
+                /*Tables\Filters\SelectFilter::make('stack_name')
                     ->label('Stack')
                     ->options(fn(ContainersRelationManager $livewire) => Container::where('portainer_id', $livewire->getOwnerRecord()->id)->distinct()->whereNotNull('stack_name')->pluck('stack_name', 'stack_name')->toArray())
                     ->searchable(),
@@ -107,7 +107,7 @@ class ContainersRelationManager extends RelationManager
                 Tables\Filters\SelectFilter::make('endpoint_name')
                     ->label('Endpoint')
                     ->options(fn(ContainersRelationManager $livewire) => Container::where('portainer_id', $livewire->getOwnerRecord()->id)->distinct()->whereNotNull('endpoint_name')->pluck('endpoint_name', 'endpoint_name')->toArray())
-                    ->searchable(),
+                    ->searchable(),*/
             ])
             ->headerActions([
                 // Sync action removed

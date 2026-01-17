@@ -53,10 +53,10 @@ class AppServiceProvider extends ServiceProvider
                 ->persistColumnSearchesInSession();;
         });
 
-        \Illuminate\Support\Facades\DB::listen(function ($query) {
-            \Illuminate\Support\Facades\Log::info($query->sql, $query->bindings);
-            \Illuminate\Support\Facades\Log::info($query->time . 'ms');
-        });
+//        \Illuminate\Support\Facades\DB::listen(function ($query) {
+//            \Illuminate\Support\Facades\Log::info($query->sql, $query->bindings);
+//            \Illuminate\Support\Facades\Log::info($query->time . 'ms');
+//        });
 
 
     }
