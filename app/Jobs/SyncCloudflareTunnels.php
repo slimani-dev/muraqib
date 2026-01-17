@@ -38,7 +38,7 @@ class SyncCloudflareTunnels implements ShouldQueue
 
                     $isValid = false;
                     try {
-                        $isValid = $service->verifyToken($account->api_token);
+                        $isValid = $service->verifyToken($account->api_token, $account->account_id);
                     } catch (\Exception $e) {
                         Log::error("Cloudflare ID {$account->id} check error: ".$e->getMessage());
                     }

@@ -8,6 +8,7 @@ use App\Services\Cloudflare\CloudflareService;
 use CodeWithDennis\SimpleAlert\Components\SimpleAlert;
 use Filament\Actions;
 use Filament\Forms;
+use Filament\Schemas;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components;
 use Filament\Support\Enums\IconPosition;
@@ -42,14 +43,14 @@ class WizardCloudflareForm
                         ->helperText(new \Illuminate\Support\HtmlString('
                             <div class="space-y-2">
                                 <p>You can extract this from your Cloudflare dashboard URL.</p>
-                                <img src="https://i.postimg.cc/NGmPrwhs/image.png" alt="Cloudflare Account ID Location" class="rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm max-w-sm" />
+                                <img src="https://i.postimg.cc/YSVMrCJG/image.png" alt="Cloudflare Account ID Location" class="rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm max-w-sm" />
                             </div>
                         '))
                         ->hintAction(
                             Actions\Action::make('openDashboard')
                                 ->label('Open Dashboard')
                                 ->icon('heroicon-m-arrow-top-right-on-square')
-                                ->url('https://dash.cloudflare.com', shouldOpenInNewTab: true)
+                                ->url('https://dash.cloudflare.com/?to=/:account/api-tokens', shouldOpenInNewTab: true)
                         ),
 
                     Forms\Components\TextInput::make('api_token')
@@ -62,27 +63,18 @@ class WizardCloudflareForm
                                 ->label('Create Token')
                                 ->icon('heroicon-m-arrow-top-right-on-square')
                                 ->url('https://dash.cloudflare.com/profile/api-tokens', shouldOpenInNewTab: true)
-                        )
-                        ->helperText(new \Illuminate\Support\HtmlString('
-                            <div class="space-y-2">
-                                <p class="font-medium">Required Permissions:</p>
-                                <div class="flex flex-wrap gap-2 text-xs">
-                                    <span class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-400">
-                                        Account / Cloudflare Tunnel / Edit
-                                    </span>
-                                    <span class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-400">
-                                        Zone / DNS / Edit
-                                    </span>
-                                </div>
-                            </div>
-                        ')),
+                        ),
+
+                    Components\Image::make('https://i.postimg.cc/HLvFwv2F/image.png', '')
+                        ->imageWidth('full')
+                        ->imageHeight('auto'),
 
                     SimpleAlert::make('verify_error_alert')
                         ->danger()
                         ->title('Connection Failed')
-                        ->description(fn ($get) => $get('verify_message'))
+                        ->description(fn($get) => $get('verify_message'))
                         ->icon('heroicon-m-x-circle')
-                        ->visible(fn ($get) => $get('verify_status') === 'error'),
+                        ->visible(fn($get) => $get('verify_status') === 'error'),
 
                     Forms\Components\Hidden::make('verify_status'),
                     Forms\Components\Hidden::make('verify_message'),
@@ -91,8 +83,8 @@ class WizardCloudflareForm
                     // Verify Token
                     $service = app(CloudflareService::class);
                     try {
-                        $valid = $service->verifyToken($state['api_token']);
-                        if (! $valid) {
+                        $valid = $service->verifyToken($state['api_token'], $state['account_id'] ?? null);
+                        if (!$valid) {
                             throw new \Exception('Invalid API Token.');
                         }
 
@@ -102,7 +94,7 @@ class WizardCloudflareForm
                         try {
                             $tunnels = $service->listTunnels($mockAccount);
                             $tunnelsCollection = collect($tunnels);
-                            Cache::put('wizard_tunnels_'.md5($state['api_token']), $tunnelsCollection, 300);
+                            Cache::put('wizard_tunnels_' . md5($state['api_token']), $tunnelsCollection, 300);
 
                             // Auto-select mode
                             $set('tunnel_mode', $tunnelsCollection->isEmpty() ? 'create' : null);
@@ -113,7 +105,7 @@ class WizardCloudflareForm
                         try {
                             $zones = $service->listZones($state['api_token']);
                             $zonesCollection = collect($zones);
-                            Cache::put('wizard_zones_'.md5($state['api_token']), $zonesCollection, 300);
+                            Cache::put('wizard_zones_' . md5($state['api_token']), $zonesCollection, 300);
 
                             if ($zonesCollection->count() === 1) {
                                 $set('zone_id', $zonesCollection->first()['id']);
@@ -148,7 +140,7 @@ class WizardCloudflareForm
                             $options = ['create' => 'Create New Tunnel'];
 
                             if ($token) {
-                                $cacheKey = 'wizard_tunnels_'.md5($token);
+                                $cacheKey = 'wizard_tunnels_' . md5($token);
                                 if (Cache::has($cacheKey)) {
                                     $tunnels = Cache::get($cacheKey);
                                     if ($tunnels && $tunnels->isNotEmpty()) {
@@ -160,24 +152,24 @@ class WizardCloudflareForm
                             return $options;
                         })
                         ->live()
-                        ->afterStateUpdated(fn ($state, $set) => $state === 'create' ? $set('ingress_rules', [['hostname' => '', 'service' => 'http://localhost:80']]) : null),
+                        ->afterStateUpdated(fn($state, $set) => $state === 'create' ? $set('ingress_rules', [['hostname' => '', 'service' => 'http://localhost:80']]) : null),
 
                     Forms\Components\TextInput::make('new_tunnel_name')
                         ->default('muraqib-node')
                         ->helperText('A descriptive name for your tunnel. Use alphanumeric characters and hyphens.')
-                        ->visible(fn ($get) => $get('tunnel_mode') === 'create')
-                        ->required(fn ($get) => $get('tunnel_mode') === 'create'),
+                        ->visible(fn($get) => $get('tunnel_mode') === 'create')
+                        ->required(fn($get) => $get('tunnel_mode') === 'create'),
 
                     Forms\Components\Select::make('existing_tunnel_id')
-                        ->visible(fn ($get) => $get('tunnel_mode') === 'existing')
-                        ->required(fn ($get) => $get('tunnel_mode') === 'existing')
+                        ->visible(fn($get) => $get('tunnel_mode') === 'existing')
+                        ->required(fn($get) => $get('tunnel_mode') === 'existing')
                         ->helperText('Selecting an existing tunnel will pre-populate its current configuration.')
                         ->options(function ($get) {
                             $token = $get('api_token');
-                            if (! $token) {
+                            if (!$token) {
                                 return [];
                             }
-                            $key = 'wizard_tunnels_'.md5($token);
+                            $key = 'wizard_tunnels_' . md5($token);
                             if (Cache::has($key)) {
                                 return Cache::get($key)->pluck('name', 'id');
                             }
@@ -186,12 +178,12 @@ class WizardCloudflareForm
                         })
                         ->live()
                         ->afterStateUpdated(function ($state, $set, $get) {
-                            if (! $state) {
+                            if (!$state) {
                                 return;
                             }
                             $token = $get('api_token');
                             $accountId = $get('account_id');
-                            if (! $token) {
+                            if (!$token) {
                                 return;
                             }
 
@@ -204,7 +196,7 @@ class WizardCloudflareForm
                                 if (is_array($ingress)) {
                                     $rules = [];
                                     foreach ($ingress as $rule) {
-                                        if (! empty($rule['hostname'])) {
+                                        if (!empty($rule['hostname'])) {
                                             $item = ['hostname' => $rule['hostname'], 'service' => $rule['service'] ?? '', 'path' => $rule['path'] ?? null];
                                             if (isset($rule['originRequest'])) {
                                                 $item['origin_request'] = $rule['originRequest'];
@@ -223,9 +215,9 @@ class WizardCloudflareForm
                     SimpleAlert::make('fetch_error_alert')
                         ->danger()
                         ->title('Token Fetch Failed')
-                        ->description(fn ($get) => $get('fetch_message'))
+                        ->description(fn($get) => $get('fetch_message'))
                         ->icon('heroicon-m-x-circle')
-                        ->visible(fn ($get) => $get('fetch_status') === 'error'),
+                        ->visible(fn($get) => $get('fetch_status') === 'error'),
 
                     Forms\Components\Hidden::make('fetch_status'),
                     Forms\Components\Hidden::make('fetch_message'),
@@ -236,7 +228,7 @@ class WizardCloudflareForm
                     $accountId = $get('account_id');
                     $mode = $state['tunnel_mode'];
 
-                    if (! $token || ! $accountId) {
+                    if (!$token || !$accountId) {
                         $set('fetch_status', 'error');
                         $set('fetch_message', 'API token and Account ID are required');
 
@@ -255,7 +247,7 @@ class WizardCloudflareForm
                             $tunnelId = $state['existing_tunnel_id'];
                         }
 
-                        if (! $tunnelId) {
+                        if (!$tunnelId) {
                             throw new \Exception('Please select or name a tunnel first.');
                         }
 
@@ -278,7 +270,7 @@ class WizardCloudflareForm
 
             Components\Wizard\Step::make('Installation')
                 ->description('Install Cloudflare Agent')
-                ->visible(fn ($get) => filled($get('tunnel_token')))
+                ->visible(fn($get) => filled($get('tunnel_token')))
                 ->schema([
                     SimpleAlert::make('install_guidelines')
                         ->info()
@@ -418,28 +410,28 @@ BASH;
                         ->title('Tunnel Disconnected')
                         ->description('Your tunnel is not yet connected to Cloudflare. Please run the installer above.')
                         ->icon('heroicon-m-exclamation-triangle')
-                        ->visible(fn ($get) => filled($get('tunnel_status')) && $get('tunnel_status') === 'down'),
+                        ->visible(fn($get) => filled($get('tunnel_status')) && $get('tunnel_status') === 'down'),
 
                     SimpleAlert::make('connection_alert')
                         ->success()
                         ->title('Connection Status')
-                        ->description(fn ($get) => $get('connection_message'))
+                        ->description(fn($get) => $get('connection_message'))
                         ->icon('heroicon-m-check-circle')
-                        ->visible(fn ($get) => $get('connection_status') === 'success'),
+                        ->visible(fn($get) => $get('connection_status') === 'success'),
 
                     SimpleAlert::make('connection_warning_alert')
                         ->warning()
                         ->title('Connection Warning')
-                        ->description(fn ($get) => $get('connection_message'))
+                        ->description(fn($get) => $get('connection_message'))
                         ->icon('heroicon-m-exclamation-triangle')
-                        ->visible(fn ($get) => $get('connection_status') === 'warning'),
+                        ->visible(fn($get) => $get('connection_status') === 'warning'),
 
                     SimpleAlert::make('connection_error_alert')
                         ->danger()
                         ->title('Connection Error')
-                        ->description(fn ($get) => $get('connection_message'))
+                        ->description(fn($get) => $get('connection_message'))
                         ->icon('heroicon-m-x-circle')
-                        ->visible(fn ($get) => $get('connection_status') === 'error'),
+                        ->visible(fn($get) => $get('connection_status') === 'error'),
 
                     Components\Actions::make([
                         Actions\Action::make('checkConnection')
@@ -448,7 +440,7 @@ BASH;
                             ->color('warning')
                             ->action(function ($get, $set) {
                                 $currentTunnelId = $get('current_tunnel_id');
-                                if (! $currentTunnelId) {
+                                if (!$currentTunnelId) {
                                     $set('connection_status', 'error');
                                     $set('connection_message', 'No tunnel selected. Please fetch tunnel token first.');
                                     $set('tunnel_status', 'down');
@@ -474,7 +466,7 @@ BASH;
                                         $set('connection_message', 'Tunnel is connected and healthy');
                                     } else {
                                         $set('connection_status', 'warning');
-                                        $set('connection_message', 'Tunnel status: '.$status);
+                                        $set('connection_message', 'Tunnel status: ' . $status);
                                     }
                                 } catch (\Exception $e) {
                                     $set('connection_status', 'error');
@@ -513,10 +505,10 @@ BASH;
                     Forms\Components\Select::make('zone_id')
                         ->options(function ($get) {
                             $token = $get('api_token');
-                            if (! $token) {
+                            if (!$token) {
                                 return [];
                             }
-                            $key = 'wizard_zones_'.md5($token);
+                            $key = 'wizard_zones_' . md5($token);
                             if (Cache::has($key)) {
                                 return Cache::get($key)->pluck('name', 'id');
                             }
@@ -528,10 +520,10 @@ BASH;
                         ->live(),
 
                     Forms\Components\Repeater::make('ingress_rules')
-                        ->itemLabel(fn (array $state): ?string => $state['hostname'] ?? null)
+                        ->itemLabel(fn(array $state): ?string => $state['hostname'] ?? null)
                         ->collapsed()
-                        ->collapseAllAction(fn (Actions\Action $action) => $action->label('Collapse all members')->hidden())
-                        ->expandAllAction(fn (Actions\Action $action) => $action->label('Collapse all members')->hidden())
+                        ->collapseAllAction(fn(Actions\Action $action) => $action->label('Collapse all members')->hidden())
+                        ->expandAllAction(fn(Actions\Action $action) => $action->label('Collapse all members')->hidden())
                         ->schema([
                             Components\Grid::make(2)->schema([
                                 Forms\Components\TextInput::make('hostname')->required(),
@@ -552,16 +544,16 @@ BASH;
                     SimpleAlert::make('deploy_alert')
                         ->success()
                         ->title('Deployment Successful')
-                        ->description(fn ($get) => $get('deploy_message'))
+                        ->description(fn($get) => $get('deploy_message'))
                         ->icon('heroicon-m-check-circle')
-                        ->visible(fn ($get) => $get('deploy_status') === 'success'),
+                        ->visible(fn($get) => $get('deploy_status') === 'success'),
 
                     SimpleAlert::make('deploy_error_alert')
                         ->danger()
                         ->title('Deployment Failed')
-                        ->description(fn ($get) => $get('deploy_message'))
+                        ->description(fn($get) => $get('deploy_message'))
                         ->icon('heroicon-m-x-circle')
-                        ->visible(fn ($get) => $get('deploy_status') === 'error'),
+                        ->visible(fn($get) => $get('deploy_status') === 'error'),
 
                     Forms\Components\Hidden::make('deploy_status'),
                     Forms\Components\Hidden::make('deploy_message'),

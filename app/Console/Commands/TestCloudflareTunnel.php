@@ -39,7 +39,7 @@ class TestCloudflareTunnel extends Command
         // 1. Verify Token
         $this->comment('1. Verifying Token...');
         try {
-            $isValid = $service->verifyToken($apiToken);
+            $isValid = $service->verifyToken($apiToken, $accountId);
             if ($isValid) {
                 $this->info('✅ Token is valid.');
             } else {

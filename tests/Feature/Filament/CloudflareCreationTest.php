@@ -59,3 +59,4 @@ it('cannot create cloudflare when connection is failed', function () {
     // Check that we got the validation error (if we want to be specific)
     // $livewire->assertHasFormErrors(['connection_status']); // Not a real validation error, it's a halt.
 });
+

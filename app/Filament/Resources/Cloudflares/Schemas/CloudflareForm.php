@@ -55,9 +55,10 @@ class CloudflareForm
                             }
 
                             $service = app(\App\Services\Cloudflare\CloudflareService::class);
+                            $accountId = $get('account_id');
 
                             try {
-                                if ($service->verifyToken($token)) {
+                                if ($service->verifyToken($token, $accountId)) {
                                     $set('connection_status', 'success');
                                     $set('connection_message', 'Connected successfully.');
                                 } else {

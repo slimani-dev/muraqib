@@ -12,9 +12,13 @@ class CloudflareService
     /**
      * 1. Validate Token
      */
-    public function verifyToken(string $token): bool
+    public function verifyToken(string $token, ?string $accountId = null): bool
     {
-        $response = Http::withToken($token)->get("$this->baseUrl/user/tokens/verify");
+        $endpoint = $accountId
+            ? "$this->baseUrl/accounts/$accountId/tokens/verify"
+            : "$this->baseUrl/user/tokens/verify";
+
+        $response = Http::withToken($token)->get($endpoint);
 
         return $response->json('result.status') === 'active';
     }

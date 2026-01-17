@@ -63,7 +63,7 @@ class CloudflareController extends Controller
             'api_token' => 'required|string',
         ]);
 
-        $valid = $this->cloudflare->verifyToken($request->api_token);
+        $valid = $this->cloudflare->verifyToken($request->api_token, $request->account_id);
 
         if (! $valid) {
             return response()->json(['message' => 'Invalid API Token'], 422);
