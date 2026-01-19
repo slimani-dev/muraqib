@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8be41fb5c91041400726c3840a29768f",
+    "content-hash": "4aba0136bd62eb8c70039e29299a91e2",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -2387,6 +2387,81 @@
             "time": "2026-01-13T15:29:20+00:00"
         },
         {
+            "name": "jaocero/radio-deck",
+            "version": "v2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/199ocero/radio-deck.git",
+                "reference": "15b72137cdc0e91e8f0b98f1f0f7d3f0e1c209b4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/199ocero/radio-deck/zipball/15b72137cdc0e91e8f0b98f1f0f7d3f0e1c209b4",
+                "reference": "15b72137cdc0e91e8f0b98f1f0f7d3f0e1c209b4",
+                "shasum": ""
+            },
+            "require": {
+                "filament/forms": "^4.0",
+                "illuminate/contracts": "^11.0|^12.0",
+                "php": "^8.2",
+                "spatie/laravel-package-tools": "^1.15.0"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.24",
+                "nunomaduro/collision": "^8.1",
+                "orchestra/testbench": "^9.0",
+                "pestphp/pest": "^2.0",
+                "pestphp/pest-plugin-arch": "^2.0",
+                "pestphp/pest-plugin-laravel": "^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "JaOcero\\RadioDeck\\RadioDeckServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "JaOcero\\RadioDeck\\": "src/",
+                    "JaOcero\\RadioDeck\\Database\\Factories\\": "database/factories/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jay-Are Ocero",
+                    "email": "199ocero@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Turn filament default radio button into a selectable card with icons, title and description.",
+            "homepage": "https://github.com/jaocero/radio-deck",
+            "keywords": [
+                "filament-form",
+                "filament-plugin",
+                "filamentphp",
+                "jaocero",
+                "laravel",
+                "radio-deck"
+            ],
+            "support": {
+                "issues": "https://github.com/jaocero/radio-deck/issues",
+                "source": "https://github.com/jaocero/radio-deck"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/jaocero",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-09-14T12:02:21+00:00"
+        },
+        {
             "name": "kirschbaum-development/eloquent-power-joins",
             "version": "4.2.11",
             "source": {
@@ -3860,6 +3935,81 @@
                 }
             ],
             "time": "2026-01-15T06:54:53+00:00"
+        },
+        {
+            "name": "leandrocfe/filament-apex-charts",
+            "version": "4.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/leandrocfe/filament-apex-charts.git",
+                "reference": "c9912bcee08ce324892f20f32ea1351da1639a95"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/leandrocfe/filament-apex-charts/zipball/c9912bcee08ce324892f20f32ea1351da1639a95",
+                "reference": "c9912bcee08ce324892f20f32ea1351da1639a95",
+                "shasum": ""
+            },
+            "require": {
+                "filament/schemas": "^v4.0.0",
+                "filament/widgets": "^v4.0.0",
+                "illuminate/contracts": "^11.0|^12.0",
+                "livewire/livewire": "^3.0",
+                "php": "^8.2",
+                "spatie/laravel-package-tools": "^1.13.0"
+            },
+            "require-dev": {
+                "larastan/larastan": "^3.0.1",
+                "laravel/pint": "^1.0",
+                "nunomaduro/collision": "^8.0",
+                "orchestra/testbench": "^9.0",
+                "pestphp/pest": "^3.0",
+                "pestphp/pest-plugin-laravel": "^3.0",
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpunit/phpunit": "^11.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "FilamentApexCharts": "Leandrocfe\\FilamentApexCharts\\Facades\\FilamentApexCharts"
+                    },
+                    "providers": [
+                        "Leandrocfe\\FilamentApexCharts\\FilamentApexChartsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Leandrocfe\\FilamentApexCharts\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Leandro Costa Ferreira",
+                    "email": "leandrocfe@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Apex Charts integration for Filament PHP.",
+            "homepage": "https://github.com/leandrocfe/filament-apex-charts",
+            "keywords": [
+                "apexcharts",
+                "filament-apex-charts",
+                "laravel",
+                "leandrocfe"
+            ],
+            "support": {
+                "issues": "https://github.com/leandrocfe/filament-apex-charts/issues",
+                "source": "https://github.com/leandrocfe/filament-apex-charts/tree/4.0.0"
+            },
+            "time": "2025-10-02T14:31:50+00:00"
         },
         {
             "name": "livewire/livewire",

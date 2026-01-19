@@ -58,6 +58,29 @@ class DomainsRelationManager extends RelationManager
                     ->columns(4)
                     ->columnSpanFull()
                     ->label('DNS Records'),
+
+                \Filament\Forms\Components\Repeater::make('accessTokens')
+                    ->relationship('accessTokens')
+                    ->schema([
+                        \Filament\Forms\Components\TextInput::make('name')
+                            ->label('Subdomain')
+                            ->required()
+                            ->readOnly(),
+                        \Filament\Forms\Components\TextInput::make('client_id')
+                            ->label('Client ID')
+                            ->readOnly(),
+                        \Filament\Forms\Components\TextInput::make('app_id')
+                            ->label('Cloudflare App ID')
+                            ->readOnly(),
+                        \Filament\Forms\Components\TextInput::make('policy_id')
+                            ->label('Policy ID')
+                            ->readOnly(),
+                    ])
+                    ->columns(2)
+                    ->columnSpanFull()
+                    ->addable(false)
+                    ->deletable(true)
+                    ->label('Access Tokens (One-Click Protection)'),
             ]);
     }
 
@@ -131,10 +154,6 @@ class DomainsRelationManager extends RelationManager
                             $records = $service->listDnsRecords($record); // $record is CloudflareDomain
 
                             // Clear existing records? Or Update?
-                            // Since we want to mirror remote state, deleting and recreating is often safer for simple lists
-                            // But usually users might have extra fields?
-                            // CloudflareDnsRecord model check needed. Assuming fillable.
-
                             $record->dnsRecords()->delete();
 
                             $count = 0;
@@ -161,6 +180,7 @@ class DomainsRelationManager extends RelationManager
                                 ->send();
                         }
                     }),
+
                 // EditAction::make(),
                 // DeleteAction::make(),
             ])

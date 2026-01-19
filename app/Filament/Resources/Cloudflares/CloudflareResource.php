@@ -41,6 +41,7 @@ class CloudflareResource extends Resource
             RelationManagers\DomainsRelationManager::class,
             RelationManagers\IngressRulesRelationManager::class,
             RelationManagers\DnsRecordsRelationManager::class,
+            RelationManagers\AccessTokensRelationManager::class,
         ];
     }
 

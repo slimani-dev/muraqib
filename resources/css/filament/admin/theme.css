@@ -4,6 +4,7 @@
 @source '../../../../resources/views/filament/**/*';
 @source '../../../../vendor/codewithdennis/filament-simple-alert/resources/**/*.blade.php';
 @source '../../../../resources/views/vendor/filament-ace-editor/**/*.blade.php';
+@source '../../../../vendor/jaocero/radio-deck/resources/views';
 
 @source inline('animate-{spin,pulse,bounce}');
 
@@ -15,4 +16,20 @@
     thead {
         @apply hidden
     }
+}
+
+.disk_space_widget_item {
+    .fi-in-entry {
+        .fi-in-entry-content-col {
+            .fi-inline {
+                div {
+                    @apply w-full
+                }
+            }
+        }
+    }
+}
+
+.fi-wi-stats-overview-stat-value {
+    @apply text-xl
 }

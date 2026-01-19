@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Cloudflare extends Model
 {
+    use \Illuminate\Database\Eloquent\Factories\HasFactory;
+
     protected $fillable = [
         'name',
         'account_id',
@@ -36,5 +38,10 @@ class Cloudflare extends Model
     public function dnsRecords(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
     {
         return $this->hasManyThrough(CloudflareDnsRecord::class, CloudflareDomain::class);
+    }
+
+    public function accessTokens(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(CloudflareAccess::class, CloudflareDomain::class);
     }
 }

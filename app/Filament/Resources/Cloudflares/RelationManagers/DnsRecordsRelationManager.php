@@ -53,7 +53,6 @@ class DnsRecordsRelationManager extends RelationManager
                     ->limit(50)
                     ->toggleable()
                     ->formatStateUsing(function ($state) {
-                        // Check if content looks like a tunnel UUID
                         if (preg_match('/^([a-f0-9-]{36})\.cfargotunnel\.com$/', $state, $matches)) {
                             $uuid = $matches[1];
                             $tunnel = \App\Models\CloudflareTunnel::where('tunnel_id', $uuid)->first();
@@ -106,7 +105,6 @@ class DnsRecordsRelationManager extends RelationManager
                         /** @var Cloudflare $account */
                         $account = $this->getOwnerRecord();
 
-                        // Get tunnels for this account
                         return \App\Models\CloudflareTunnel::where('cloudflare_id', $account->id)
                             ->pluck('name', 'tunnel_id');
                     })
@@ -185,7 +183,6 @@ class DnsRecordsRelationManager extends RelationManager
                         $domain = CloudflareDomain::findOrFail($data['cloudflare_domain_id']);
                         $service = app(\App\Services\Cloudflare\CloudflareService::class);
 
-                        // Create Remote
                         $remote = $service->createRemoteDnsRecord($domain, [
                             'type' => $data['type'],
                             'name' => $data['name'],
@@ -194,7 +191,6 @@ class DnsRecordsRelationManager extends RelationManager
                             'proxied' => (bool) ($data['proxied'] ?? false),
                         ]);
 
-                        // Create Local
                         $data['record_id'] = $remote['id'];
 
                         return \App\Models\CloudflareDnsRecord::create($data);
@@ -202,6 +198,7 @@ class DnsRecordsRelationManager extends RelationManager
             ])
             ->recordActions([
                 EditAction::make()
+
                     ->using(function (\Illuminate\Database\Eloquent\Model $record, array $data) {
                         $service = app(\App\Services\Cloudflare\CloudflareService::class);
                         $domain = $record->domain;

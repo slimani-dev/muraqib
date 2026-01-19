@@ -53,14 +53,10 @@
             "id": "b5a094f1a45da760",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "03 - Cloudflare Integration & Tunnel Wizard Specification.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "03 - Cloudflare Integration & Tunnel Wizard Specification"
+              "title": "New tab"
             }
           }
         ],

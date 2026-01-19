@@ -1,99 +1,100 @@
 <?php
 
-namespace Tests\Feature;
-
-use App\Models\CloudflareConfig;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\Cloudflare;
+use App\Models\CloudflareDomain;
+use App\Services\Cloudflare\CloudflareService;
 use Illuminate\Support\Facades\Http;
-use Tests\TestCase;
 
-class CloudflareIntegrationTest extends TestCase
-{
-    use RefreshDatabase;
+it('creates protection resources successfully', function () {
+    Http::fake([
+        '*/access/service_tokens' => Http::response(['result' => ['id' => 'token_id', 'client_id' => 'cid', 'client_secret' => 'sec']], 200),
+        '*/access/apps' => Http::response(['result' => ['id' => 'app_id']], 200),
+        '*/policies' => Http::response(['result' => ['id' => 'policy_id']], 200),
+    ]);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        // Assuming settings routes are protected by auth
-        $this->actingAs(User::factory()->create());
+    $account = Cloudflare::factory()->create(['api_token' => 'fake_token', 'account_id' => 'fake_account']);
+    $domain = CloudflareDomain::factory()->create(['cloudflare_id' => $account->id]);
+
+    $service = app(CloudflareService::class);
+    $result = $service->protectSubdomain($domain, 'protected.example.com');
+
+    expect($result)->toBeInstanceOf(\App\Models\CloudflareAccess::class)
+        ->and($result->client_id)->toBe('cid');
+
+    // Verify Requests
+    Http::assertSent(function ($request) {
+        if (! str_contains($request->url(), '/access/apps')) {
+            return false;
+        }
+
+        return isset($request['session_duration']) &&
+               $request['session_duration'] === '24h' &&
+               $request['domain'] === 'protected.example.com';
+    });
+
+    Http::assertSent(function ($request) {
+        if (! str_contains($request->url(), '/policies')) {
+            return false;
+        }
+
+        return $request['decision'] === 'non_identity';
+    });
+});
+
+it('throws exception with api error message on failure', function () {
+    Http::fake([
+        '*/access/service_tokens' => Http::response(['result' => ['id' => 'token_id']], 200),
+        '*/access/apps' => Http::response([
+            'success' => false,
+            'errors' => [['message' => 'domain does not belong to zone']],
+        ], 400),
+    ]);
+
+    $account = Cloudflare::factory()->create(['api_token' => 'fake_token', 'account_id' => 'fake_account']);
+    $domain = CloudflareDomain::factory()->create(['cloudflare_id' => $account->id]);
+
+    $service = app(CloudflareService::class);
+
+    try {
+        $service->protectSubdomain($domain, 'bad.example.com');
+    } catch (Exception $e) {
+        expect($e->getMessage())->toContain('domain does not belong to zone');
+
+        return;
     }
 
-    public function test_verify_token_successful()
-    {
-        Http::fake([
-            'api.cloudflare.com/client/v4/user/tokens/verify' => Http::response(['result' => ['status' => 'active']], 200),
-        ]);
+    $this->fail('Exception was not thrown');
+});
 
-        $response = $this->postJson(route('settings.cloudflare.verify'), [
-            'account_id' => 'test_account',
-            'api_token' => 'test_token',
-        ]);
+it('reuses existing application if already exists', function () {
+    Http::fake([
+        '*/access/service_tokens' => Http::response(['result' => ['id' => 'token_id', 'client_id' => 'cid', 'client_secret' => 'sec']], 200),
+        '*/access/apps' => function (\Illuminate\Http\Client\Request $request) {
+            // Mock failing POST (create)
+            if ($request->method() === 'POST' && str_contains($request->url(), '/apps') && ! str_contains($request->url(), '/apps/')) {
+                return Http::response([
+                    'success' => false,
+                    'errors' => [['message' => 'access.api.error.application_already_exists']],
+                ], 400);
+            }
+            // Mock GET (list)
+            if ($request->method() === 'GET') {
+                return Http::response(['result' => [
+                    ['id' => 'existing_app_id', 'domain' => 'protected.example.com'],
+                ]], 200);
+            }
 
-        $response->assertOk();
-        $this->assertDatabaseHas('cloudflare_configs', [
-            'account_id' => 'test_account',
-        ]);
+            return Http::response(['result' => []], 200);
+        },
+        '*/policies' => Http::response(['result' => ['id' => 'policy_id']], 200),
+    ]);
 
-        // Check encryption
-        $config = CloudflareConfig::first();
-        $this->assertEquals('test_token', $config->api_token); // Should match decrypted
-        $this->assertNotEquals('test_token', $config->getRawOriginal('api_token')); // Raw should be encrypted
-    }
+    $account = Cloudflare::factory()->create(['api_token' => 'fake_token', 'account_id' => 'fake_account']);
+    $domain = CloudflareDomain::factory()->create(['cloudflare_id' => $account->id]);
 
-    public function test_create_tunnel_successful()
-    {
-        // Setup initial config using factory logic or direct create
-        $config = CloudflareConfig::create([
-            'account_id' => 'acc_123',
-            'api_token' => 'tok_123',
-        ]);
+    $service = app(CloudflareService::class);
+    $result = $service->protectSubdomain($domain, 'protected.example.com');
 
-        Http::fake([
-            // List tunnels - empty
-            'api.cloudflare.com/client/v4/accounts/*/tunnels?is_deleted=false' => Http::response(['result' => []], 200),
-            // Create tunnel
-            'api.cloudflare.com/client/v4/accounts/*/tunnels' => Http::response(['result' => ['id' => 'uuid-tunnel', 'name' => 'muraqib-node']], 200),
-            // Get token
-            'api.cloudflare.com/client/v4/accounts/*/cfd_tunnel/*/token' => Http::response(['result' => 'ey.LONG_ENOUGH_TOKEN_TO_PASS_VALIDATION_CHECK_WHICH_REQUIRES_50_CHARS_MINIMUM_LENGTH.token'], 200),
-            'api.cloudflare.com/client/v4/zones' => Http::response(['result' => [['id' => 'zone_1', 'name' => 'example.com']]], 200),
-        ]);
-
-        $response = $this->postJson(route('settings.cloudflare.tunnel'));
-
-        $response->assertOk()
-            ->assertJson(['tunnel_id' => 'uuid-tunnel', 'tunnel_token' => 'ey.LONG_ENOUGH_TOKEN_TO_PASS_VALIDATION_CHECK_WHICH_REQUIRES_50_CHARS_MINIMUM_LENGTH.token']);
-
-        $config->refresh();
-        $this->assertEquals('uuid-tunnel', $config->tunnel_id);
-        $this->assertEquals('ey.LONG_ENOUGH_TOKEN_TO_PASS_VALIDATION_CHECK_WHICH_REQUIRES_50_CHARS_MINIMUM_LENGTH.token', $config->tunnel_token);
-    }
-
-    public function test_update_ingress_and_dns()
-    {
-        $config = CloudflareConfig::create([
-            'account_id' => 'acc_123',
-            'api_token' => 'tok_123',
-            'tunnel_id' => 'uuid-tunnel',
-        ]);
-
-        Http::fake([
-            // Update ingress
-            'api.cloudflare.com/client/v4/accounts/*/tunnels/*/configurations' => Http::response(['success' => true], 200),
-            // Create DNS
-            'api.cloudflare.com/client/v4/zones/*/dns_records' => Http::response(['success' => true], 200),
-        ]);
-
-        $response = $this->postJson(route('settings.cloudflare.ingress'), [
-            'zone_id' => 'zone_1',
-            'services' => [
-                ['hostname' => 'test.example.com', 'service' => 'http://localhost:80'],
-            ],
-        ]);
-
-        $response->assertOk();
-        $config->refresh();
-        $this->assertTrue($config->is_active);
-        $this->assertEquals('zone_1', $config->domain_zone_id);
-    }
-}
+    expect($result)->toBeInstanceOf(\App\Models\CloudflareAccess::class)
+        ->and($result->app_id)->toBe('existing_app_id');
+});
