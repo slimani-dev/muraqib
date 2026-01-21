@@ -18,19 +18,9 @@ class ViewNetdata extends ViewRecord
         ];
     }
 
-    public function getHeaderWidgetsColumns(): int|array
-    {
-        return 3;
-    }
-
     protected function getHeaderWidgets(): array
     {
         return [
-            \App\Filament\Resources\Netdatas\Widgets\NetdataSystemInfo::class,
-            // \App\Filament\Resources\Netdatas\Widgets\NetdataCpuStats::class,
-            // \App\Filament\Resources\Netdatas\Widgets\NetdataMemoryStats::class,
-            // \App\Filament\Resources\Netdatas\Widgets\NetdataNetworkStats::class,
-            // \App\Filament\Resources\Netdatas\Widgets\NetdataDisksStats::class,
             \App\Filament\Resources\Netdatas\Widgets\NetdataStatsOverview::class,
         ];
     }
@@ -50,13 +40,13 @@ class ViewNetdata extends ViewRecord
                 $savedDiskSettings = $record->disk_settings ?? [];
                 $fetchedDisks = $this->fetchAvailableDisks($record);
                 $allDiskNames = array_column($fetchedDisks, 'name');
-                $selectedDisks = ! empty($savedDiskSettings) ? $savedDiskSettings : $allDiskNames;
+                $selectedDisks = !empty($savedDiskSettings) ? $savedDiskSettings : $allDiskNames;
 
                 // Network
                 $savedNetworkSettings = $record->network_settings ?? [];
                 $fetchedInterfaces = $this->fetchAvailableInterfaces($record);
                 $allInterfaceNames = array_column($fetchedInterfaces, 'name');
-                $selectedInterfaces = ! empty($savedNetworkSettings) ? $savedNetworkSettings : $allInterfaceNames;
+                $selectedInterfaces = !empty($savedNetworkSettings) ? $savedNetworkSettings : $allInterfaceNames;
 
                 // Widget Settings
                 $widgetSettings = $record->widget_settings ?? [];
@@ -85,7 +75,7 @@ class ViewNetdata extends ViewRecord
                                     $disks = $this->fetchAvailableDisks($this->getRecord());
                                     $descriptions = [];
                                     foreach ($disks as $disk) {
-                                        $descriptions[$disk['name']] = ($disk['total'] ?? 'N/A').' total';
+                                        $descriptions[$disk['name']] = ($disk['total'] ?? 'N/A') . ' total';
                                     }
 
                                     return $descriptions;
