@@ -17,6 +17,8 @@ class NetdataDisksStats extends BaseWidget
 
     protected int|string|array $columnSpan = 1;
 
+    protected int | array | null $columns = 1;
+
     protected $listeners = ['refresh-netdata-disks' => '$refresh'];
 
     protected function getStats(): array

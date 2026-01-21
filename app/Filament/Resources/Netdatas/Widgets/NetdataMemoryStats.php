@@ -16,6 +16,8 @@ class NetdataMemoryStats extends BaseWidget
 
     protected int|string|array $columnSpan = 1;
 
+    protected int | array | null $columns = 1;
+
     protected function getStats(): array
     {
         $record = $this->record;

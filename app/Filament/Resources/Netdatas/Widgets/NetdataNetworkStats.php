@@ -16,6 +16,8 @@ class NetdataNetworkStats extends BaseWidget
 
     protected int|string|array $columnSpan = 1;
 
+    protected int | array | null $columns = 1;
+
     protected $listeners = ['refresh-netdata-network' => '$refresh'];
 
     protected function getStats(): array

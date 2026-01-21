@@ -12,4 +12,16 @@ class NetdataStatsOverview extends Widget
     protected int|string|array $columnSpan = 1;
 
     public ?Netdata $record = null;
+
+    public array $widgets = [];
+
+    public function mount(): void
+    {
+        $this->widgets = [
+            \App\Filament\Resources\Netdatas\Widgets\NetdataCpuStats::class,
+            \App\Filament\Resources\Netdatas\Widgets\NetdataMemoryStats::class,
+            \App\Filament\Resources\Netdatas\Widgets\NetdataNetworkStats::class,
+            \App\Filament\Resources\Netdatas\Widgets\NetdataDisksStats::class,
+        ];
+    }
 }

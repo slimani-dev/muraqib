@@ -620,13 +620,17 @@ class PortainerService
     /**
      * Update a stack (content and environment variables)
      */
-    public function updateStack(int $stackId, int $endpointId, string $stackFileContent, array $env, bool $prune = false): bool
+    /**
+     * Update a stack (content and environment variables)
+     */
+    public function updateStack(int $stackId, int $endpointId, string $stackFileContent, array $env, bool $prune = false, bool $pullImage = false): bool
     {
         try {
             $payload = [
-                'StackFileContent' => $stackFileContent,
-                'Env' => $env, // Expected format: [['name' => 'KEY', 'value' => 'VAL'], ...]
-                'Prune' => $prune,
+                'stackFileContent' => $stackFileContent,
+                'env' => $env, // Expected format: [['name' => 'KEY', 'value' => 'VAL'], ...]
+                'prune' => $prune,
+                'pullImage' => $pullImage,
             ];
 
             $response = Http::withHeaders(['X-API-Key' => $this->portainer->access_token])

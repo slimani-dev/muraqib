@@ -1,6 +1,15 @@
-<div class="flex flex-col gap-6">
-    @livewire(\App\Filament\Resources\Netdatas\Widgets\NetdataCpuStats::class, ['record' => $record])
-    @livewire(\App\Filament\Resources\Netdatas\Widgets\NetdataMemoryStats::class, ['record' => $record])
-    @livewire(\App\Filament\Resources\Netdatas\Widgets\NetdataNetworkStats::class, ['record' => $record])
-    @livewire(\App\Filament\Resources\Netdatas\Widgets\NetdataDisksStats::class, ['record' => $record])
+<div class="flex flex-col gap-6 w-full">
+    @if($widgets)
+        <x-filament-widgets::widgets
+            :widgets="$widgets"
+            :columns="[
+                'default' => 1,
+                'md' => 1,
+                'lg' => 1,
+                'xl' => 1,
+            ]"
+            :data="['record' => $record]"
+            class="w-full"
+        />
+    @endif
 </div>

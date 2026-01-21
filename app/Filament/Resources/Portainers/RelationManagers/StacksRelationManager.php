@@ -7,6 +7,10 @@ use App\Models\Stack;
 use App\Services\PortainerService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Checkbox;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Get;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -17,6 +21,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Riodwanto\FilamentAceEditor\AceEditor;
@@ -68,6 +73,36 @@ class StacksRelationManager extends RelationManager
                     ->columns(2)
                     ->reorderableWithDragAndDrop(false)
                     ->addActionLabel('Add Environment Variable'),
+
+                Section::make('Deployment Options')
+                    ->schema([
+                        Toggle::make('redeploy')
+                            ->label('Redeploy Stack')
+                            ->default(true)
+                            ->live()
+                            ->columnSpanFull()
+                            ->helperText('Update the stack definition and redeploy service.'),
+
+                        Checkbox::make('prune')
+                            ->label('Prune services')
+                            ->helperText('Remove services that are no longer referenced in the stack definition.')
+                            ->visible(fn ($get) => $get('redeploy')),
+
+                        Checkbox::make('pull_image')
+                            ->label('Pull latest image')
+                            ->helperText('Force a pull of the image even if it exists locally.')
+                            ->visible(fn ($get) => $get('redeploy')),
+
+                        \CodeWithDennis\SimpleAlert\Components\SimpleAlert::make('deploy_warning')
+                            ->title('Deployment in progress')
+                            ->description('This operation may take a few moments to complete, especially when pulling new images or pruning services. Please wait for the process to finish.')
+                            ->warning()
+                            ->columnSpanFull()
+                            ->icon('heroicon-o-clock')
+                            ->visible(fn ($get) => $get('redeploy')),
+                    ])
+                    ->columns(2)
+                    ->visible(fn ($operation) => $operation === 'edit'),
             ]);
 
     }
@@ -252,10 +287,187 @@ class StacksRelationManager extends RelationManager
                     }),
 
                 EditAction::make()
-                ->modalWidth(Width::FiveExtraLarge)
+                    ->modalWidth(Width::FiveExtraLarge)
+                    ->mountUsing(function ($form, $record) use ($portainer) {
+                        // 1. Sync latest data from Portainer
+                        $service = new PortainerService($portainer);
+                        $apiStack = $service->getStack((int)$record->external_id);
+                        $stackFile = $service->getStackFile((int)$record->external_id);
+
+                        if ($apiStack) {
+                            // Update local record
+                            $env = [];
+                            if ($apiStack->env) {
+                                foreach ($apiStack->env as $envVar) {
+                                    if (is_array($envVar) && isset($envVar['name'], $envVar['value'])) {
+                                        $env[] = $envVar;
+                                    } elseif (is_string($envVar) && str_contains($envVar, '=')) {
+                                        [$key, $val] = explode('=', $envVar, 2);
+                                        $env[] = ['name' => $key, 'value' => $val];
+                                    }
+                                }
+                            }
+
+                            $record->update([
+                                'stack_file_content' => $stackFile ?? $record->stack_file_content,
+                                'env' => $env,
+                            ]);
+                        }
+
+                        // 2. Fill form with fresh data
+                        $form->fill([
+                            'stack_file_content' => $record->stack_file_content,
+                            'env' => $record->env,
+                            'redeploy' => true,
+                            'prune' => false,
+                            'pull_image' => false,
+                        ]);
+                    })
+                    ->action(function (Stack $record, array $data) use ($portainer) {
+                        $service = new PortainerService($portainer);
+
+                        // normalize env
+                        $env = [];
+                        foreach ($data['env'] ?? [] as $item) {
+                            $env[] = ['name' => $item['name'], 'value' => $item['value']];
+                        }
+
+                        $success = $service->updateStack(
+                            (int)$record->external_id,
+                            $record->endpoint_id,
+                            $data['stack_file_content'],
+                            $env,
+                            $data['prune'] ?? false,
+                            $data['pull_image'] ?? false
+                        );
+
+                        if ($success) {
+                            // Wait for Portainer to apply changes (deployment can take time)
+                            sleep(4);
+
+                            // Re-sync after update to ensure DB is consistent (e.g. status changes)
+                            $this->syncStacksFromApi(force: true);
+
+                            Notification::make()
+                                ->success()
+                                ->title('Stack updated')
+                                ->body("Stack '{$record->name}' has been updated successfully.")
+                                ->send();
+                        } else {
+                            Notification::make()
+                                ->danger()
+                                ->title('Failed to update stack')
+                                ->body("Could not update stack '{$record->name}'. Check Portainer logs.")
+                                ->send();
+
+                            // Halt execution to prevent modal closing?
+                            // Filament Action `action` doesn't automatically halt on return.
+                            // We might want to `halt()` or throw exception if we want modal to stay open.
+                            // But for now notification is enough.
+                        }
+                    }),
+
+                Action::make('delete')
+                    ->label('Delete')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->visible(fn(Stack $record) => $record->stack_status === 2)
+                    ->requiresConfirmation()
+                    ->modalHeading(fn(Stack $record) => "Delete stack '{$record->name}'?")
+                    ->modalDescription('This will permanently delete the stack from Portainer. The stack must be stopped first.')
+                    ->action(function (Stack $record) use ($portainer) {
+                        $service = new PortainerService($portainer);
+
+                        $success = $service->deleteStack((int)$record->external_id, $record->endpoint_id);
+
+                        if ($success) {
+                            $record->delete();
+
+                            Notification::make()
+                                ->success()
+                                ->title('Stack deleted')
+                                ->body("Stack '{$record->name}' has been deleted successfully.")
+                                ->send();
+                        } else {
+                            Notification::make()
+                                ->danger()
+                                ->title('Failed to delete stack')
+                                ->body("Could not delete stack '{$record->name}'. Check Portainer logs.")
+                                ->send();
+                        }
+                    }),
             ])
-            ->toolbarActions([
-                //
+            ->bulkActions([
+                // No Bulk Delete
+                // Tables\Actions\DeleteBulkAction::make(),
+
+                \Filament\Actions\BulkAction::make('start')
+                    ->label('Start')
+                    ->icon('heroicon-o-play')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->action(function (Collection $records) use ($portainer) {
+                        $service = new PortainerService($portainer);
+                        $count = 0;
+                        foreach ($records as $record) {
+                            if ($record->stack_status === 2) { // Only start stopped stacks
+                                if ($service->startStack((int)$record->external_id, $record->endpoint_id)) {
+                                    $count++;
+                                }
+                            }
+                        }
+
+                        Notification::make()
+                            ->success()
+                            ->title("Started {$count} stacks")
+                            ->send();
+
+                        // No easy way to sync just these, might as well full sync if needed or rely on poll
+                    }),
+
+                \Filament\Actions\BulkAction::make('stop')
+                    ->label('Stop')
+                    ->icon('heroicon-o-stop')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->action(function (Collection $records) use ($portainer) {
+                        $service = new PortainerService($portainer);
+                        $count = 0;
+                        foreach ($records as $record) {
+                            if ($record->stack_status === 1) { // Only stop running stacks
+                                if ($service->stopStack((int)$record->external_id, $record->endpoint_id)) {
+                                    $count++;
+                                }
+                            }
+                        }
+
+                        Notification::make()
+                            ->success()
+                            ->title("Stopped {$count} stacks")
+                            ->send();
+                    }),
+
+                \Filament\Actions\BulkAction::make('restart')
+                    ->label('Restart')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->action(function (Collection $records) use ($portainer) {
+                        $service = new PortainerService($portainer);
+                        $count = 0;
+                        foreach ($records as $record) {
+                            if ($record->stack_status === 1) { // Only restart running stacks
+                                if ($service->restartStack((int)$record->external_id, $record->endpoint_id)) {
+                                    $count++;
+                                }
+                            }
+                        }
+
+                        Notification::make()
+                            ->success()
+                            ->title("Restarted {$count} stacks")
+                            ->send();
+                    }),
             ]);
     }
 

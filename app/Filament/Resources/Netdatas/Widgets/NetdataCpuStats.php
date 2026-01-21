@@ -13,7 +13,9 @@ class NetdataCpuStats extends BaseWidget
 
     protected ?string $pollingInterval = '2s';
 
-    protected int|string|array $columnSpan = 1;
+    protected int|string|array $columnSpan = '1';
+
+    protected int | array | null $columns = 1;
 
     public ?string $cpu = null;
     public ?string $cores = null;
