@@ -12,12 +12,17 @@ use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 
 class IngressRulesRelationManager extends RelationManager
 {
@@ -117,7 +122,29 @@ class IngressRulesRelationManager extends RelationManager
                     ->label('Catch-All'),
             ])
             ->filters([
-                //
+                \Filament\Tables\Filters\SelectFilter::make('cloudflare_tunnel_id')
+                    ->label('Tunnel')
+                    ->options(function () {
+                        /** @var Cloudflare $account */
+                        $account = $this->getOwnerRecord();
+
+                        return $account->tunnels->pluck('name', 'id');
+                    }),
+                \Filament\Tables\Filters\SelectFilter::make('zone')
+                    ->label('Zone')
+                    ->options(function () {
+                        /** @var Cloudflare $account */
+                        $account = $this->getOwnerRecord();
+
+                        return $account->domains->pluck('name', 'name');
+                    })
+                    ->query(function ($query, array $data) {
+                        if (! empty($data['value'])) {
+                            return $query->where('hostname', 'like', '%'.$data['value']);
+                        }
+
+                        return $query;
+                    }),
             ])
             ->headerActions([
                 CreateAction::make()
@@ -231,6 +258,12 @@ class IngressRulesRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
+                \Filament\Actions\Action::make('open_url')
+                    ->label('Open URL')
+                    ->icon('heroicon-o-arrow-top-right-on-square')
+                    ->url(fn ($record) => "https://{$record->hostname}")
+                    ->openUrlInNewTab()
+                    ->visible(fn ($record) => ! empty($record->hostname) && $record->hostname !== '*'),
                 EditAction::make()
                     ->using(function (array $data, \App\Models\CloudflareIngressRule $record, $livewire) {
                         if (! empty($data['is_catch_all']) && empty($data['service'])) {
@@ -276,6 +309,12 @@ class IngressRulesRelationManager extends RelationManager
                         }
                     }),
                 ActionGroup::make([
+                    Action::make('open_service')
+                        ->label('Open Service')
+                        ->icon('heroicon-o-computer-desktop')
+                        ->url(fn ($record) => $record->service)
+                        ->openUrlInNewTab()
+                        ->visible(fn ($record) => str_starts_with($record->service ?? '', 'http')),
                     Action::make('deploy_ingress_rules')
                         ->slideOver(false)
                         ->label('Push Rule')
@@ -289,7 +328,7 @@ class IngressRulesRelationManager extends RelationManager
                                 $success = $service->updateIngressRules($tunnel);
 
                                 if ($success) {
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title("Pushed Rules to {$tunnel->name}")
                                         ->body('Configuration updated on Cloudflare.')
                                         ->success()
@@ -299,7 +338,7 @@ class IngressRulesRelationManager extends RelationManager
                                 }
 
                             } catch (\Exception $e) {
-                                \Filament\Notifications\Notification::make()
+                                Notification::make()
                                     ->title('Push Failed')
                                     ->body($e->getMessage())
                                     ->danger()
@@ -325,7 +364,7 @@ class IngressRulesRelationManager extends RelationManager
 
                                 // Act on just this single rule ($record)
                                 if (empty($record->hostname) || $record->hostname === '*') {
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('Skipped')
                                         ->body('Hostname is empty or wildcard.')
                                         ->warning()
@@ -340,7 +379,7 @@ class IngressRulesRelationManager extends RelationManager
                                 });
 
                                 if (! $matchedDomain) {
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('No Zone Found')
                                         ->body("No matching zone found for {$record->hostname}")
                                         ->danger()
@@ -356,14 +395,14 @@ class IngressRulesRelationManager extends RelationManager
                                         "{$tunnel->tunnel_id}.cfargotunnel.com"
                                     );
 
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('DNS Published')
                                         ->body("Record {$status} for {$record->hostname}")
                                         ->success()
                                         ->send();
 
                                 } catch (\Exception $e) {
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('Publication Error')
                                         ->body($e->getMessage())
                                         ->danger()
@@ -371,18 +410,203 @@ class IngressRulesRelationManager extends RelationManager
                                 }
 
                             } catch (\Exception $e) {
-                                \Filament\Notifications\Notification::make()
+                                Notification::make()
                                     ->title('Sync Failed')
                                     ->body($e->getMessage())
                                     ->danger()
                                     ->send();
                             }
                         }),
+                    Action::make('migrate_tunnel')
+                        ->label('Migrate Tunnel')
+                        ->icon('heroicon-o-arrow-path-rounded-square')
+                        ->color('info')
+                        ->form([
+                            Select::make('target_tunnel_id')
+                                ->label('Target Tunnel')
+                                ->options(function () {
+                                    /** @var Cloudflare $account */
+                                    $account = $this->getOwnerRecord();
+
+                                    return $account->tunnels->pluck('name', 'id');
+                                })
+                                ->required()
+                                ->searchable()
+                                ->preload(),
+                        ])
+                        ->action(function (\App\Models\CloudflareIngressRule $record, array $data) {
+                            $targetTunnelId = $data['target_tunnel_id'];
+                            if ($record->cloudflare_tunnel_id == $targetTunnelId) {
+                                Notification::make()->title('Skipped')->body('Source and Target are the same.')->warning()->send();
+
+                                return;
+                            }
+
+                            $sourceTunnel = $record->tunnel;
+                            $targetTunnel = \App\Models\CloudflareTunnel::find($targetTunnelId);
+
+                            if (! $targetTunnel) {
+                                Notification::make()->title('Error')->body('Target tunnel not found.')->danger()->send();
+
+                                return;
+                            }
+
+                            // 1. Update Record
+                            $record->update(['cloudflare_tunnel_id' => $targetTunnel->id]);
+
+                            $service = app(\App\Services\Cloudflare\CloudflareService::class);
+                            $errors = [];
+
+                            // 2. Push to Target
+                            try {
+                                $service->updateIngressRules($targetTunnel);
+                            } catch (\Exception $e) {
+                                $errors[] = "Target Config Push Failed: {$e->getMessage()}";
+                            }
+
+                            // 3. Push to Source
+                            try {
+                                $service->updateIngressRules($sourceTunnel);
+                            } catch (\Exception $e) {
+                                $errors[] = "Source Config Push Failed: {$e->getMessage()}";
+                            }
+
+                            // 4. Update DNS
+                            if (! empty($record->hostname) && $record->hostname !== '*') {
+                                $account = $targetTunnel->cloudflare;
+                                $matchedDomain = $account->domains->first(function ($domain) use ($record) {
+                                    return str_ends_with($record->hostname, $domain->name);
+                                });
+
+                                if ($matchedDomain) {
+                                    try {
+                                        $service->ensureCnameRecord($matchedDomain, $record->hostname, "{$targetTunnel->tunnel_id}.cfargotunnel.com");
+                                    } catch (\Exception $e) {
+                                        $errors[] = "DNS Update Failed: {$e->getMessage()}";
+                                    }
+                                }
+                            }
+
+                            if (count($errors) > 0) {
+                                Notification::make()
+                                    ->title('Migration Completed with Errors')
+                                    ->body(implode("\n", $errors))
+                                    ->warning()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title('Tunnel Migrated')
+                                    ->success()
+                                    ->send();
+                            }
+                        }),
                     DeleteAction::make(),
                 ]),
             ])
-            ->toolbarActions([
-                \Filament\Actions\DeleteBulkAction::make(),
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    BulkAction::make('migrate_bulk')
+                        ->label('Migrate Tunnels')
+                        ->icon('heroicon-o-arrow-path-rounded-square')
+                        ->color('info')
+                        ->form([
+                            Select::make('target_tunnel_id')
+                                ->label('Target Tunnel')
+                                ->options(function () {
+                                    /** @var Cloudflare $account */
+                                    $account = $this->getOwnerRecord();
+
+                                    return $account->tunnels->pluck('name', 'id');
+                                })
+                                ->required()
+                                ->searchable()
+                                ->preload(),
+                        ])
+                        ->action(function (Collection $records, array $data) {
+                            $targetTunnelId = $data['target_tunnel_id'];
+                            $targetTunnel = \App\Models\CloudflareTunnel::find($targetTunnelId);
+
+                            if (! $targetTunnel) {
+                                Notification::make()->title('Error')->body('Target tunnel not found.')->danger()->send();
+
+                                return;
+                            }
+
+                            $sourceTunnels = collect();
+                            $migratedCount = 0;
+                            $errors = [];
+
+                            foreach ($records as $record) {
+                                if ($record->cloudflare_tunnel_id == $targetTunnelId) {
+                                    continue;
+                                }
+
+                                $sourceTunnels->push($record->tunnel);
+                                $record->update(['cloudflare_tunnel_id' => $targetTunnel->id]);
+                                $migratedCount++;
+                            }
+
+                            if ($migratedCount === 0) {
+                                Notification::make()->title('Nothing to Migrate')->body('Selected records are already on the target tunnel.')->warning()->send();
+
+                                return;
+                            }
+
+                            $service = app(\App\Services\Cloudflare\CloudflareService::class);
+
+                            // 1. Push to Target
+                            try {
+                                $service->updateIngressRules($targetTunnel);
+                            } catch (\Exception $e) {
+                                $errors[] = "Target Config Push Failed: {$e->getMessage()}";
+                            }
+
+                            // 2. Push to Sources
+                            foreach ($sourceTunnels->unique('id') as $sourceTunnel) {
+                                try {
+                                    $service->updateIngressRules($sourceTunnel);
+                                } catch (\Exception $e) {
+                                    $errors[] = "Source ({$sourceTunnel->name}) Push Failed: {$e->getMessage()}";
+                                }
+                            }
+
+                            // 3. Update DNS for all migrated records
+                            foreach ($records as $record) {
+                                if (empty($record->hostname) || $record->hostname === '*') {
+                                    continue;
+                                }
+
+                                /** @var \App\Models\Cloudflare $account */
+                                $account = $targetTunnel->cloudflare;
+                                $matchedDomain = $account->domains->first(function ($domain) use ($record) {
+                                    return str_ends_with($record->hostname, $domain->name);
+                                });
+
+                                if ($matchedDomain) {
+                                    try {
+                                        $service->ensureCnameRecord($matchedDomain, $record->hostname, "{$targetTunnel->tunnel_id}.cfargotunnel.com");
+                                    } catch (\Exception $e) {
+                                        $errors[] = "DNS ({$record->hostname}) Failed: {$e->getMessage()}";
+                                    }
+                                }
+                            }
+
+                            if (count($errors) > 0) {
+                                Notification::make()
+                                    ->title("Migrated {$migratedCount} Rules with Errors")
+                                    ->body(implode("\n", $errors))
+                                    ->warning()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title("Migrated {$migratedCount} Rules")
+                                    ->success()
+                                    ->send();
+                            }
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                ]),
             ]);
     }
 }

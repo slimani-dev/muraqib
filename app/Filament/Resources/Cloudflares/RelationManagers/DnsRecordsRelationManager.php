@@ -197,6 +197,12 @@ class DnsRecordsRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
+                \Filament\Actions\Action::make('open_url')
+                    ->label('Open URL')
+                    ->icon('heroicon-o-arrow-top-right-on-square')
+                    ->url(fn (\App\Models\CloudflareDnsRecord $record) => "https://{$record->name}")
+                    ->openUrlInNewTab()
+                    ->visible(fn (\App\Models\CloudflareDnsRecord $record) => in_array($record->type, ['A', 'AAAA', 'CNAME'])),
                 EditAction::make()
 
                     ->using(function (\Illuminate\Database\Eloquent\Model $record, array $data) {

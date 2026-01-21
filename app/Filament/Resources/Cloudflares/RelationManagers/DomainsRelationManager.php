@@ -145,6 +145,11 @@ class DomainsRelationManager extends RelationManager
                 // CreateAction::make(),
             ])
             ->recordActions([
+                \Filament\Actions\Action::make('open_url')
+                    ->label('Open URL')
+                    ->icon('heroicon-o-globe-alt')
+                    ->url(fn (\App\Models\CloudflareDomain $record) => "https://{$record->name}")
+                    ->openUrlInNewTab(),
                 \Filament\Actions\Action::make('sync_dns_records')
                     ->label('Pull Records')
                     ->icon('mdi-dns')
