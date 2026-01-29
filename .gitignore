@@ -27,3 +27,17 @@ yarn-error.log
 /.vscode
 /.zed
 /.ui/**/*
+
+# SQL backup files
+*.sql
+backup_*.sql
+
+# Test result files
+test_results.txt
+/test_*.txt
+
+# Test/debug PHP scripts in root
+/debug_*.php
+/fetch_*.php
+/setup_*_test.php
+/verify_*.php
