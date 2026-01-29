@@ -61,7 +61,7 @@ class AdminPanelProvider extends PanelProvider
             ->plugins([
                 FilamentApexChartsPlugin::make(),
                 \Devonab\FilamentEasyFooter\EasyFooterPlugin::make()
-                    ->withSentence(new \Illuminate\Support\HtmlString('Review code carefully. <strong>Muraqib</strong> &copy; ' . date('Y')))
+                    ->withSentence(new \Illuminate\Support\HtmlString('<strong>Muraqib</strong>. Review code carefully.'))
                     ->withLoadTime('Loaded in')
                     ->withBorder()
                     ->withLinks([
