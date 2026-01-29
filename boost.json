@@ -1,15 +1,21 @@
 {
     "agents": [
         "gemini",
-        "phpstorm"
+        "junie"
     ],
-    "editors": [
-        "gemini",
-        "phpstorm",
-        "vscode"
+    "guidelines": true,
+    "herd_mcp": false,
+    "mcp": true,
+    "packages": [
+        "filament/filament",
+        "laravel/fortify"
     ],
-    "guidelines": [
-        "laravel/fortify",
-        "filament/filament"
+    "sail": false,
+    "skills": [
+        "wayfinder-development",
+        "pest-testing",
+        "inertia-vue-development",
+        "tailwindcss-development",
+        "developing-with-fortify"
     ]
 }

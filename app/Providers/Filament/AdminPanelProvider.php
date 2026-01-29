@@ -24,6 +24,15 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
+        $plugins = [
+            FilamentApexChartsPlugin::make(),
+            \Devonab\FilamentEasyFooter\EasyFooterPlugin::make()
+                ->withBorder()
+                ->withGithub(showLogo: true, showUrl: true)
+                /*->withLinks([
+                    ['title' => 'Repository', 'url' => 'https://github.com/slimani-dev/muraqib'],
+                ]),*/
+        ];
         return $panel
             ->default()
             ->id('admin')
@@ -58,16 +67,7 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->plugins([
-                FilamentApexChartsPlugin::make(),
-                \Devonab\FilamentEasyFooter\EasyFooterPlugin::make()
-                    ->withSentence(new \Illuminate\Support\HtmlString('<strong>Muraqib</strong>. Review code carefully.'))
-                    ->withLoadTime('Loaded in')
-                    ->withBorder()
-                    ->withLinks([
-                        ['title' => 'Repository', 'url' => 'https://github.com/slimani-dev/muraqib'],
-                    ]),
-            ])
+            ->plugins($plugins)
             ->viteTheme('resources/css/filament/admin/theme.css');
     }
 }
