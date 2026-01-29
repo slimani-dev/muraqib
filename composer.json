@@ -9,6 +9,7 @@
         "php": "^8.3",
         "codeat3/blade-simple-icons": "^8.1",
         "codewithdennis/filament-simple-alert": "^4.0",
+        "devonab/filament-easy-footer": "^2.0",
         "filament/filament": "^4.0",
         "inertiajs/inertia-laravel": "^2.0",
         "jaocero/radio-deck": "^2.0",
@@ -27,6 +28,7 @@
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16",
+        "barryvdh/laravel-ide-helper": "^3.6",
         "fakerphp/faker": "^1.23",
         "laravel/boost": "^1.8",
         "laravel/pail": "^1.2.2",

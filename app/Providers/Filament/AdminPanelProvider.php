@@ -60,6 +60,13 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentApexChartsPlugin::make(),
+                \Devonab\FilamentEasyFooter\EasyFooterPlugin::make()
+                    ->withSentence(new \Illuminate\Support\HtmlString('Review code carefully. <strong>Muraqib</strong> &copy; ' . date('Y')))
+                    ->withLoadTime('Loaded in')
+                    ->withBorder()
+                    ->withLinks([
+                        ['title' => 'Repository', 'url' => 'https://github.com/slimani-dev/muraqib'],
+                    ]),
             ])
             ->viteTheme('resources/css/filament/admin/theme.css');
     }
