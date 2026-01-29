@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Cloudflare;
-use App\Models\CloudflareDomain;
 use App\Services\Cloudflare\CloudflareService;
 
 /**
@@ -11,26 +10,26 @@ use App\Services\Cloudflare\CloudflareService;
 it('can delete a duplicate muraqib-netdata token and verify removal', function () {
     // Find the cloudflare account
     $cloudflare = Cloudflare::first();
-    
-    if (!$cloudflare) {
+
+    if (! $cloudflare) {
         $this->markTestSkipped('No Cloudflare account found in database');
     }
 
-    $service = new CloudflareService();
+    $service = new CloudflareService;
 
     // Get current tokens from Cloudflare API
     $tokensBefore = $service->listServiceTokens($cloudflare);
     $tokenCountBefore = count($tokensBefore);
-    
+
     expect($tokenCountBefore)->toBeGreaterThan(0);
 
     // Find one of the duplicate "Muraqib-netdata" tokens (the older one from 2026-01-18T09:26:24Z)
     $targetTokenId = '93b8be05-5688-4286-869c-1f29bfbea4f7';
-    
+
     // Check if this token exists in our database
     $accessToken = \App\Models\CloudflareAccess::where('client_id', $targetTokenId)->first();
-    
-    if (!$accessToken) {
+
+    if (! $accessToken) {
         $this->markTestSkipped("Target token {$targetTokenId} not found in database");
     }
 
@@ -49,7 +48,7 @@ it('can delete a duplicate muraqib-netdata token and verify removal', function (
     // Verify token is removed from Cloudflare
     $tokensAfter = $service->listServiceTokens($cloudflare);
     $tokenCountAfter = count($tokensAfter);
-    
+
     dump("After deletion: {$tokenCountAfter} tokens");
 
     expect($tokenCountAfter)->toBe($tokenCountBefore - 1);
@@ -61,5 +60,5 @@ it('can delete a duplicate muraqib-netdata token and verify removal', function (
     // Delete from database too
     $accessToken->delete();
 
-    dump("✅ Successfully deleted token from both Cloudflare and database");
+    dump('✅ Successfully deleted token from both Cloudflare and database');
 })->skip('Manual verification test - run explicitly when needed');

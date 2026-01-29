@@ -16,8 +16,9 @@ class CloudflareSeeder extends Seeder
         $accountId = config('services.cloudflare.seed_account_id');
         $apiToken = config('services.cloudflare.seed_api_token');
 
-        if (!$accountId || !$apiToken) {
+        if (! $accountId || ! $apiToken) {
             $this->command->warn('Skipping CloudflareSeeder: services.cloudflare.seed_account_id and services.cloudflare.seed_api_token not set in config');
+
             return;
         }
 
@@ -35,7 +36,7 @@ class CloudflareSeeder extends Seeder
         $this->command->info("✅ Cloudflare account created: {$cloudflare->name}");
 
         // Pull all data from Cloudflare
-        $service = new CloudflareService();
+        $service = new CloudflareService;
 
         try {
             // 1. Pull Zones/Domains
@@ -106,6 +107,7 @@ class CloudflareSeeder extends Seeder
 
                 if ($existing) {
                     $existing->update(['name' => $token['name']]);
+
                     continue;
                 }
 

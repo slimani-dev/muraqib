@@ -33,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\ApiRequest::class, \App\Policies\ApiRequestPolicy::class);
+
         CreateAction::configureUsing(function (Action $action) {
             $action->slideOver()->modalWidth('3xl');
         });
@@ -50,14 +52,13 @@ class AppServiceProvider extends ServiceProvider
                 ->deferFilters(false)
                 ->persistFiltersInSession()
                 ->persistSearchInSession()
-                ->persistColumnSearchesInSession();;
+                ->persistColumnSearchesInSession();
         });
 
-//        \Illuminate\Support\Facades\DB::listen(function ($query) {
-//            \Illuminate\Support\Facades\Log::info($query->sql, $query->bindings);
-//            \Illuminate\Support\Facades\Log::info($query->time . 'ms');
-//        });
-
+        //        \Illuminate\Support\Facades\DB::listen(function ($query) {
+        //            \Illuminate\Support\Facades\Log::info($query->sql, $query->bindings);
+        //            \Illuminate\Support\Facades\Log::info($query->time . 'ms');
+        //        });
 
     }
 }

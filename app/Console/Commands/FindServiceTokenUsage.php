@@ -17,10 +17,11 @@ class FindServiceTokenUsage extends Command
     public function handle(): int
     {
         $input = $this->argument('token');
-        
+
         $account = Cloudflare::first();
         if (! $account) {
             $this->error('❌ No Cloudflare account configured.');
+
             return self::FAILURE;
         }
 
@@ -30,6 +31,7 @@ class FindServiceTokenUsage extends Command
         $token = $this->resolveToken($account, $input);
         if (! $token) {
             $this->error("❌ Service Token not found: {$input}");
+
             return self::FAILURE;
         }
 
@@ -60,8 +62,8 @@ class FindServiceTokenUsage extends Command
             foreach ($policies as $policy) {
                 if ($this->referencesToken($policy, $tokenId)) {
                     $this->error("  ⚠️  Found in App: [{$app['name']}] -> Policy: [{$policy['name']}]");
-                     $this->line("      Policy ID: {$policy['id']}");
-                     $this->line("      App ID: {$app['id']}");
+                    $this->line("      Policy ID: {$policy['id']}");
+                    $this->line("      App ID: {$app['id']}");
                     $foundUsage = true;
                 }
             }
@@ -84,7 +86,8 @@ class FindServiceTokenUsage extends Command
             ->get(self::BASE_URL."/accounts/{$account->account_id}/access/service_tokens");
 
         if (! $response->successful()) {
-            $this->error('Failed to list service tokens: ' . $response->body());
+            $this->error('Failed to list service tokens: '.$response->body());
+
             return null;
         }
 
@@ -92,11 +95,15 @@ class FindServiceTokenUsage extends Command
 
         // Try Exact Match on ID
         $byId = collect($tokens)->firstWhere('id', $input);
-        if ($byId) return $byId;
+        if ($byId) {
+            return $byId;
+        }
 
         // Try Match on Name (or partial?)
         $byName = collect($tokens)->firstWhere('name', $input);
-        if ($byName) return $byName;
+        if ($byName) {
+            return $byName;
+        }
 
         return null;
     }
@@ -138,7 +145,7 @@ class FindServiceTokenUsage extends Command
             foreach ($resource[$check] as $rule) {
                 // Rule structure: ['service_token' => ['token_id' => '...']]
                 // Or potentially flat if using different rule structure, but standard is nested.
-                
+
                 if (isset($rule['service_token']['token_id']) && $rule['service_token']['token_id'] === $tokenId) {
                     return true;
                 }

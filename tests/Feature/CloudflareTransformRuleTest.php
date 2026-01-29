@@ -126,16 +126,16 @@ class CloudflareTransformRuleTest extends TestCase
 
             // Check Headers - CF headers without operation, regular headers with operation
             $headers = $data['action_parameters']['headers'];
-            
+
             // CF-Access headers should NOT have operation field
             $this->assertArrayHasKey('CF-Access-Client-Id', $headers);
             $this->assertArrayNotHasKey('operation', $headers['CF-Access-Client-Id']);
             $this->assertEquals('test-client-id', $headers['CF-Access-Client-Id']['value']);
-            
+
             $this->assertArrayHasKey('CF-Access-Client-Secret', $headers);
             $this->assertArrayNotHasKey('operation', $headers['CF-Access-Client-Secret']);
             $this->assertEquals('test-client-secret', $headers['CF-Access-Client-Secret']['value']);
-            
+
             // Authorization header SHOULD have operation field
             $this->assertArrayHasKey('Authorization', $headers);
             $this->assertEquals('set', $headers['Authorization']['operation']);

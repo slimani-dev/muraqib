@@ -7,14 +7,13 @@ use App\Models\Stack;
 use App\Services\PortainerService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Forms;
 use Filament\Forms\Components\Checkbox;
-use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Get;
-use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Tables;
@@ -51,7 +50,6 @@ class StacksRelationManager extends RelationManager
                     ->tabSize(4)
                     ->required(),
 
-
                 Forms\Components\Repeater::make('env')
                     ->table([
                         Forms\Components\Repeater\TableColumn::make('Name')
@@ -60,7 +58,7 @@ class StacksRelationManager extends RelationManager
                             ->hiddenHeaderLabel(),
                     ])
                     ->extraAttributes([
-                        'class' => 'no-header'
+                        'class' => 'no-header',
                     ])
                     ->schema([
                         Forms\Components\TextInput::make('name')
@@ -137,22 +135,22 @@ class StacksRelationManager extends RelationManager
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
-                    ->description(fn(Stack $record) => "Endpoint #{$record->endpoint_id}"),
+                    ->description(fn (Stack $record) => "Endpoint #{$record->endpoint_id}"),
 
                 Tables\Columns\TextColumn::make('stack_status')
                     ->label('Status')
                     ->badge()
-                    ->formatStateUsing(fn($state) => match ($state) {
+                    ->formatStateUsing(fn ($state) => match ($state) {
                         1 => 'Running',
                         2 => 'Stopped',
                         default => 'Unknown',
                     })
-                    ->color(fn($state) => match ($state) {
+                    ->color(fn ($state) => match ($state) {
                         1 => 'success',
                         2 => 'danger',
                         default => 'gray',
                     })
-                    ->icon(fn($state) => match ($state) {
+                    ->icon(fn ($state) => match ($state) {
                         1 => 'heroicon-o-play-circle',
                         2 => 'heroicon-o-stop-circle',
                         default => 'heroicon-o-question-mark-circle',
@@ -161,7 +159,7 @@ class StacksRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('stack_type')
                     ->label('Type')
                     ->badge()
-                    ->formatStateUsing(fn($state) => match ($state) {
+                    ->formatStateUsing(fn ($state) => match ($state) {
                         1 => 'Swarm',
                         2 => 'Compose',
                         default => 'Unknown',
@@ -173,7 +171,7 @@ class StacksRelationManager extends RelationManager
                     ->dateTime()
                     ->sortable()
                     ->since()
-                    ->description(fn(Stack $record) => $record->created_at_portainer?->format('M d, Y g:i A')),
+                    ->description(fn (Stack $record) => $record->created_at_portainer?->format('M d, Y g:i A')),
 
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Last Synced')
@@ -199,14 +197,14 @@ class StacksRelationManager extends RelationManager
                     ->label('Start')
                     ->icon('heroicon-o-play')
                     ->color('success')
-                    ->visible(fn(Stack $record) => $record->stack_status === 2)
+                    ->visible(fn (Stack $record) => $record->stack_status === 2)
                     ->requiresConfirmation()
-                    ->modalHeading(fn(Stack $record) => "Start stack '{$record->name}'?")
+                    ->modalHeading(fn (Stack $record) => "Start stack '{$record->name}'?")
                     ->modalDescription('This will start all containers in the stack.')
                     ->action(function (Stack $record) use ($portainer) {
                         $service = new PortainerService($portainer);
 
-                        $success = $service->startStack((int)$record->external_id, $record->endpoint_id);
+                        $success = $service->startStack((int) $record->external_id, $record->endpoint_id);
 
                         if ($success) {
                             Notification::make()
@@ -230,14 +228,14 @@ class StacksRelationManager extends RelationManager
                     ->label('Restart')
                     ->icon('heroicon-o-arrow-path')
                     ->color('warning')
-                    ->visible(fn(Stack $record) => $record->stack_status === 1)
+                    ->visible(fn (Stack $record) => $record->stack_status === 1)
                     ->requiresConfirmation()
-                    ->modalHeading(fn(Stack $record) => "Restart stack '{$record->name}'?")
+                    ->modalHeading(fn (Stack $record) => "Restart stack '{$record->name}'?")
                     ->modalDescription('This will stop and start all containers in the stack.')
                     ->action(function (Stack $record) use ($portainer) {
                         $service = new PortainerService($portainer);
 
-                        $success = $service->restartStack((int)$record->external_id, $record->endpoint_id);
+                        $success = $service->restartStack((int) $record->external_id, $record->endpoint_id);
 
                         if ($success) {
                             Notification::make()
@@ -260,14 +258,14 @@ class StacksRelationManager extends RelationManager
                     ->label('Stop')
                     ->icon('heroicon-o-stop')
                     ->color('danger')
-                    ->visible(fn(Stack $record) => $record->stack_status === 1)
+                    ->visible(fn (Stack $record) => $record->stack_status === 1)
                     ->requiresConfirmation()
-                    ->modalHeading(fn(Stack $record) => "Stop stack '{$record->name}'?")
+                    ->modalHeading(fn (Stack $record) => "Stop stack '{$record->name}'?")
                     ->modalDescription('This will stop all containers in the stack.')
                     ->action(function (Stack $record) use ($portainer) {
                         $service = new PortainerService($portainer);
 
-                        $success = $service->stopStack((int)$record->external_id, $record->endpoint_id);
+                        $success = $service->stopStack((int) $record->external_id, $record->endpoint_id);
 
                         if ($success) {
                             Notification::make()
@@ -291,8 +289,8 @@ class StacksRelationManager extends RelationManager
                     ->mountUsing(function ($form, $record) use ($portainer) {
                         // 1. Sync latest data from Portainer
                         $service = new PortainerService($portainer);
-                        $apiStack = $service->getStack((int)$record->external_id);
-                        $stackFile = $service->getStackFile((int)$record->external_id);
+                        $apiStack = $service->getStack((int) $record->external_id);
+                        $stackFile = $service->getStackFile((int) $record->external_id);
 
                         if ($apiStack) {
                             // Update local record
@@ -333,7 +331,7 @@ class StacksRelationManager extends RelationManager
                         }
 
                         $success = $service->updateStack(
-                            (int)$record->external_id,
+                            (int) $record->external_id,
                             $record->endpoint_id,
                             $data['stack_file_content'],
                             $env,
@@ -371,14 +369,14 @@ class StacksRelationManager extends RelationManager
                     ->label('Delete')
                     ->icon('heroicon-o-trash')
                     ->color('danger')
-                    ->visible(fn(Stack $record) => $record->stack_status === 2)
+                    ->visible(fn (Stack $record) => $record->stack_status === 2)
                     ->requiresConfirmation()
-                    ->modalHeading(fn(Stack $record) => "Delete stack '{$record->name}'?")
+                    ->modalHeading(fn (Stack $record) => "Delete stack '{$record->name}'?")
                     ->modalDescription('This will permanently delete the stack from Portainer. The stack must be stopped first.')
                     ->action(function (Stack $record) use ($portainer) {
                         $service = new PortainerService($portainer);
 
-                        $success = $service->deleteStack((int)$record->external_id, $record->endpoint_id);
+                        $success = $service->deleteStack((int) $record->external_id, $record->endpoint_id);
 
                         if ($success) {
                             $record->delete();
@@ -411,7 +409,7 @@ class StacksRelationManager extends RelationManager
                         $count = 0;
                         foreach ($records as $record) {
                             if ($record->stack_status === 2) { // Only start stopped stacks
-                                if ($service->startStack((int)$record->external_id, $record->endpoint_id)) {
+                                if ($service->startStack((int) $record->external_id, $record->endpoint_id)) {
                                     $count++;
                                 }
                             }
@@ -435,7 +433,7 @@ class StacksRelationManager extends RelationManager
                         $count = 0;
                         foreach ($records as $record) {
                             if ($record->stack_status === 1) { // Only stop running stacks
-                                if ($service->stopStack((int)$record->external_id, $record->endpoint_id)) {
+                                if ($service->stopStack((int) $record->external_id, $record->endpoint_id)) {
                                     $count++;
                                 }
                             }
@@ -457,7 +455,7 @@ class StacksRelationManager extends RelationManager
                         $count = 0;
                         foreach ($records as $record) {
                             if ($record->stack_status === 1) { // Only restart running stacks
-                                if ($service->restartStack((int)$record->external_id, $record->endpoint_id)) {
+                                if ($service->restartStack((int) $record->external_id, $record->endpoint_id)) {
                                     $count++;
                                 }
                             }
@@ -485,7 +483,7 @@ class StacksRelationManager extends RelationManager
         $cacheDuration = 300; // 5 minutes in seconds
 
         // Check if we need to sync (unless forced)
-        if (!$force) {
+        if (! $force) {
             $lastSync = cache()->get($cacheKey);
             if ($lastSync && now()->diffInSeconds($lastSync) < $cacheDuration) {
                 // Cache still valid, skip sync
@@ -509,11 +507,11 @@ class StacksRelationManager extends RelationManager
 
             // If stack is stopped, try to get icon from docker-compose file
             if ($stackData->status === 2) {
-                $stackFile = $service->getStackFile((int)$stackData->id);
+                $stackFile = $service->getStackFile((int) $stackData->id);
 
                 // DEBUG LOGGING
                 if ($stackData->id == 10) {
-                    \Illuminate\Support\Facades\Log::info('Debugging Stack 10 (Kavita): File fetched? ' . ($stackFile ? 'Yes' : 'No') . ' Length: ' . strlen($stackFile ?? ''));
+                    \Illuminate\Support\Facades\Log::info('Debugging Stack 10 (Kavita): File fetched? '.($stackFile ? 'Yes' : 'No').' Length: '.strlen($stackFile ?? ''));
                 }
 
                 if ($stackFile) {
@@ -521,7 +519,7 @@ class StacksRelationManager extends RelationManager
                         $compose = \Symfony\Component\Yaml\Yaml::parse($stackFile);
 
                         if ($stackData->id == 10) {
-                            \Illuminate\Support\Facades\Log::info('Debugging Stack 10: YAML Parsed. Services: ' . json_encode(array_keys($compose['services'] ?? [])));
+                            \Illuminate\Support\Facades\Log::info('Debugging Stack 10: YAML Parsed. Services: '.json_encode(array_keys($compose['services'] ?? [])));
                         }
 
                         // Look for muraqib.icon or glance.icon in service labels
@@ -532,7 +530,7 @@ class StacksRelationManager extends RelationManager
                                     $labels = $this->normalizeLabels($serviceData['labels']);
 
                                     if ($stackData->id == 10) {
-                                        \Illuminate\Support\Facades\Log::info("Debugging Stack 10: Service $serviceName labels: " . json_encode($labels));
+                                        \Illuminate\Support\Facades\Log::info("Debugging Stack 10: Service $serviceName labels: ".json_encode($labels));
                                     }
 
                                     // Check if this is main service
@@ -544,7 +542,7 @@ class StacksRelationManager extends RelationManager
                             }
 
                             // If no main service with icon, find any service with icon
-                            if (!$icon) {
+                            if (! $icon) {
                                 foreach ($compose['services'] as $serviceData) {
                                     if (isset($serviceData['labels'])) {
                                         $labels = $this->normalizeLabels($serviceData['labels']);
@@ -557,12 +555,12 @@ class StacksRelationManager extends RelationManager
                             }
 
                             if ($stackData->id == 10) {
-                                \Illuminate\Support\Facades\Log::info('Debugging Stack 10: Final Icon Extracted: ' . var_export($icon, true));
+                                \Illuminate\Support\Facades\Log::info('Debugging Stack 10: Final Icon Extracted: '.var_export($icon, true));
                             }
                         }
                     } catch (\Exception $e) {
                         if ($stackData->id == 10) {
-                            \Illuminate\Support\Facades\Log::error('Debugging Stack 10: YAML Parse Error: ' . $e->getMessage());
+                            \Illuminate\Support\Facades\Log::error('Debugging Stack 10: YAML Parse Error: '.$e->getMessage());
                         }
                     }
                 }
@@ -584,7 +582,7 @@ class StacksRelationManager extends RelationManager
                 }
 
                 // If no icon from main container, find first container with an icon
-                if (!$icon) {
+                if (! $icon) {
                     $containerWithIcon = $stackContainers->first(function ($container) {
                         return isset($container->labels['muraqib.icon']) || isset($container->labels['glance.icon']);
                     });
@@ -600,7 +598,7 @@ class StacksRelationManager extends RelationManager
             Stack::updateOrCreate(
                 [
                     'portainer_id' => $portainer->id,
-                    'external_id' => (string)$stackData->id,
+                    'external_id' => (string) $stackData->id,
                 ],
                 [
                     'name' => $stackData->name,

@@ -14,7 +14,7 @@ class CloudflareServiceTest extends TestCase
             'https://api.cloudflare.com/client/v4/accounts/12345/tokens/verify' => Http::response(['result' => ['status' => 'active'], 'success' => true]),
         ]);
 
-        $service = new CloudflareService();
+        $service = new CloudflareService;
         $result = $service->verifyToken('token', '12345');
 
         $this->assertTrue($result);
@@ -29,7 +29,7 @@ class CloudflareServiceTest extends TestCase
             'https://api.cloudflare.com/client/v4/user/tokens/verify' => Http::response(['result' => ['status' => 'active'], 'success' => true]),
         ]);
 
-        $service = new CloudflareService();
+        $service = new CloudflareService;
         $result = $service->verifyToken('token');
 
         $this->assertTrue($result);

@@ -54,8 +54,6 @@ it('can sync portainer from view page', function () {
     expect($this->portainer->version)->toBe('2.19.4');
 });
 
-
-
 it('can sync from table action', function () {
     Http::fake([
         '*/api/system/status' => Http::response([

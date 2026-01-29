@@ -2,20 +2,28 @@
 
 namespace App\Services;
 
+use App\Contracts\MonitorableService;
 use App\Data\ContainerData;
 use App\Data\StackData;
 use App\Models\Portainer;
+use App\Traits\HasApiMonitoring;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
 
-class PortainerService
+class PortainerService implements MonitorableService
 {
+    use HasApiMonitoring;
+
+    public function getServiceName(): string
+    {
+        return 'Portainer';
+    }
+
     public function __construct(public Portainer $portainer) {}
 
     public function checkConnection(): bool
     {
         try {
-            $response = Http::withHeaders(['X-API-Key' => $this->portainer->access_token])
+            $response = $this->http('checkConnection')->withHeaders(['X-API-Key' => $this->portainer->access_token])
                 ->timeout(5)
                 ->get("{$this->portainer->url}/api/system/status");
 
@@ -28,7 +36,7 @@ class PortainerService
     public function getSystemInfo(): ?array
     {
         try {
-            $response = Http::withHeaders(['X-API-Key' => $this->portainer->access_token])
+            $response = $this->http('getSystemInfo')->withHeaders(['X-API-Key' => $this->portainer->access_token])
                 ->get("{$this->portainer->url}/api/system/status");
 
             if ($response->successful()) {
@@ -58,7 +66,7 @@ class PortainerService
     public function getEndpoints(): array
     {
         try {
-            $response = Http::withHeaders(['X-API-Key' => $this->portainer->access_token])
+            $response = $this->http('getEndpoints')->withHeaders(['X-API-Key' => $this->portainer->access_token])
                 ->get("{$this->portainer->url}/api/endpoints");
 
             if ($response->successful()) {
@@ -77,7 +85,7 @@ class PortainerService
     public function getStacks(): Collection
     {
         try {
-            $response = Http::withHeaders(['X-API-Key' => $this->portainer->access_token])
+            $response = $this->http('getStacks')->withHeaders(['X-API-Key' => $this->portainer->access_token])
                 ->get("{$this->portainer->url}/api/stacks");
 
             if ($response->successful()) {
@@ -98,7 +106,7 @@ class PortainerService
     public function getStack(int $stackId): ?StackData
     {
         try {
-            $response = Http::withHeaders(['X-API-Key' => $this->portainer->access_token])
+            $response = $this->http('getStack')->withHeaders(['X-API-Key' => $this->portainer->access_token])
                 ->get("{$this->portainer->url}/api/stacks/{$stackId}");
 
             if ($response->successful()) {
@@ -117,7 +125,7 @@ class PortainerService
     public function getStackFile(int $stackId): ?string
     {
         try {
-            $response = Http::withHeaders(['X-API-Key' => $this->portainer->access_token])
+            $response = $this->http('getStackFile')->withHeaders(['X-API-Key' => $this->portainer->access_token])
                 ->get("{$this->portainer->url}/api/stacks/{$stackId}/file");
 
             if ($response->successful()) {
@@ -145,7 +153,7 @@ class PortainerService
         }
 
         try {
-            $response = Http::withHeaders(['X-API-Key' => $this->portainer->access_token])
+            $response = $this->http('getContainers')->withHeaders(['X-API-Key' => $this->portainer->access_token])
                 ->get("{$this->portainer->url}/api/endpoints/{$endpointId}/docker/containers/json?all=1");
 
             if ($response->successful()) {
@@ -184,7 +192,7 @@ class PortainerService
         }
 
         try {
-            $response = Http::withHeaders(['X-API-Key' => $this->portainer->access_token])
+            $response = $this->http('getContainer')->withHeaders(['X-API-Key' => $this->portainer->access_token])
                 ->get("{$this->portainer->url}/api/endpoints/{$endpointId}/docker/containers/{$containerId}/json");
 
             if ($response->successful()) {
@@ -233,14 +241,14 @@ class PortainerService
         $this->syncContainers(true);
 
         // 5. Cache Stats
-        // We fetch endpoints again here to get the count. 
+        // We fetch endpoints again here to get the count.
         // This is an extra request but necessary since we don't store endpoints locally.
         $endpoints = $this->getEndpoints();
-        
+
         $stats = [
             'endpoints_count' => count($endpoints),
-            // We can also cache DB counts if we really want to avoid even those DB queries, 
-            // but Model::count() is usually fast enough. 
+            // We can also cache DB counts if we really want to avoid even those DB queries,
+            // but Model::count() is usually fast enough.
             // Let's cache them for consistency so the infolist is purely reading from the cached JSON if desired,
             // but the plan was to use relations for these.
             // I'll stick to just endpoints_count here as per plan, but adding others wouldn't hurt.
@@ -263,7 +271,7 @@ class PortainerService
     public function checkForUpdates(): ?array
     {
         try {
-            $response = Http::get('https://api.github.com/repos/portainer/portainer/releases/latest');
+            $response = $this->http('checkForUpdates')->get('https://api.github.com/repos/portainer/portainer/releases/latest');
 
             if ($response->successful()) {
                 $latestRelease = $response->json();
@@ -312,7 +320,7 @@ class PortainerService
     public function startStack(int $stackId, int $endpointId): bool
     {
         try {
-            $response = Http::withHeaders(['X-API-Key' => $this->portainer->access_token])
+            $response = $this->http('startStack')->withHeaders(['X-API-Key' => $this->portainer->access_token])
                 ->post("{$this->portainer->url}/api/stacks/{$stackId}/start?endpointId={$endpointId}");
 
             return $response->successful();
@@ -327,7 +335,7 @@ class PortainerService
     public function stopStack(int $stackId, int $endpointId): bool
     {
         try {
-            $response = Http::withHeaders(['X-API-Key' => $this->portainer->access_token])
+            $response = $this->http('stopStack')->withHeaders(['X-API-Key' => $this->portainer->access_token])
                 ->post("{$this->portainer->url}/api/stacks/{$stackId}/stop?endpointId={$endpointId}");
 
             return $response->successful();
@@ -357,7 +365,7 @@ class PortainerService
     public function deleteStack(int $stackId, int $endpointId): bool
     {
         try {
-            $response = Http::withHeaders(['X-API-Key' => $this->portainer->access_token])
+            $response = $this->http('deleteStack')->withHeaders(['X-API-Key' => $this->portainer->access_token])
                 ->delete("{$this->portainer->url}/api/stacks/{$stackId}?endpointId={$endpointId}");
 
             return $response->successful();
@@ -416,7 +424,7 @@ class PortainerService
             $fullStackData = $this->getStack((int) $stackData->id);
             $env = [];
             if ($fullStackData && $fullStackData->env) {
-                 foreach ($fullStackData->env as $envVar) {
+                foreach ($fullStackData->env as $envVar) {
                     if (is_array($envVar) && isset($envVar['name'], $envVar['value'])) {
                         $env[] = $envVar;
                     } elseif (is_string($envVar) && str_contains($envVar, '=')) {
@@ -424,61 +432,63 @@ class PortainerService
                         $env[] = ['name' => $key, 'value' => $val];
                     }
                 }
-                \Illuminate\Support\Facades\Log::info('    - Environment variables fetched: ' . count($env));
+                \Illuminate\Support\Facades\Log::info('    - Environment variables fetched: '.count($env));
             }
 
             // Icon detection logic (simplified/preserved)
-            if (!$icon) {
-                 // Try to parse from stack file if available
-                 if ($stackFileContent) {
-                      try {
-                          $compose = \Symfony\Component\Yaml\Yaml::parse($stackFileContent);
-                          // ... implementation of icon finding from compose ...
-                           if (isset($compose['services']) && is_array($compose['services'])) {
-                                foreach ($compose['services'] as $serviceName => $serviceData) {
-                                    if (isset($serviceData['labels'])) {
-                                        $labels = $this->normalizeLabels($serviceData['labels']);
-                                        // Check main
-                                        if (isset($labels['muraqib.main']) && $labels['muraqib.main'] === 'true') {
-                                            $icon = $labels['muraqib.icon'] ?? $labels['glance.icon'] ?? null;
-                                            if ($icon) break;
-                                        }
-                                        // Fallback
-                                        if (!$icon) {
-                                             $icon = $labels['muraqib.icon'] ?? $labels['glance.icon'] ?? null;
+            if (! $icon) {
+                // Try to parse from stack file if available
+                if ($stackFileContent) {
+                    try {
+                        $compose = \Symfony\Component\Yaml\Yaml::parse($stackFileContent);
+                        // ... implementation of icon finding from compose ...
+                        if (isset($compose['services']) && is_array($compose['services'])) {
+                            foreach ($compose['services'] as $serviceName => $serviceData) {
+                                if (isset($serviceData['labels'])) {
+                                    $labels = $this->normalizeLabels($serviceData['labels']);
+                                    // Check main
+                                    if (isset($labels['muraqib.main']) && $labels['muraqib.main'] === 'true') {
+                                        $icon = $labels['muraqib.icon'] ?? $labels['glance.icon'] ?? null;
+                                        if ($icon) {
+                                            break;
                                         }
                                     }
+                                    // Fallback
+                                    if (! $icon) {
+                                        $icon = $labels['muraqib.icon'] ?? $labels['glance.icon'] ?? null;
+                                    }
                                 }
-                           }
-                      } catch (\Exception $e) { /* ignore */ }
-                 }
-                 // If still no icon and running, try containers (existing logic)
-                 if (!$icon && (string) $stackData->status === '1') { // 1 = running
-                      // ... existing container logic ...
-                      $stackContainers = $apiContainers->filter(function ($container) use ($stackData) {
-                          return ($container->labels['com.docker.compose.project'] ?? '') === $stackData->name;
-                      });
-
-                      // Try main container
-                      $mainContainer = $stackContainers->first(function ($container) {
-                          return ($container->labels['muraqib.main'] ?? 'false') === 'true';
-                      });
-                      if ($mainContainer) {
-                          $icon = $mainContainer->labels['muraqib.icon'] ?? $mainContainer->labels['glance.icon'] ?? null;
-                      }
-
-                      // Fallback container
-                      if (!$icon) {
-                           $containerWithIcon = $stackContainers->first(function ($container) {
-                                return isset($container->labels['muraqib.icon']) || isset($container->labels['glance.icon']);
-                            });
-                            if ($containerWithIcon) {
-                                $icon = $containerWithIcon->labels['muraqib.icon'] ?? $containerWithIcon->labels['glance.icon'] ?? null;
                             }
-                      }
-                 }
-            }
+                        }
+                    } catch (\Exception $e) { /* ignore */
+                    }
+                }
+                // If still no icon and running, try containers (existing logic)
+                if (! $icon && (string) $stackData->status === '1') { // 1 = running
+                    // ... existing container logic ...
+                    $stackContainers = $apiContainers->filter(function ($container) use ($stackData) {
+                        return ($container->labels['com.docker.compose.project'] ?? '') === $stackData->name;
+                    });
 
+                    // Try main container
+                    $mainContainer = $stackContainers->first(function ($container) {
+                        return ($container->labels['muraqib.main'] ?? 'false') === 'true';
+                    });
+                    if ($mainContainer) {
+                        $icon = $mainContainer->labels['muraqib.icon'] ?? $mainContainer->labels['glance.icon'] ?? null;
+                    }
+
+                    // Fallback container
+                    if (! $icon) {
+                        $containerWithIcon = $stackContainers->first(function ($container) {
+                            return isset($container->labels['muraqib.icon']) || isset($container->labels['glance.icon']);
+                        });
+                        if ($containerWithIcon) {
+                            $icon = $containerWithIcon->labels['muraqib.icon'] ?? $containerWithIcon->labels['glance.icon'] ?? null;
+                        }
+                    }
+                }
+            }
 
             \App\Models\Stack::updateOrCreate(
                 [
@@ -633,7 +643,7 @@ class PortainerService
                 'pullImage' => $pullImage,
             ];
 
-            $response = Http::withHeaders(['X-API-Key' => $this->portainer->access_token])
+            $response = $this->http('updateStack')->withHeaders(['X-API-Key' => $this->portainer->access_token])
                 ->put("{$this->portainer->url}/api/stacks/{$stackId}?endpointId={$endpointId}", $payload);
 
             return $response->successful();

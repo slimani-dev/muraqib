@@ -6,7 +6,6 @@ use App\Models\Portainer;
 use App\Services\PortainerService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
-
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);

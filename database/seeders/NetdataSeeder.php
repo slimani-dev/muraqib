@@ -19,6 +19,7 @@ class NetdataSeeder extends Seeder
 
         if (empty($urls)) {
             $this->command->warn('Skipping NetdataSeeder: services.netdata.seed_urls not set or empty in config');
+
             return;
         }
 
@@ -40,6 +41,7 @@ class NetdataSeeder extends Seeder
 
             if (! $host) {
                 $this->command->error("Invalid Netdata URL: {$url}");
+
                 continue;
             }
 
@@ -56,7 +58,7 @@ class NetdataSeeder extends Seeder
                         'hostname' => $host,
                     ],
                     [
-                        'service' => "http://localhost:19999", // Default internal service
+                        'service' => 'http://localhost:19999', // Default internal service
                         'path' => null,
                         'is_catch_all' => false,
                     ]

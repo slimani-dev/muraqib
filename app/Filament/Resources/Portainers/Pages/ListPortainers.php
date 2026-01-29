@@ -6,10 +6,7 @@ use App\Filament\Resources\Portainers\PortainerResource;
 use App\Models\Portainer;
 use App\Services\PortainerService;
 use Filament\Actions\CreateAction;
-use Filament\Actions\StaticAction;
-
 use Filament\Resources\Pages\ListRecords;
-use Filament\Schemas\Components\Component;
 
 class ListPortainers extends ListRecords
 {

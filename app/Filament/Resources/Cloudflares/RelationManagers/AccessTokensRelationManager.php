@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Cloudflares\RelationManagers;
 
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
@@ -87,17 +86,18 @@ class AccessTokensRelationManager extends RelationManager
                                         'updated_at' => now(),
                                     ]);
                                     $updated++;
+
                                     continue;
                                 }
 
                                 // 2. Import ALL tokens - no filtering
                                 $targetName = $token['name'];
-                                
+
                                 // Try to match to a domain if name starts with "Muraqib-"
                                 if (\Illuminate\Support\Str::startsWith($token['name'], 'Muraqib-')) {
                                     $targetName = \Illuminate\Support\Str::after($token['name'], 'Muraqib-');
                                 }
-                                
+
                                 // Find matching domain (longest match first)
                                 $matchedDomain = $domains
                                     ->filter(fn ($d) => \Illuminate\Support\Str::endsWith($targetName, $d->name))
@@ -106,7 +106,7 @@ class AccessTokensRelationManager extends RelationManager
 
                                 // Create record even if no domain match - use first domain as fallback
                                 $domainId = $matchedDomain?->id ?? $domains->first()?->id;
-                                
+
                                 if ($domainId) {
                                     \App\Models\CloudflareAccess::create([
                                         'cloudflare_domain_id' => $domainId,
@@ -283,7 +283,7 @@ class AccessTokensRelationManager extends RelationManager
                         $service = app(\App\Services\Cloudflare\CloudflareService::class);
                         $usage = ['groups' => [], 'policies' => []];
                         $hasUsage = false;
-                        
+
                         // We need to fetch usage. Since this is a form, it runs when modal opens.
                         // Ideally we should cache this or it might be slow on each open.
                         try {
@@ -294,7 +294,7 @@ class AccessTokensRelationManager extends RelationManager
                         } catch (\Exception $e) {
                             // If API fails, we can't be sure.
                         }
-                        
+
                         $blockingHtml = '';
                         if ($hasUsage) {
                             $blockingHtml .= '<ul class="list-disc pl-4 space-y-1 text-sm">';
@@ -306,7 +306,7 @@ class AccessTokensRelationManager extends RelationManager
                             }
                             $blockingHtml .= '</ul>';
                         }
-                        
+
                         return [
                             \Filament\Forms\Components\Hidden::make('has_blocking')
                                 ->default($hasUsage),
@@ -327,12 +327,12 @@ class AccessTokensRelationManager extends RelationManager
                                     </div>
                                 '))
                                 ->visible($hasUsage),
-                                
+
                             \Filament\Forms\Components\Placeholder::make('blocking_list')
                                 ->label('Dependencies to be removed:')
                                 ->content(new \Illuminate\Support\HtmlString($blockingHtml))
                                 ->visible($hasUsage),
-                                
+
                             \Filament\Forms\Components\Placeholder::make('safe_alert')
                                 ->hiddenLabel()
                                 ->content(new \Illuminate\Support\HtmlString('
@@ -349,13 +349,13 @@ class AccessTokensRelationManager extends RelationManager
                                     </div>
                                 '))
                                 ->visible(! $hasUsage),
-                                
+
                             \Filament\Forms\Components\Placeholder::make('confirmation')
                                 ->label('Confirmation')
                                 ->content(new \Illuminate\Support\HtmlString("Are you sure you want to delete <strong>{$record->name}</strong>? This action cannot be undone."))
                                 ->visible(! $hasUsage),
-                                
-                             \Filament\Forms\Components\Checkbox::make('confirm_cascade')
+
+                            \Filament\Forms\Components\Checkbox::make('confirm_cascade')
                                 ->label('I understand that the above policies/groups will be deleted.')
                                 ->required()
                                 ->visible($hasUsage),
@@ -364,31 +364,32 @@ class AccessTokensRelationManager extends RelationManager
                     ->action(function ($record, $data) {
                         $service = app(\App\Services\Cloudflare\CloudflareService::class);
                         $domain = $record->domain;
-                        
-                        if (!$domain || !$domain->cloudflare) {
-                             \Filament\Notifications\Notification::make()
+
+                        if (! $domain || ! $domain->cloudflare) {
+                            \Filament\Notifications\Notification::make()
                                 ->title('Error')
                                 ->body('Cloudflare Account/Domain link missing.')
                                 ->danger()
                                 ->send();
+
                             return;
                         }
-                        
+
                         // 1. Delete Dependencies (if any)
                         if ($data['has_blocking'] ?? false) {
                             try {
                                 $result = $service->deleteTokenDependencies($domain->cloudflare, $record->service_token_id);
-                                
+
                                 if (count($result['errors']) > 0) {
-                                    throw new \Exception("Failed to delete some dependencies: " . implode(', ', $result['errors']));
+                                    throw new \Exception('Failed to delete some dependencies: '.implode(', ', $result['errors']));
                                 }
-                                
+
                                 \Filament\Notifications\Notification::make()
                                     ->title('Dependencies Deleted')
-                                    ->body("Cleaned up: " . implode(', ', $result['deleted']))
+                                    ->body('Cleaned up: '.implode(', ', $result['deleted']))
                                     ->success()
                                     ->send();
-                                    
+
                             } catch (\Exception $e) {
                                 \Filament\Notifications\Notification::make()
                                     ->title('Dependency Cleanup Failed')
@@ -396,28 +397,29 @@ class AccessTokensRelationManager extends RelationManager
                                     ->danger()
                                     ->persistent()
                                     ->send();
+
                                 return; // Stop here
                             }
                         }
-                        
+
                         // 2. Delete the Subdomain Protection (App + Token + Policy linked to this specific record)
                         // Note: deleteSubdomainProtection handles the local DB deletion too? No, it returns status.
                         // And wait, deleteTokenDependencies might have ALREADY deleted the Policy if it was found via findTokenUsage.
                         // But deleteSubdomainProtection looks for specific app_id/policy_id stored in the DB record.
                         // We should proceed with deleteSubdomainProtection to ensure the main App and Token are gone.
-                        
+
                         $result = $service->deleteSubdomainProtection($domain, $record);
-                        
-                       if ($result['success']) {
+
+                        if ($result['success']) {
                             \Filament\Notifications\Notification::make()
                                 ->title('Service Token Deleted')
                                 ->body('Successfully deleted Service Token and Access App.')
                                 ->success()
                                 ->send();
-                            
+
                             $record->delete();
                         } else {
-                            $message = "Database record kept due to API errors.\n" . implode("\n", $result['errors']);
+                            $message = "Database record kept due to API errors.\n".implode("\n", $result['errors']);
                             \Filament\Notifications\Notification::make()
                                 ->title('Deletion Failed')
                                 ->body($message)
@@ -443,7 +445,7 @@ class AccessTokensRelationManager extends RelationManager
                             foreach ($records as $record) {
                                 if ($record->domain) {
                                     $result = $service->deleteSubdomainProtection($record->domain, $record);
-                                    
+
                                     if ($result['success']) {
                                         $fullyDeleted++;
                                         // Only delete from database if API deletion succeeded
@@ -451,7 +453,7 @@ class AccessTokensRelationManager extends RelationManager
                                     } else {
                                         $partiallyDeleted++;
                                         $failedRecords[] = $record->name;
-                                        $allErrors[] = "{$record->name}: " . implode('; ', $result['errors']);
+                                        $allErrors[] = "{$record->name}: ".implode('; ', $result['errors']);
                                         // DO NOT delete from database - keep for retry
                                     }
                                 } else {
@@ -465,7 +467,7 @@ class AccessTokensRelationManager extends RelationManager
                             $message = "✅ Fully deleted from Cloudflare + Database: {$fullyDeleted}\n";
                             if ($partiallyDeleted > 0) {
                                 $message .= "⚠️ Failed (kept in database): {$partiallyDeleted}\n\n";
-                                $message .= "❌ ERRORS:\n" . implode("\n", $allErrors);
+                                $message .= "❌ ERRORS:\n".implode("\n", $allErrors);
                                 $message .= "\n\n⚠️ Failed records kept in database for retry.";
                             }
 

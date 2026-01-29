@@ -2,11 +2,19 @@
 
 namespace App\Services\Cloudflare;
 
+use App\Contracts\MonitorableService;
 use App\Models\Cloudflare;
-use Illuminate\Support\Facades\Http;
+use App\Traits\HasApiMonitoring;
 
-class CloudflareService
+class CloudflareService implements MonitorableService
 {
+    use HasApiMonitoring;
+
+    public function getServiceName(): string
+    {
+        return 'Cloudflare';
+    }
+
     protected string $baseUrl = 'https://api.cloudflare.com/client/v4';
 
     /**
@@ -18,7 +26,7 @@ class CloudflareService
             ? "$this->baseUrl/accounts/$accountId/tokens/verify"
             : "$this->baseUrl/user/tokens/verify";
 
-        $response = Http::withToken($token)->get($endpoint);
+        $response = $this->http('verifyToken')->withToken($token)->get($endpoint);
 
         return $response->json('result.status') === 'active';
     }
@@ -29,7 +37,7 @@ class CloudflareService
     public function findOrCreateTunnel(Cloudflare $account, string $name = 'muraqib-node')
     {
         // Check existing
-        $list = Http::withToken($account->api_token)
+        $list = $this->http('findOrCreateTunnel:list')->withToken($account->api_token)
             ->get("$this->baseUrl/accounts/{$account->account_id}/cfd_tunnel?is_deleted=false");
 
         $existing = collect($list->json('result'))->firstWhere('name', $name);
@@ -39,7 +47,7 @@ class CloudflareService
         }
 
         // Create new
-        $response = Http::withToken($account->api_token)
+        $response = $this->http('findOrCreateTunnel:create')->withToken($account->api_token)
             ->post("$this->baseUrl/accounts/{$account->account_id}/cfd_tunnel", [
                 'name' => $name,
                 'config_src' => 'cloudflare', // CRITICAL: Enables remote management
@@ -53,7 +61,7 @@ class CloudflareService
      */
     public function listTunnels(Cloudflare $account)
     {
-        $response = Http::withToken($account->api_token)
+        $response = $this->http('listTunnels')->withToken($account->api_token)
             ->get("$this->baseUrl/accounts/{$account->account_id}/cfd_tunnel?is_deleted=false");
 
         if (! $response->successful()) {
@@ -71,7 +79,7 @@ class CloudflareService
         $tunnel->loadMissing('cloudflare');
         $account = $tunnel->cloudflare;
 
-        $response = Http::withToken($account->api_token)
+        $response = $this->http('getTunnelDetails')->withToken($account->api_token)
             ->get("$this->baseUrl/accounts/{$account->account_id}/cfd_tunnel/{$tunnel->tunnel_id}");
 
         if (! $response->successful()) {
@@ -89,7 +97,7 @@ class CloudflareService
         $tunnel->loadMissing('cloudflare');
         $account = $tunnel->cloudflare;
 
-        $response = Http::withToken($account->api_token)
+        $response = $this->http('getTunnelToken')->withToken($account->api_token)
             ->get("$this->baseUrl/accounts/{$account->account_id}/cfd_tunnel/{$tunnel->tunnel_id}/token");
 
         if (! $response->successful()) {
@@ -175,7 +183,7 @@ class CloudflareService
         // 'loglevel', 'protocol' are typically local-only CLI args, but let's check if we can pass them.
         // If not, we just ignore them for the remote config but keep them in DB for reference or local service generation.
 
-        $response = Http::withToken($account->api_token)
+        $response = $this->http('updateIngressRules')->withToken($account->api_token)
             ->put("$this->baseUrl/accounts/{$account->account_id}/cfd_tunnel/{$tunnel->tunnel_id}/configurations", [
                 'config' => $config,
             ]);
@@ -201,7 +209,7 @@ class CloudflareService
         $account = $domain->cloudflare;
 
         // 1. Check existing (ALL record types to prevent conflicts)
-        $response = Http::withToken($account->api_token)
+        $response = $this->http('ensureCnameRecord:check')->withToken($account->api_token)
             ->get("$this->baseUrl/zones/{$domain->zone_id}/dns_records", [
                 'name' => $name,
             ]);
@@ -224,7 +232,7 @@ class CloudflareService
             }
 
             // Update existing CNAME
-            $update = Http::withToken($account->api_token)
+            $update = $this->http('ensureCnameRecord:update')->withToken($account->api_token)
                 ->put("$this->baseUrl/zones/{$domain->zone_id}/dns_records/{$existing['id']}", [
                     'type' => 'CNAME',
                     'name' => $name,
@@ -241,7 +249,7 @@ class CloudflareService
         }
 
         // 2. Create new
-        $create = Http::withToken($account->api_token)
+        $create = $this->http('ensureCnameRecord:create')->withToken($account->api_token)
             ->post("$this->baseUrl/zones/{$domain->zone_id}/dns_records", [
                 'type' => 'CNAME',
                 'name' => $name,
@@ -262,7 +270,7 @@ class CloudflareService
      */
     public function listZones(string $apiToken)
     {
-        $response = Http::withToken($apiToken)->get("$this->baseUrl/zones");
+        $response = $this->http('listZones')->withToken($apiToken)->get("$this->baseUrl/zones");
 
         return $response->json('result');
     }
@@ -278,7 +286,7 @@ class CloudflareService
         $domain->loadMissing('cloudflare');
         $account = $domain->cloudflare;
 
-        $response = Http::withToken($account->api_token)
+        $response = $this->http('listDnsRecords')->withToken($account->api_token)
             ->get("$this->baseUrl/zones/{$domain->zone_id}/dns_records", [
                 'per_page' => 100,
             ]);
@@ -291,7 +299,7 @@ class CloudflareService
         $domain->loadMissing('cloudflare');
         $account = $domain->cloudflare;
 
-        $response = Http::withToken($account->api_token)
+        $response = $this->http('createRemoteDnsRecord')->withToken($account->api_token)
             ->post("$this->baseUrl/zones/{$domain->zone_id}/dns_records", $data);
 
         if (! $response->successful()) {
@@ -306,7 +314,7 @@ class CloudflareService
         $domain->loadMissing('cloudflare');
         $account = $domain->cloudflare;
 
-        $response = Http::withToken($account->api_token)
+        $response = $this->http('updateRemoteDnsRecord')->withToken($account->api_token)
             ->put("$this->baseUrl/zones/{$domain->zone_id}/dns_records/{$recordId}", $data);
 
         if (! $response->successful()) {
@@ -321,7 +329,7 @@ class CloudflareService
         $domain->loadMissing('cloudflare');
         $account = $domain->cloudflare;
 
-        $response = Http::withToken($account->api_token)
+        $response = $this->http('deleteRemoteDnsRecord')->withToken($account->api_token)
             ->delete("$this->baseUrl/zones/{$domain->zone_id}/dns_records/{$recordId}");
 
         return $response->successful();
@@ -335,7 +343,7 @@ class CloudflareService
         $tunnel->loadMissing('cloudflare');
         $account = $tunnel->cloudflare;
 
-        $response = Http::withToken($account->api_token)
+        $response = $this->http('getTunnelConfig')->withToken($account->api_token)
             ->get("$this->baseUrl/accounts/{$account->account_id}/cfd_tunnel/{$tunnel->tunnel_id}/configurations");
 
         if (! $response->successful()) {
@@ -356,7 +364,7 @@ class CloudflareService
         $accountId = $account->account_id;
 
         // 1. Generate Service Token
-        $tokenResponse = Http::withToken($apiToken)->post("$this->baseUrl/accounts/$accountId/access/service_tokens", [
+        $tokenResponse = $this->http('protectSubdomain:generateToken')->withToken($apiToken)->post("$this->baseUrl/accounts/$accountId/access/service_tokens", [
             'name' => "Muraqib-$subdomain",
             'duration' => '8760h', // 1 Year
         ]);
@@ -368,7 +376,7 @@ class CloudflareService
         $tokenRes = $tokenResponse->json('result');
 
         // 2. Create Application
-        $appResponse = Http::withToken($apiToken)->post("$this->baseUrl/accounts/$accountId/access/apps", [
+        $appResponse = $this->http('protectSubdomain:createApp')->withToken($apiToken)->post("$this->baseUrl/accounts/$accountId/access/apps", [
             'type' => 'self_hosted',
             'name' => "Protect $subdomain",
             'domain' => $subdomain,
@@ -384,7 +392,7 @@ class CloudflareService
 
             if (str_contains($errorMsg, 'application_already_exists')) {
                 // Find existing app
-                $existingApps = Http::withToken($apiToken)->get("$this->baseUrl/accounts/$accountId/access/apps")->json('result');
+                $existingApps = $this->http('protectSubdomain:findApp')->withToken($apiToken)->get("$this->baseUrl/accounts/$accountId/access/apps")->json('result');
                 $appRes = collect($existingApps)->firstWhere('domain', $subdomain); // Match by domain strictly
 
                 if (! $appRes) {
@@ -404,7 +412,7 @@ class CloudflareService
         }
 
         // 3. Create Policy (Using reused or new App ID)
-        $policyResponse = Http::withToken($apiToken)->post("$this->baseUrl/accounts/$accountId/access/apps/{$appRes['id']}/policies", [
+        $policyResponse = $this->http('protectSubdomain:createPolicy')->withToken($apiToken)->post("$this->baseUrl/accounts/$accountId/access/apps/{$appRes['id']}/policies", [
             'name' => 'Allow Muraqib App',
             'decision' => 'non_identity',
             'include' => [['service_token' => ['token_id' => $tokenRes['id']]]],
@@ -416,12 +424,12 @@ class CloudflareService
             // Check if policy already exists (cleanup from partial state)
             if (str_contains($error, 'policy_already_exists') || str_contains($error, 'Duplicate')) {
                 // Try to find existing policy
-                $policies = Http::withToken($apiToken)->get("$this->baseUrl/accounts/$accountId/access/apps/{$appRes['id']}/policies")->json('result');
+                $policies = $this->http('protectSubdomain:findPolicy')->withToken($apiToken)->get("$this->baseUrl/accounts/$accountId/access/apps/{$appRes['id']}/policies")->json('result');
                 $existingPolicy = collect($policies)->firstWhere('name', 'Allow Muraqib App');
 
                 if ($existingPolicy) {
                     // Update it to ensure it uses the NEW token
-                    $updatePolicy = Http::withToken($apiToken)->put("$this->baseUrl/accounts/$accountId/access/apps/{$appRes['id']}/policies/{$existingPolicy['id']}", [
+                    $updatePolicy = $this->http('protectSubdomain:updatePolicy')->withToken($apiToken)->put("$this->baseUrl/accounts/$accountId/access/apps/{$appRes['id']}/policies/{$existingPolicy['id']}", [
                         'name' => 'Allow Muraqib App',
                         'decision' => 'non_identity',
                         'include' => [['service_token' => ['token_id' => $tokenRes['id']]]],
@@ -458,7 +466,7 @@ class CloudflareService
      */
     public function listServiceTokens(\App\Models\Cloudflare $account)
     {
-        $response = Http::withToken($account->api_token)
+        $response = $this->http('listServiceTokens')->withToken($account->api_token)
             ->get("$this->baseUrl/accounts/{$account->account_id}/access/service_tokens");
 
         if (! $response->successful()) {
@@ -498,7 +506,7 @@ class CloudflareService
         // 1. Delete Policy (if exists) - Must be deleted BEFORE the app
         if ($access->policy_id && $access->app_id) {
             try {
-                $response = Http::withToken($apiToken)->delete("$this->baseUrl/accounts/$accountId/access/apps/{$access->app_id}/policies/{$access->policy_id}");
+                $response = $this->http('deleteSubdomainProtection:policy')->withToken($apiToken)->delete("$this->baseUrl/accounts/$accountId/access/apps/{$access->app_id}/policies/{$access->policy_id}");
 
                 if ($response->successful()) {
                     $results['deleted'][] = "Policy {$access->policy_id}";
@@ -516,7 +524,7 @@ class CloudflareService
         // 2. Delete Access Application - Must be deleted BEFORE the service token
         if ($access->app_id) {
             try {
-                $response = Http::withToken($apiToken)->delete("$this->baseUrl/accounts/$accountId/access/apps/{$access->app_id}");
+                $response = $this->http('deleteSubdomainProtection:app')->withToken($apiToken)->delete("$this->baseUrl/accounts/$accountId/access/apps/{$access->app_id}");
 
                 if ($response->successful()) {
                     $results['deleted'][] = "Access App {$access->app_id}";
@@ -535,7 +543,7 @@ class CloudflareService
         // Use service_token_id (the actual token ID), not client_id
         if ($access->service_token_id) {
             try {
-                $response = Http::withToken($apiToken)->delete("$this->baseUrl/accounts/$accountId/access/service_tokens/{$access->service_token_id}");
+                $response = $this->http('deleteSubdomainProtection:token')->withToken($apiToken)->delete("$this->baseUrl/accounts/$accountId/access/service_tokens/{$access->service_token_id}");
 
                 if ($response->successful()) {
                     $results['deleted'][] = "Service Token {$access->service_token_id}";
@@ -558,7 +566,7 @@ class CloudflareService
      */
     protected function getZoneRuleset(string $zoneId, string $apiToken, string $phase = 'http_request_late_transform')
     {
-        $response = Http::withToken($apiToken)->get("$this->baseUrl/zones/$zoneId/rulesets", [
+        $response = $this->http('getZoneRuleset')->withToken($apiToken)->get("$this->baseUrl/zones/$zoneId/rulesets", [
             'phase' => $phase,
         ]);
 
@@ -615,7 +623,7 @@ class CloudflareService
 
             \Log::info('Creating Cloudflare Ruleset', ['payload' => $payload]);
 
-            $response = Http::withToken($apiToken)->post("$this->baseUrl/zones/$zoneId/rulesets", $payload);
+            $response = $this->http('createOrUpdateTransformRule:createRuleset')->withToken($apiToken)->post("$this->baseUrl/zones/$zoneId/rulesets", $payload);
 
             if (! $response->successful()) {
                 throw new \Exception('Failed to create Ruleset: '.$response->body());
@@ -631,7 +639,7 @@ class CloudflareService
         // PATCH /zones/{zone_id}/rulesets/{ruleset_id}/rules/{rule_id} updates a single rule.
 
         if ($existingRuleId) {
-            $response = Http::withToken($apiToken)->patch(
+            $response = $this->http('createOrUpdateTransformRule:updateRule')->withToken($apiToken)->patch(
                 "$this->baseUrl/zones/$zoneId/rulesets/{$ruleset['id']}/rules/{$existingRuleId}",
                 $ruleConfig
             );
@@ -643,7 +651,7 @@ class CloudflareService
         }
 
         // 3. Append new rule to existing ruleset
-        $response = Http::withToken($apiToken)->post(
+        $response = $this->http('createOrUpdateTransformRule:createRule')->withToken($apiToken)->post(
             "$this->baseUrl/zones/$zoneId/rulesets/{$ruleset['id']}/rules",
             $ruleConfig
         );
@@ -664,7 +672,7 @@ class CloudflareService
             return;
         }
 
-        Http::withToken($apiToken)->delete("$this->baseUrl/zones/$zoneId/rulesets/{$ruleset['id']}/rules/{$ruleId}");
+        $this->http('deleteTransformRule')->withToken($apiToken)->delete("$this->baseUrl/zones/$zoneId/rulesets/{$ruleset['id']}/rules/{$ruleId}");
     }
 
     /**
@@ -678,7 +686,7 @@ class CloudflareService
         ];
 
         // 1. Check Access Groups
-        $groups = Http::withToken($account->api_token)
+        $groups = $this->http('findTokenUsage:groups')->withToken($account->api_token)
             ->get("$this->baseUrl/accounts/{$account->account_id}/access/groups")
             ->json('result') ?? [];
 
@@ -689,12 +697,12 @@ class CloudflareService
         }
 
         // 2. Check Access Applications -> Policies
-        $apps = Http::withToken($account->api_token)
+        $apps = $this->http('findTokenUsage:apps')->withToken($account->api_token)
             ->get("$this->baseUrl/accounts/{$account->account_id}/access/apps")
             ->json('result') ?? [];
 
         foreach ($apps as $app) {
-            $policies = Http::withToken($account->api_token)
+            $policies = $this->http('findTokenUsage:policies')->withToken($account->api_token)
                 ->get("$this->baseUrl/accounts/{$account->account_id}/access/apps/{$app['id']}/policies")
                 ->json('result') ?? [];
 
@@ -741,26 +749,26 @@ class CloudflareService
         // Delete/Update Policies
         foreach ($usage['policies'] as $policy) {
             // Delete the policy entirely
-            $res = Http::withToken($account->api_token)
+            $res = $this->http('deleteTokenDependencies:policy')->withToken($account->api_token)
                 ->delete("$this->baseUrl/accounts/{$account->account_id}/access/apps/{$policy['_app_id']}/policies/{$policy['id']}");
-            
+
             if ($res->successful()) {
                 $deleted[] = "Policy: {$policy['name']} (in {$policy['_app_name']})";
             } else {
-                $errors[] = "Failed to delete Policy {$policy['name']}: " . $res->body();
+                $errors[] = "Failed to delete Policy {$policy['name']}: ".$res->body();
             }
         }
 
         // Delete Groups
         foreach ($usage['groups'] as $group) {
-             $res = Http::withToken($account->api_token)
+            $res = $this->http('deleteTokenDependencies:group')->withToken($account->api_token)
                 ->delete("$this->baseUrl/accounts/{$account->account_id}/access/groups/{$group['id']}");
-             
-             if ($res->successful()) {
-                 $deleted[] = "Group: {$group['name']}";
-             } else {
-                 $errors[] = "Failed to delete Group {$group['name']}: " . $res->body();
-             }
+
+            if ($res->successful()) {
+                $deleted[] = "Group: {$group['name']}";
+            } else {
+                $errors[] = "Failed to delete Group {$group['name']}: ".$res->body();
+            }
         }
 
         return ['deleted' => $deleted, 'errors' => $errors];

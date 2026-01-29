@@ -19,7 +19,7 @@ class PortainerInfolist
             ->components([
                 Section::make('Update Available')
                     ->collapsed()
-                    ->visible(fn(Portainer $record) => $record->latest_version && version_compare($record->latest_version, ltrim($record->version ?? '', 'v'), '>'))
+                    ->visible(fn (Portainer $record) => $record->latest_version && version_compare($record->latest_version, ltrim($record->version ?? '', 'v'), '>'))
                     ->icon('heroicon-o-exclamation-triangle')
                     ->iconColor(Color::Red)
                     ->schema(function () {

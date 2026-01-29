@@ -16,8 +16,9 @@ class PortainerSeeder extends Seeder
         $url = config('services.portainer.seed_url');
         $token = config('services.portainer.seed_token');
 
-        if (!$url || !$token) {
+        if (! $url || ! $token) {
             $this->command->warn('Skipping PortainerSeeder: services.portainer.seed_url and services.portainer.seed_token not set in config');
+
             return;
         }
 
@@ -40,8 +41,8 @@ class PortainerSeeder extends Seeder
             $this->command->info('Pulling endpoints from Portainer...');
             $response = Http::withHeader('X-API-Key', $token)->get("{$url}/api/endpoints");
 
-            if (!$response->successful()) {
-                throw new \Exception('Failed to fetch endpoints: ' . $response->body());
+            if (! $response->successful()) {
+                throw new \Exception('Failed to fetch endpoints: '.$response->body());
             }
 
             $endpoints = $response->json();
@@ -68,7 +69,7 @@ class PortainerSeeder extends Seeder
             foreach ($portainer->endpoints as $endpoint) {
                 $stacksResponse = Http::withHeader('X-API-Key', $token)
                     ->get("{$url}/api/stacks", [
-                        'filters' => json_encode(['EndpointID' => $endpoint->endpoint_id])
+                        'filters' => json_encode(['EndpointID' => $endpoint->endpoint_id]),
                     ]);
 
                 if ($stacksResponse->successful()) {

@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Portainers\RelationManagers;
 
 use App\Models\Container;
-use App\Services\PortainerService;
 use Filament\Actions\Action;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -33,7 +32,7 @@ class ContainersRelationManager extends RelationManager
 
                 return $query;
             })
-            //->poll('10s')
+            // ->poll('10s')
             ->columns([
                 Tables\Columns\ImageColumn::make('icon')
                     ->label('')
@@ -49,23 +48,23 @@ class ContainersRelationManager extends RelationManager
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
-                    ->description(fn($record) => $record->display_name ? 'ID: ' . substr($record->container_id, 0, 12) : null)
-                    ->formatStateUsing(fn($record) => $record->display_name ?? $record->name),
+                    ->description(fn ($record) => $record->display_name ? 'ID: '.substr($record->container_id, 0, 12) : null)
+                    ->formatStateUsing(fn ($record) => $record->display_name ?? $record->name),
 
                 Tables\Columns\TextColumn::make('description')
                     ->label('Description')
                     ->limit(30)
-                    ->tooltip(fn($record) => $record->description)
+                    ->tooltip(fn ($record) => $record->description)
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('image')
                     ->searchable()
                     ->limit(30)
-                    ->tooltip(fn($record) => $record->image),
+                    ->tooltip(fn ($record) => $record->image),
 
                 Tables\Columns\TextColumn::make('state')
                     ->badge()
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'running' => 'success',
                         'exited' => 'danger',
                         'paused' => 'warning',
@@ -81,7 +80,7 @@ class ContainersRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('status')
                     ->limit(50)
-                    ->tooltip(fn($record) => $record->status),
+                    ->tooltip(fn ($record) => $record->status),
 
                 Tables\Columns\TextColumn::make('created_at_portainer')
                     ->label('Created')
@@ -116,8 +115,8 @@ class ContainersRelationManager extends RelationManager
                 Action::make('open_url')
                     ->label('Open')
                     ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn(Container $record) => $record->url, shouldOpenInNewTab: true)
-                    ->visible(fn(Container $record) => !empty($record->url)),
+                    ->url(fn (Container $record) => $record->url, shouldOpenInNewTab: true)
+                    ->visible(fn (Container $record) => ! empty($record->url)),
             ])
             ->toolbarActions([
                 //
@@ -125,7 +124,6 @@ class ContainersRelationManager extends RelationManager
     }
 
     // Local sync method removed permanently
-
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {

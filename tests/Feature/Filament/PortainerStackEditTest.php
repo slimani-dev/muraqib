@@ -3,7 +3,6 @@
 use App\Filament\Resources\Portainers\RelationManagers\StacksRelationManager;
 use App\Models\Portainer;
 use App\Models\Stack;
-use Filament\Actions\EditAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
@@ -47,7 +46,7 @@ it('syncs stack data on edit modal open', function () {
         ->assertFormSet([
             'prune' => false,
         ]);
-        
+
     $this->stack->refresh();
     // Verify DB was updated
     expect($this->stack->env)->toBe([['name' => 'NEW_VAR', 'value' => 'new_val']]);
@@ -72,7 +71,6 @@ it('sends pull_image and prune flags when updating stack', function () {
             'pull_image' => true,
         ])
         ->assertHasNoTableActionErrors();
-
 
     // Verify the HTTP request was made with correct params
     Http::assertSent(function ($request) {

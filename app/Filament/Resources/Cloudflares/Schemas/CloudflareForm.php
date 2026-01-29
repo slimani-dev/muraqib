@@ -48,9 +48,10 @@ class CloudflareForm
                         ->action(function ($get, $set) {
                             $token = $get('api_token');
 
-                            if (!$token) {
+                            if (! $token) {
                                 $set('connection_status', 'error');
                                 $set('connection_message', 'API Token is required.');
+
                                 return;
                             }
 
@@ -67,9 +68,9 @@ class CloudflareForm
                                 }
                             } catch (\Exception $e) {
                                 $set('connection_status', 'error');
-                                $set('connection_message', 'Error connecting to Cloudflare: ' . $e->getMessage());
+                                $set('connection_message', 'Error connecting to Cloudflare: '.$e->getMessage());
                             }
-                        })
+                        }),
                 ]),
 
                 \Filament\Forms\Components\Hidden::make('connection_status')

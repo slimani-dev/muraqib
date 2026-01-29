@@ -9,7 +9,7 @@ uses(TestCase::class);
 
 it('returns true when connection is successful', function () {
     $portainer = new Portainer(['url' => 'http://test.local', 'access_token' => 'token']);
-    
+
     Http::fake([
         'http://test.local/api/system/status' => Http::response([], 200),
     ]);
@@ -20,7 +20,7 @@ it('returns true when connection is successful', function () {
 
 it('returns false when connection fails', function () {
     $portainer = new Portainer(['url' => 'http://test.local', 'access_token' => 'token']);
-    
+
     Http::fake([
         'http://test.local/api/system/status' => Http::response([], 500),
     ]);
@@ -31,7 +31,7 @@ it('returns false when connection fails', function () {
 
 it('returns false when exception occurs', function () {
     $portainer = new Portainer(['url' => 'http://test.local', 'access_token' => 'token']);
-    
+
     Http::fake(function () {
         throw new \Exception('Network error');
     });
