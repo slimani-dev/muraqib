@@ -283,7 +283,7 @@ class CloudflareService
                 'per_page' => 100,
             ]);
 
-        return $response->json('result');
+        return $response->json('result') ?? [];
     }
 
     public function createRemoteDnsRecord(\App\Models\CloudflareDomain $domain, array $data)
@@ -446,7 +446,8 @@ class CloudflareService
             'cloudflare_domain_id' => $domain->id,
             'app_id' => $appRes['id'],
             'name' => $subdomain,
-            'client_id' => $tokenRes['client_id'],
+            'client_id' => $tokenRes['client_id'],  // Like: "30d8e9281b7b5698b0ae172d02c07803.access"
+            'service_token_id' => $tokenRes['id'],  // Like: "09ff2772-def8-4086-8501-eb7ff62cf2fd" - THIS is what we need to delete!
             'client_secret' => $tokenRes['client_secret'],
             'policy_id' => $policyRes['id'],
         ]);
@@ -469,47 +470,299 @@ class CloudflareService
 
     /**
      * Delete Subdomain Protection (Service Token + App)
+     *
+     * @return array{success: bool, errors: array, deleted: array}
      */
-    public function deleteSubdomainProtection(\App\Models\CloudflareDomain $domain, \App\Models\CloudflareAccess $access)
+    public function deleteSubdomainProtection(\App\Models\CloudflareDomain $domain, \App\Models\CloudflareAccess $access): array
     {
         $domain->loadMissing('cloudflare');
         $account = $domain->cloudflare;
+
+        $results = [
+            'success' => true,
+            'errors' => [],
+            'deleted' => [],
+        ];
+
         // Check if account still exists. If soft deleted, we might still want to try if we have tokens.
         if (! $account) {
-            return;
+            $results['success'] = false;
+            $results['errors'][] = 'Cloudflare account not found';
+
+            return $results;
         }
 
         $apiToken = $account->api_token;
         $accountId = $account->account_id;
 
-        // 1. Delete Service Token
-        // We need the ID, which is stored in client_id field in DB for now?
-        // Wait, database schema says: `client_id` (the header value) and `client_secret`.
-        // The API DELETE endpoint needs the Service Token UUID (ID), not the Client ID (Service Token ID).
-        // Let's check `createServiceToken` output. $tokenRes['id'] is the UUID.
-        // We stored $tokenRes['client_id'] in `client_id` column.
-        // Did we store the UUID?
-        // Checking Database Migration...
-        // Migration has: `client_id`, `client_secret`. It does NOT have a separate `token_id` column.
-        // Does `client_id` == UUID?
-        // Service Token API:
-        // Response: { "id": "uuid", "client_id": "access-client-id...", ... }
-        // So NO. We stored the Access Client ID, but we need the UUID to delete it.
-        // Problem: We cannot delete the token efficiently without the UUID.
-        // Solution: List tokens -> filter by client_id -> get UUID -> delete.
+        // 1. Delete Policy (if exists) - Must be deleted BEFORE the app
+        if ($access->policy_id && $access->app_id) {
+            try {
+                $response = Http::withToken($apiToken)->delete("$this->baseUrl/accounts/$accountId/access/apps/{$access->app_id}/policies/{$access->policy_id}");
 
-        if ($access->client_id) {
-            $tokens = $this->listServiceTokens($account);
-            $targetToken = collect($tokens)->firstWhere('client_id', $access->client_id); // Match by Client ID
-
-            if ($targetToken) {
-                Http::withToken($apiToken)->delete("$this->baseUrl/accounts/$accountId/access/service_tokens/{$targetToken['id']}");
+                if ($response->successful()) {
+                    $results['deleted'][] = "Policy {$access->policy_id}";
+                } else {
+                    $results['success'] = false;
+                    $error = $response->json('errors.0.message') ?? $response->body();
+                    $results['errors'][] = "Failed to delete policy: {$error}";
+                }
+            } catch (\Exception $e) {
+                $results['success'] = false;
+                $results['errors'][] = "Exception deleting policy: {$e->getMessage()}";
             }
         }
 
-        // 2. Delete Access Application
+        // 2. Delete Access Application - Must be deleted BEFORE the service token
         if ($access->app_id) {
-            Http::withToken($apiToken)->delete("$this->baseUrl/accounts/$accountId/access/apps/{$access->app_id}");
+            try {
+                $response = Http::withToken($apiToken)->delete("$this->baseUrl/accounts/$accountId/access/apps/{$access->app_id}");
+
+                if ($response->successful()) {
+                    $results['deleted'][] = "Access App {$access->app_id}";
+                } else {
+                    $results['success'] = false;
+                    $error = $response->json('errors.0.message') ?? $response->body();
+                    $results['errors'][] = "Failed to delete access app: {$error}";
+                }
+            } catch (\Exception $e) {
+                $results['success'] = false;
+                $results['errors'][] = "Exception deleting access app: {$e->getMessage()}";
+            }
         }
+
+        // 3. Delete Service Token - Must be deleted LAST
+        // Use service_token_id (the actual token ID), not client_id
+        if ($access->service_token_id) {
+            try {
+                $response = Http::withToken($apiToken)->delete("$this->baseUrl/accounts/$accountId/access/service_tokens/{$access->service_token_id}");
+
+                if ($response->successful()) {
+                    $results['deleted'][] = "Service Token {$access->service_token_id}";
+                } else {
+                    $results['success'] = false;
+                    $error = $response->json('errors.0.message') ?? $response->body();
+                    $results['errors'][] = "Failed to delete service token: {$error}";
+                }
+            } catch (\Exception $e) {
+                $results['success'] = false;
+                $results['errors'][] = "Exception deleting service token: {$e->getMessage()}";
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * 8. Transform Rules (Request Header Modification)
+     */
+    protected function getZoneRuleset(string $zoneId, string $apiToken, string $phase = 'http_request_late_transform')
+    {
+        $response = Http::withToken($apiToken)->get("$this->baseUrl/zones/$zoneId/rulesets", [
+            'phase' => $phase,
+        ]);
+
+        if (! $response->successful()) {
+            return null; // Might be empty
+        }
+
+        $list = $response->json('result');
+
+        // Return the first ruleset for this phase, or null
+        return collect($list)->firstWhere('phase', $phase);
+    }
+
+    public function createOrUpdateTransformRule(
+        \App\Models\Cloudflare $account,
+        string $zoneId,
+        string $name,
+        string $expression,
+        array $headers, // ['CF-Access-Client-Id' => '...']
+        ?string $existingRuleId = null
+    ) {
+        $apiToken = $account->api_token;
+        $ruleset = $this->getZoneRuleset($zoneId, $apiToken);
+
+        // Build the Rule Object
+        $ruleConfig = [
+            'action' => 'rewrite',
+            'action_parameters' => [
+                'headers' => collect($headers)->mapWithKeys(function ($value, $key) {
+                    $headerConfig = ['value' => (string) $value];
+
+                    // Only add operation for non-CF headers
+                    // CF-prefixed headers cannot have 'set' operation
+                    if (! str_starts_with(strtolower($key), 'cf-')) {
+                        $headerConfig['operation'] = 'set';
+                    }
+
+                    return [$key => $headerConfig];
+                })->toArray(),
+            ],
+            'expression' => $expression,
+            'description' => $name,
+            'enabled' => true,
+        ];
+
+        // 1. If Ruleset doesn't exist, create it with the rule
+        if (! $ruleset) {
+            $payload = [
+                'name' => 'Muraqib Helper Rules',
+                'kind' => 'zone',
+                'phase' => 'http_request_late_transform',
+                'rules' => [$ruleConfig],
+            ];
+
+            \Log::info('Creating Cloudflare Ruleset', ['payload' => $payload]);
+
+            $response = Http::withToken($apiToken)->post("$this->baseUrl/zones/$zoneId/rulesets", $payload);
+
+            if (! $response->successful()) {
+                throw new \Exception('Failed to create Ruleset: '.$response->body());
+            }
+
+            // Return the ID of the created rule (first one)
+            return $response->json('result.rules.0.id');
+        }
+
+        // 2. If Rule ID is provided AND exists in ruleset, Update it
+        // We use PUT /rulesets/{id}/rules/{rule_id} ? No, standard API is PATCH rulesets/{id} with rules array or specific rule endpoints?
+        // Checking docs: PUT /zones/{zone_id}/rulesets/{ruleset_id} replaces ALL rules. Dangerous.
+        // PATCH /zones/{zone_id}/rulesets/{ruleset_id}/rules/{rule_id} updates a single rule.
+
+        if ($existingRuleId) {
+            $response = Http::withToken($apiToken)->patch(
+                "$this->baseUrl/zones/$zoneId/rulesets/{$ruleset['id']}/rules/{$existingRuleId}",
+                $ruleConfig
+            );
+
+            if ($response->successful()) {
+                return $response->json('result.id');
+            }
+            // If 404, maybe rule was deleted manually. Fallthrough to create new.
+        }
+
+        // 3. Append new rule to existing ruleset
+        $response = Http::withToken($apiToken)->post(
+            "$this->baseUrl/zones/$zoneId/rulesets/{$ruleset['id']}/rules",
+            $ruleConfig
+        );
+
+        if (! $response->successful()) {
+            throw new \Exception('Failed to create Transform Rule: '.$response->body());
+        }
+
+        return $response->json('result.id');
+    }
+
+    public function deleteTransformRule(\App\Models\Cloudflare $account, string $zoneId, string $ruleId)
+    {
+        $apiToken = $account->api_token;
+        $ruleset = $this->getZoneRuleset($zoneId, $apiToken);
+
+        if (! $ruleset) {
+            return;
+        }
+
+        Http::withToken($apiToken)->delete("$this->baseUrl/zones/$zoneId/rulesets/{$ruleset['id']}/rules/{$ruleId}");
+    }
+
+    /**
+     * Scan for Service Token Usage
+     */
+    public function findTokenUsage(\App\Models\Cloudflare $account, string $tokenId): array
+    {
+        $usage = [
+            'groups' => [],
+            'policies' => [],
+        ];
+
+        // 1. Check Access Groups
+        $groups = Http::withToken($account->api_token)
+            ->get("$this->baseUrl/accounts/{$account->account_id}/access/groups")
+            ->json('result') ?? [];
+
+        foreach ($groups as $group) {
+            if ($this->referencesToken($group, $tokenId)) {
+                $usage['groups'][] = $group;
+            }
+        }
+
+        // 2. Check Access Applications -> Policies
+        $apps = Http::withToken($account->api_token)
+            ->get("$this->baseUrl/accounts/{$account->account_id}/access/apps")
+            ->json('result') ?? [];
+
+        foreach ($apps as $app) {
+            $policies = Http::withToken($account->api_token)
+                ->get("$this->baseUrl/accounts/{$account->account_id}/access/apps/{$app['id']}/policies")
+                ->json('result') ?? [];
+
+            foreach ($policies as $policy) {
+                if ($this->referencesToken($policy, $tokenId)) {
+                    $policy['_app_name'] = $app['name']; // Attach app name for context
+                    $policy['_app_id'] = $app['id'];
+                    $usage['policies'][] = $policy;
+                }
+            }
+        }
+
+        return $usage;
+    }
+
+    protected function referencesToken(array $resource, string $tokenId): bool
+    {
+        $checks = ['include', 'exclude', 'require'];
+
+        foreach ($checks as $check) {
+            if (! isset($resource[$check]) || ! is_array($resource[$check])) {
+                continue;
+            }
+
+            foreach ($resource[$check] as $rule) {
+                if (isset($rule['service_token']['token_id']) && $rule['service_token']['token_id'] === $tokenId) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Delete Service Token Dependencies (Recursive)
+     */
+    public function deleteTokenDependencies(\App\Models\Cloudflare $account, string $tokenId): array
+    {
+        $usage = $this->findTokenUsage($account, $tokenId);
+        $deleted = [];
+        $errors = [];
+
+        // Delete/Update Policies
+        foreach ($usage['policies'] as $policy) {
+            // Delete the policy entirely
+            $res = Http::withToken($account->api_token)
+                ->delete("$this->baseUrl/accounts/{$account->account_id}/access/apps/{$policy['_app_id']}/policies/{$policy['id']}");
+            
+            if ($res->successful()) {
+                $deleted[] = "Policy: {$policy['name']} (in {$policy['_app_name']})";
+            } else {
+                $errors[] = "Failed to delete Policy {$policy['name']}: " . $res->body();
+            }
+        }
+
+        // Delete Groups
+        foreach ($usage['groups'] as $group) {
+             $res = Http::withToken($account->api_token)
+                ->delete("$this->baseUrl/accounts/{$account->account_id}/access/groups/{$group['id']}");
+             
+             if ($res->successful()) {
+                 $deleted[] = "Group: {$group['name']}";
+             } else {
+                 $errors[] = "Failed to delete Group {$group['name']}: " . $res->body();
+             }
+        }
+
+        return ['deleted' => $deleted, 'errors' => $errors];
     }
 }
