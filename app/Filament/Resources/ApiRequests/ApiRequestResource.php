@@ -26,11 +26,6 @@ class ApiRequestResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    public static function form(Schema $schema): Schema
-    {
-        return ApiRequestForm::configure($schema);
-    }
-
     public static function infolist(Schema $schema): Schema
     {
         return ApiRequestInfolist::configure($schema);
@@ -52,9 +47,6 @@ class ApiRequestResource extends Resource
     {
         return [
             'index' => ListApiRequests::route('/'),
-            'create' => CreateApiRequest::route('/create'),
-            'view' => ViewApiRequest::route('/{record}'),
-            'edit' => EditApiRequest::route('/{record}/edit'),
         ];
     }
 

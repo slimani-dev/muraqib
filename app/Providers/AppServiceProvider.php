@@ -52,7 +52,8 @@ class AppServiceProvider extends ServiceProvider
                 ->deferFilters(false)
                 ->persistFiltersInSession()
                 ->persistSearchInSession()
-                ->persistColumnSearchesInSession();
+                ->persistColumnSearchesInSession()
+                ->defaultSort(column: 'created_at', direction: 'DESC');
         });
 
         //        \Illuminate\Support\Facades\DB::listen(function ($query) {

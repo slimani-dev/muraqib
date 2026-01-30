@@ -27,7 +27,7 @@ class ApiRequestsTable
                     ->searchable(),
                 TextColumn::make('method')
                     ->badge()
-                    ->color(fn (string $state): string => match (strtoupper($state)) {
+                    ->color(fn(string $state): string => match (strtoupper($state)) {
                         'GET' => 'info',
                         'POST' => 'success',
                         'PUT', 'PATCH' => 'warning',
@@ -37,7 +37,7 @@ class ApiRequestsTable
                     ->searchable(),
                 TextColumn::make('status_code')
                     ->badge()
-                    ->color(fn ($state): string => match (true) {
+                    ->color(fn($state): string => match (true) {
                         $state >= 200 && $state < 300 => 'success',
                         $state >= 300 && $state < 400 => 'info',
                         $state >= 400 && $state < 500 => 'warning',
@@ -46,8 +46,8 @@ class ApiRequestsTable
                     })
                     ->sortable(),
                 TextColumn::make('url')
-                    ->limit(50)
-                    ->tooltip(fn ($state) => $state)
+                    //->limit(100)
+                    ->tooltip(fn($state) => $state)
                     ->searchable(),
                 TextColumn::make('duration_ms')
                     ->label('Duration')
@@ -59,7 +59,7 @@ class ApiRequestsTable
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('user_id') // Avoid N+1 relation if not eager loaded, or use user.name with eager load
-                    ->label('User')
+                ->label('User')
                     ->numeric()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -70,8 +70,9 @@ class ApiRequestsTable
                 TrashedFilter::make(),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                ViewAction::make()
+                    ->slideOver(),
+                //EditAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

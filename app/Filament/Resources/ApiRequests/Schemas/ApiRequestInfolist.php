@@ -30,6 +30,8 @@ class ApiRequestInfolist
                     ])->columns(6),
 
                 \Filament\Schemas\Components\Section::make('Request Details')
+                    ->collapsible()
+                    ->collapsed()
                     ->schema([
                         TextEntry::make('url')->columnSpanFull()->copyable(),
                         \Filament\Infolists\Components\KeyValueEntry::make('request_headers')
@@ -46,6 +48,7 @@ class ApiRequestInfolist
                     ]),
 
                 \Filament\Schemas\Components\Section::make('Response Details')
+                    ->collapsible()
                     ->schema([
                         \Filament\Infolists\Components\KeyValueEntry::make('response_headers')
                             ->columnSpanFull()
