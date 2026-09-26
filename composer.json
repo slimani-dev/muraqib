@@ -1,0 +1,121 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "slimani-dev/muraqib",
+    "type": "project",
+    "description": "A self-hosted dashboard for monitoring and managing Cloudflare, Portainer, Netdata and your homelab media stack.",
+    "keywords": ["laravel", "filament", "dashboard", "homelab", "cloudflare", "portainer", "netdata"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "codeat3/blade-simple-icons": "*",
+        "codewithdennis/filament-simple-alert": "^4.0|^5.0",
+        "devonab/filament-easy-footer": "^2.0|^3.0",
+        "filament/filament": "^5.0",
+        "inertiajs/inertia-laravel": "^3.0",
+        "jaocero/radio-deck": "*",
+        "lara-zeus/torch-filament": "*",
+        "laravel/chisel": "^0.1.0",
+        "laravel/fortify": "^1.37.2",
+        "laravel/framework": "^13.0",
+        "laravel/sanctum": "^4.0",
+        "laravel/tinker": "^3.0",
+        "laravel/wayfinder": "^0.1.14",
+        "leandrocfe/filament-apex-charts": "*",
+        "postare/blade-mdi": "*",
+        "spatie/laravel-settings": "*",
+        "syamsoul/laravel-set-env": "*",
+        "webbingbrasil/filament-copyactions": "*"
+    },
+    "require-dev": {
+        "barryvdh/laravel-ide-helper": "^3.6",
+        "fakerphp/faker": "^1.24",
+        "fruitcake/laravel-debugbar": "^4.0",
+        "laravel/boost": "^2.2",
+        "laravel/pail": "^1.2.5",
+        "laravel/pint": "^1.27",
+        "laravel/sail": "*",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "*",
+        "pestphp/pest": "*",
+        "pestphp/pest-plugin-laravel": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "setup": [
+            "composer install",
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "@php artisan key:generate",
+            "@php artisan migrate --force",
+            "pnpm install",
+            "pnpm approve-builds",
+            "pnpm run build",
+            "composer require laravel/boost --dev",
+            "@php artisan boost:install",
+            "gemini mcp add -s project -t stdio laravel-boost php artisan boost:mcp"
+        ],
+        "dev": [
+            "echo $PATH",
+            "Composer\\Config::disableProcessTimeout",
+            "pnpm dlx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"pnpm run dev\" --names=server,queue,logs,vite --kill-others"
+        ],
+        "dev:ssr": [
+            "pnpm run build:ssr",
+            "Composer\\Config::disableProcessTimeout",
+            "pnpm dlx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"php artisan inertia:start-ssr\" --names=server,queue,logs,ssr --kill-others"
+        ],
+        "test": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test"
+        ],
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi",
+            "@php artisan filament:upgrade"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force",
+            "@php artisan boost:update --ansi"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi",
+            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
+            "@php artisan migrate --graceful --ansi"
+        ],
+        "pre-package-uninstall": [
+            "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": [],
+            "installer": {
+                "post-create-project": []
+            }
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

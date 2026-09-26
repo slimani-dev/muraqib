@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "laravel-boost": {
+      "command": "/usr/bin/php8.3",
+      "args": [
+        "/home/moh/Documents/Projects/muraqib/artisan",
+        "boost:mcp"
+      ]
+    },
+    "shadcnVue": {
+      "command": "npx",
+      "args": [
+        "shadcn-vue@latest",
+        "mcp"
+      ]
+    }
+  }
+}

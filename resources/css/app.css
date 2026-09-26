@@ -1,0 +1,253 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-sans:
+        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+
+    --radius-lg: var(--radius);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-sm: calc(var(--radius) - 4px);
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+
+    --color-sidebar: var(--sidebar-background);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--border);
+    }
+}
+
+@layer utilities {
+    body,
+    html {
+        --font-sans:
+            'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+            'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+            'Noto Color Emoji';
+    }
+}
+
+/* ============================================================
+   Midnight Blue Theme — Light Mode
+   ============================================================ */
+:root {
+    /* Backgrounds */
+    --background:            #F8FAFC;
+    --foreground:            #0F172A;
+
+    --card:                  #FFFFFF;
+    --card-foreground:       #0F172A;
+
+    --popover:               #FFFFFF;
+    --popover-foreground:    #0F172A;
+
+    /* Primary action — Blue 600 */
+    --primary:               #2563EB;
+    --primary-foreground:    #FFFFFF;
+
+    /* Secondary / subtle surfaces */
+    --secondary:             #F1F5F9;
+    --secondary-foreground:  #0F172A;
+
+    /* Muted — panels, disabled states */
+    --muted:                 #F1F5F9;
+    --muted-foreground:      #64748B;
+
+    /* Accent */
+    --accent:                #E0E7FF;
+    --accent-foreground:     #3730A3;
+
+    /* Destructive — Red 500 */
+    --destructive:           #EF4444;
+    --destructive-foreground:#FFFFFF;
+
+    /* Borders & inputs */
+    --border:                #E2E8F0;
+    --input:                 #E2E8F0;
+    --ring:                  #3B82F6;
+
+    /* Charts */
+    --chart-1:               #3B82F6;   /* Blue */
+    --chart-2:               #06B6D4;   /* Cyan */
+    --chart-3:               #10B981;   /* Emerald */
+    --chart-4:               #F59E0B;   /* Amber */
+    --chart-5:               #EC4899;   /* Pink */
+
+    --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar-background:           #FFFFFF;
+    --sidebar-foreground:           #0F172A;
+    --sidebar-primary:              #2563EB;
+    --sidebar-primary-foreground:   #FFFFFF;
+    --sidebar-accent:               #F1F5F9;
+    --sidebar-accent-foreground:    #0F172A;
+    --sidebar-border:               #E2E8F0;
+    --sidebar-ring:                 #3B82F6;
+    --sidebar:                      #FFFFFF;
+}
+
+/* ============================================================
+   Midnight Blue Theme — Dark Mode
+   ============================================================ */
+.dark {
+    /* Backgrounds */
+    --background:            #0B1121;
+    --foreground:            #F1F5F9;
+
+    --card:                  #151E32;
+    --card-foreground:       #F1F5F9;
+
+    --popover:               #151E32;
+    --popover-foreground:    #F1F5F9;
+
+    /* Primary action — Blue 500 */
+    --primary:               #3B82F6;
+    --primary-foreground:    #FFFFFF;
+
+    /* Secondary / subtle surfaces */
+    --secondary:             #1E293B;
+    --secondary-foreground:  #F1F5F9;
+
+    /* Muted */
+    --muted:                 #1E293B;
+    --muted-foreground:      #94A3B8;
+
+    /* Accent */
+    --accent:                #1E293B;
+    --accent-foreground:     #60A5FA;
+
+    /* Destructive — Red 400 */
+    --destructive:           #F87171;
+    --destructive-foreground:#0B1121;
+
+    /* Borders & inputs */
+    --border:                #1E293B;
+    --input:                 #1E293B;
+    --ring:                  #3B82F6;
+
+    /* Charts */
+    --chart-1:               #3B82F6;   /* Blue 500 */
+    --chart-2:               #22D3EE;   /* Cyan 400 */
+    --chart-3:               #34D399;   /* Emerald 400 */
+    --chart-4:               #FBBF24;   /* Amber 400 */
+    --chart-5:               #F472B6;   /* Pink 400 */
+
+    /* Sidebar */
+    --sidebar-background:           #151E32;
+    --sidebar-foreground:           #F1F5F9;
+    --sidebar-primary:              #3B82F6;
+    --sidebar-primary-foreground:   #FFFFFF;
+    --sidebar-accent:               #1E293B;
+    --sidebar-accent-foreground:    #F1F5F9;
+    --sidebar-border:               #1E293B;
+    --sidebar-ring:                 #3B82F6;
+    --sidebar:                      #151E32;
+}
+
+/* ============================================================
+   Dashboard Card Design Tokens
+   ============================================================ */
+:root {
+    /* Card internals */
+    --card-padding:              1.25rem;  /* 20px = p-5 */
+    --card-gap:                  1rem;     /* 16px = gap-4 */
+
+    /* Header */
+    --header-icon-size:          1.75rem;  /* 28px = h-7 w-7 */
+    --header-icon-radius:        0.375rem; /* rounded-md */
+    --header-gap:                0.625rem; /* 10px = gap-2.5 */
+    --header-title-size:         0.875rem; /* 14px = text-sm */
+    --header-url-size:           11px;     /* text-[11px] */
+    --header-margin-bottom:      1rem;     /* 16px = mb-4 */
+
+    /* Status badge */
+    --badge-font-size:           10px;     /* text-[10px] */
+    --badge-px:                  0.625rem; /* 10px = px-2.5 */
+    --badge-py:                  0.125rem; /* 2px  = py-0.5 */
+    --badge-radius:              9999px;   /* rounded-full */
+    --badge-dot-size:            0.375rem; /* 6px  = w-1.5 h-1.5 */
+
+    /* Stats grid */
+    --stat-gap:                  0.5rem;   /* 8px  = gap-2 */
+    --stat-padding:              0.625rem; /* 10px = p-2.5 */
+    --stat-radius:               0.75rem;  /* rounded-xl */
+    --stat-value-size:           13px;     /* text-[13px] */
+    --stat-label-size:           9px;      /* text-[9px] */
+    --stat-margin-bottom:        1rem;     /* 16px = mb-4 */
+
+    /* Queue pills */
+    --pill-px:                   0.625rem; /* 10px = px-2.5 */
+    --pill-py:                   0.25rem;  /* 4px  = py-1 */
+    --pill-font-size:            10px;     /* text-[10px] */
+    --pill-margin-bottom:        1rem;     /* 16px = mb-4 */
+
+    /* Torrent items */
+    --torrent-padding:           0.75rem;  /* 12px = p-3 */
+    --torrent-radius:            0.75rem;  /* rounded-xl */
+    --torrent-name-size:         12px;     /* text-[12px] */
+    --torrent-meta-size:         10px;     /* text-[10px] */
+    --torrent-gap:               0.75rem;  /* 12px = space-y-3 */
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+    body {
+        @apply bg-background text-foreground;
+    }
+}

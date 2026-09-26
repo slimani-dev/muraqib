@@ -1,0 +1,10 @@
+packages:
+  - '.'
+
+allowBuilds:
+  maplibre-gl: true
+  unrs-resolver: true
+  vue-demi: true
+
+publicHoistPattern:
+  - '@inertiajs/core'
