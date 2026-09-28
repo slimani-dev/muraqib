@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\TeamPermission;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -46,6 +47,12 @@ class HandleInertiaRequests extends Middleware
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'currentTeam' => fn () => $user?->currentTeam ? $user->toUserTeam($user->currentTeam) : null,
             'teams' => fn () => $user?->toUserTeams(includeCurrent: true) ?? [],
+            // Dashboard page tabs in the header, and whether this user may edit the team's dashboard
+            'dashboardPages' => fn () => $user?->currentTeam
+                ? $user->currentTeam->dashboardPages()->get(['id', 'name', 'slug', 'is_default'])->all()
+                : [],
+            'canEditDashboard' => fn () => $user?->currentTeam !== null
+                && $user->hasTeamPermission($user->currentTeam, TeamPermission::UpdateDashboard),
         ];
     }
 }

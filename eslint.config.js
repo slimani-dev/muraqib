@@ -25,6 +25,13 @@ export default defineConfigWithVueTs(
     vue.configs['flat/essential'],
     vueTsConfigs.recommended,
     {
+        languageOptions: {
+            parserOptions: {
+                tsconfigRootDir: import.meta.dirname,
+            },
+        },
+    },
+    {
         plugins: {
             import: importPlugin,
         },
@@ -76,6 +83,7 @@ export default defineConfigWithVueTs(
         ignores: [
             'vendor',
             'node_modules',
+            'v2',
             'public',
             'bootstrap/ssr',
             'tailwind.config.js',

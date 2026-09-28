@@ -8,6 +8,9 @@ const props = defineProps<{
     height?: number;
     strokeWidth?: number;
     formatter?: (val: number) => string;
+    /** Fixed scale, e.g. to overlay two sparklines on the same axis. Defaults to the data's own range. */
+    min?: number;
+    max?: number;
 }>();
 
 const w = props.width || 100;
@@ -33,8 +36,8 @@ const pathData = computed(() => {
     if (!props.data || props.data.length === 0) return { line: '', fill: '' };
     
     // Create a normalized array of points
-    const min = Math.min(...props.data);
-    const max = Math.max(...props.data);
+    const min = props.min ?? Math.min(...props.data);
+    const max = props.max ?? Math.max(...props.data);
     const range = max - min || 1;
     const stepX = w / (props.data.length - 1 || 1);
     
@@ -74,8 +77,8 @@ const pathData = computed(() => {
 const dotStyle = computed(() => {
     if (hoverIndex.value === null || !props.data || props.data.length === 0) return {};
     
-    const min = Math.min(...props.data);
-    const max = Math.max(...props.data);
+    const min = props.min ?? Math.min(...props.data);
+    const max = props.max ?? Math.max(...props.data);
     const range = max - min || 1;
     const value = props.data[hoverIndex.value];
     

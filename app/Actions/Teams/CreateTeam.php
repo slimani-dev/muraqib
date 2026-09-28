@@ -27,6 +27,9 @@ class CreateTeam
 
             $user->switchTeam($team);
 
+            // Every team has an undeletable default dashboard page at /{team}/dashboard
+            $team->defaultDashboardPage();
+
             return $team;
         });
     }

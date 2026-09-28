@@ -16,7 +16,7 @@
         "lara-zeus/torch-filament": "*",
         "laravel/chisel": "^0.1.0",
         "laravel/fortify": "^1.37.2",
-        "laravel/framework": "^13.0",
+        "laravel/framework": "^13.33",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
@@ -36,8 +36,8 @@
         "laravel/sail": "*",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "*",
-        "pestphp/pest": "*",
-        "pestphp/pest-plugin-laravel": "*"
+        "pestphp/pest": "^5.2",
+        "pestphp/pest-plugin-laravel": "^5.0"
     },
     "autoload": {
         "psr-4": {
@@ -65,9 +65,8 @@
             "gemini mcp add -s project -t stdio laravel-boost php artisan boost:mcp"
         ],
         "dev": [
-            "echo $PATH",
             "Composer\\Config::disableProcessTimeout",
-            "pnpm dlx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"pnpm run dev\" --names=server,queue,logs,vite --kill-others"
+            "@php artisan dev"
         ],
         "dev:ssr": [
             "pnpm run build:ssr",

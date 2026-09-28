@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { usePoll } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { Skeleton } from '@/components/ui/skeleton';
+import MediaStatusPill from './MediaStatusPill.vue';
 
 const props = defineProps<{
     serviceItem: any;
@@ -9,15 +9,11 @@ const props = defineProps<{
     cachedData?: any;
 }>();
 
-// Poll Transmission data every 10 seconds
-usePoll(10000, { only: ['transmission'] });
-
 const transmission = computed(() => {
     return { ...props.serviceItem, ...(props.initialData || props.cachedData || {}) };
 });
 
 const isLoading = computed(() => !props.initialData && !props.cachedData);
-
 
 </script>
 
@@ -30,7 +26,7 @@ const isLoading = computed(() => !props.initialData && !props.cachedData);
                 <Skeleton class="h-4 w-20" />
             </div>
             <div class="flex gap-2">
-                <Skeleton class="h-4 w-16 rounded-full hidden sm:block" />
+                <Skeleton class="h-4 w-16 rounded-full hidden @sm/widget:block" />
                 <Skeleton class="h-4 w-14 rounded-full" />
             </div>
         </div>
@@ -49,19 +45,13 @@ const isLoading = computed(() => !props.initialData && !props.cachedData);
                     class="rounded-md shadow-sm group-hover:scale-105 transition-transform"
                     style="width: var(--header-icon-size); height: var(--header-icon-size);" alt="" />
                 <div class="flex flex-col">
-                    <h2 class="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
-                        Transmission</h2>
+                    <h2 class="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{{ transmission.name ?? 'Transmission' }}</h2>
                     <span class="text-muted-foreground/80 -mt-0.5 truncate max-w-[200px]"
                         style="font-size: var(--header-url-size);">{{
                             transmission.url?.replace(/^https?:\/\//, '') }}</span>
                 </div>
             </a>
-            <div class="flex items-center gap-1.5 border border-chart-2/30 bg-chart-2/10 text-chart-2 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-                :class="{ '!border-destructive/30 !bg-destructive/10 !text-destructive': transmission.status === 'Warning' }">
-                <div class="w-1.5 h-1.5 rounded-full bg-chart-2"
-                    :class="{ '!bg-destructive': transmission.status === 'Warning' }"></div>
-                {{ transmission.status }}
-            </div>
+            <MediaStatusPill :warning="transmission.status === 'Warning'" :fallback="transmission.status" />
         </div>
 
         <!-- Global Speeds -->
@@ -94,7 +84,8 @@ const isLoading = computed(() => !props.initialData && !props.cachedData);
         </div>
 
         <!-- Scrollable Torrents List -->
-        <div class="flex-1 overflow-y-auto pr-2 -mr-2 min-h-0 space-y-3">
+        <!-- Capped so a long torrent list scrolls instead of stretching the whole dashboard row -->
+        <div class="max-h-[26rem] flex-1 overflow-y-auto pr-2 -mr-2 min-h-0 space-y-3">
             <div v-if="!transmission.torrents?.length"
                 class="flex items-center justify-center h-full text-xs text-muted-foreground font-semibold">
                 No active downloads

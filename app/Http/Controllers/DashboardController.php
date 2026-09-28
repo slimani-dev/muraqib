@@ -3,11 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Container;
+use App\Models\MediaService;
 use App\Models\Netdata;
+use App\Services\Git\GitHubInbox;
+use App\Services\Git\RepositoryDashboard;
+use App\Services\Media\MediaStatusChecker;
 use App\Services\MediaArrService;
-use App\Services\NetdataService;
+use App\Services\NetworkLatencyService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\RateLimiter;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -87,7 +93,28 @@ class DashboardController extends Controller
         return back();
     }
 
-    public function index(MediaArrService $mediaService, NetdataService $netdataService)
+    /**
+     * A dashboard page: the team's default page, or the one named by its slug.
+     */
+    public function index(Request $request, MediaArrService $mediaService, string $currentTeam, ?string $page = null)
+    {
+        $team = $request->user()->currentTeam;
+        $dashboardPage = $page === null
+            ? $team->defaultDashboardPage()
+            : $team->dashboardPages()->where('slug', $page)->firstOrFail();
+
+        return Inertia::render('Dashboard', [
+            ...$this->dashboardProps($mediaService),
+            'dashboardPage' => $dashboardPage->only(['id', 'name', 'slug', 'is_default', 'layout']),
+        ]);
+    }
+
+    /**
+     * Props for every dashboard widget. Also used by the widget preview page.
+     *
+     * @return array<string, mixed>
+     */
+    protected function dashboardProps(MediaArrService $mediaService): array
     {
         $netdataServers = Netdata::with(['access', 'ingressRule'])
             ->where('status', 'active')
@@ -104,31 +131,82 @@ class DashboardController extends Controller
                 ];
             });
 
-        return Inertia::render('Dashboard', [
+        return [
             'agenda_cached' => Cache::get('media_agenda'),
             'containers' => Container::with('portainer')->orderBy('name')->get(),
 
-            // Cached data for instant load
-            'jellyfin_cached' => $mediaService->getJellyfinCachedData(),
-            'seerr_cached' => Cache::get('seerr_data'),
-            'radarr_cached' => Cache::get('radarr_data'),
-            'sonarr_cached' => Cache::get('sonarr_data'),
-            'bazarr_cached' => Cache::get('bazarr_data'),
-            'transmission_cached' => Cache::get('transmission_data'),
-
-            // Deferred fresh data fetching
-            'jellyfin' => Inertia::defer(fn () => $mediaService->getJellyfinData(true, false)),
-            'seerr' => Inertia::defer(fn () => $mediaService->getSeerrData(true)),
-            'radarr' => Inertia::defer(fn () => $mediaService->getRadarrData(true)),
-            'sonarr' => Inertia::defer(fn () => $mediaService->getSonarrData(true)),
-            'bazarr' => Inertia::defer(fn () => $mediaService->getBazarrData(true)),
-            'transmission' => Inertia::defer(fn () => $mediaService->getTransmissionData(true)),
-            'agenda' => Inertia::defer(fn () => $mediaService->getAgendaData()),
+            ...$this->mediaProps($mediaService),
 
             'weather_cached' => Cache::get('weather_sba'),
             'weather' => Inertia::defer(fn () => $this->getWeatherData()),
 
             'netdata' => $netdataServers,
-        ]);
+
+            // Synced every 30 minutes by the queue; read from the database only
+            'repositories' => app(RepositoryDashboard::class)->repositories(),
+            'repository_trends' => app(RepositoryDashboard::class)->trends(),
+            'contributions' => app(RepositoryDashboard::class)->contributions(),
+            // Fetched from GitHub (cached a minute), so it's deferred to keep the first paint fast
+            'github_inbox' => Inertia::defer(fn () => app(GitHubInbox::class)->accounts()),
+
+            // Only used when Netdata has no ping chart; cached 30 minutes, the widget's refresh button forces a new one
+            'network_latency' => Inertia::defer(fn () => app(NetworkLatencyService::class)->latency($this->wantsFreshLatency())),
+        ];
+    }
+
+    /**
+     * Media widget props: one `media_{id}` (deferred) and `media_{id}_cached` pair per
+     * enabled service. Polls reuse the cached data; a widget's refresh button sends
+     * the X-Media-Refresh header (the service id) to bypass the cache, throttled per service.
+     *
+     * @return array<string, mixed>
+     */
+    protected function mediaProps(MediaArrService $mediaService): array
+    {
+        $statusChecker = app(MediaStatusChecker::class);
+
+        $props = [
+            'media_services' => $mediaService->services()->values()->map(fn (MediaService $service): array => [
+                'id' => $service->id,
+                'type' => $service->type->value,
+                'name' => $service->name,
+                'url' => $service->baseUrl(),
+                'status' => $statusChecker->forDashboard($service),
+            ])->all(),
+            'agenda' => Inertia::defer(fn () => $mediaService->getAgendaData()),
+        ];
+
+        foreach ($mediaService->services() as $service) {
+            $props["media_{$service->id}_cached"] = $mediaService->cachedData($service);
+            $props["media_{$service->id}"] = Inertia::defer(
+                fn () => $mediaService->data($service, $this->wantsFreshMediaData($service)),
+            );
+        }
+
+        return $props;
+    }
+
+    /**
+     * Whether this request is a manual refresh of the given service, allowed once every 10 seconds.
+     */
+    protected function wantsFreshMediaData(MediaService $service): bool
+    {
+        if (request()->header('X-Media-Refresh') !== (string) $service->id) {
+            return false;
+        }
+
+        return RateLimiter::attempt("media-refresh:{$service->id}", 1, fn (): bool => true, 10) === true;
+    }
+
+    /**
+     * Whether the network widget's refresh button asked for a new latency measurement, allowed once a minute.
+     */
+    protected function wantsFreshLatency(): bool
+    {
+        if (! request()->hasHeader('X-Latency-Refresh')) {
+            return false;
+        }
+
+        return RateLimiter::attempt('network-latency-refresh', 1, fn (): bool => true, 60) === true;
     }
 }

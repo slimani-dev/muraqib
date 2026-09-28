@@ -1,18 +1,15 @@
 <script setup lang="ts">
-import { usePoll } from '@inertiajs/vue3';
+import { useElementSize } from '@vueuse/core';
+import { TriangleAlert } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TriangleAlert } from 'lucide-vue-next';
-import { useElementSize } from '@vueuse/core';
+import MediaStatusPill from './MediaStatusPill.vue';
 
 const props = defineProps<{
     serviceItem: any;
     initialData?: any;
     cachedData?: any;
 }>();
-
-// Poll Bazarr data every 5 minutes
-usePoll(300000, { only: ['bazarr'] });
 
 const bazarr = computed(() => {
     return { ...props.serviceItem, ...(props.initialData || props.cachedData || {}) };
@@ -33,7 +30,7 @@ const isCompact = computed(() => width.value > 0 && width.value < 370);
                 <Skeleton class="h-4 w-12" />
             </div>
             <div class="flex gap-2">
-                <Skeleton class="h-4 w-16 rounded-full hidden sm:block" />
+                <Skeleton class="h-4 w-16 rounded-full hidden @sm/widget:block" />
                 <Skeleton class="h-4 w-14 rounded-full" />
             </div>
         </div>
@@ -52,17 +49,12 @@ const isCompact = computed(() => width.value > 0 && width.value < 370);
                 <a :href="bazarr.url" target="_blank" class="flex items-center gap-2.5 group cursor-pointer w-full overflow-hidden">
                     <img :src="bazarr.icon" class="rounded-md shadow-sm group-hover:scale-105 transition-transform shrink-0" style="width: var(--header-icon-size); height: var(--header-icon-size);" alt="" />
                     <div class="flex flex-col overflow-hidden">
-                        <h2 class="text-sm font-bold text-foreground group-hover:text-primary transition-colors truncate">Bazarr</h2>
+                        <h2 class="text-sm font-bold text-foreground group-hover:text-primary transition-colors truncate">{{ bazarr.name ?? 'Bazarr' }}</h2>
                         <span class="text-muted-foreground/80 -mt-0.5 truncate" style="font-size: var(--header-url-size);">{{ bazarr.url?.replace(/^https?:\/\//, '') }}</span>
                     </div>
                 </a>
                 <div class="flex flex-col items-end gap-1.5 shrink-0 ml-2">
-                    <div class="flex items-center gap-1.5 border border-amber-500/30 bg-amber-500/10 text-amber-500 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-                        :class="{ '!border-destructive/30 !bg-destructive/10 !text-destructive': bazarr.status === 'Warning' }">
-                        <div class="w-1.5 h-1.5 rounded-full bg-amber-500"
-                            :class="{ '!bg-destructive': bazarr.status === 'Warning' }"></div>
-                        {{ bazarr.status }}
-                    </div>
+                    <MediaStatusPill :warning="bazarr.status === 'Warning'" :fallback="bazarr.status" />
                 </div>
             </div>
 

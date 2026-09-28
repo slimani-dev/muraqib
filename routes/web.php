@@ -2,10 +2,13 @@
 
 use App\Actions\Teams\CreateTeam;
 use App\Http\Controllers\Api\ContainerApiController;
+use App\Http\Controllers\Api\GitHubNotificationController;
 use App\Http\Controllers\Api\MediaApiController;
 use App\Http\Controllers\Api\NetdataApiController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardPageController;
 use App\Http\Controllers\Teams\TeamInvitationController;
+use App\Http\Controllers\WidgetPreviewController;
 use App\Http\Middleware\EnsureTeamMembership;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +19,18 @@ Route::prefix('{current_team}')
     ->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::post('dashboard/weather/refresh', [DashboardController::class, 'refreshWeather'])->name('weather.refresh');
+
+        if (! app()->isProduction()) {
+            Route::get('dashboard/widgets', WidgetPreviewController::class)->name('dashboard.widgets');
+        }
+
+        // Dashboard pages; each stores its own layout. Page slugs never use DashboardPageController::RESERVED_SLUGS.
+        Route::get('dashboard/{page}', [DashboardController::class, 'index'])
+            ->where('page', '[a-z0-9-]+')
+            ->name('dashboard.page');
+        Route::post('dashboard-pages', [DashboardPageController::class, 'store'])->name('dashboard.pages.store');
+        Route::patch('dashboard-pages/{dashboardPage}', [DashboardPageController::class, 'update'])->name('dashboard.pages.update');
+        Route::delete('dashboard-pages/{dashboardPage}', [DashboardPageController::class, 'destroy'])->name('dashboard.pages.destroy');
     });
 
 Route::get('dashboard', function () {
@@ -32,14 +47,8 @@ Route::get('dashboard', function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('invitations/{invitation}/accept', [TeamInvitationController::class, 'accept'])->name('invitations.accept');
 
-    Route::group(['prefix' => 'api/media', 'as' => 'api.media.'], function () {
-        Route::get('jellyfin', [MediaApiController::class, 'jellyfin'])->name('jellyfin');
-        Route::get('seerr', [MediaApiController::class, 'seerr'])->name('seerr');
-        Route::get('radarr', [MediaApiController::class, 'radarr'])->name('radarr');
-        Route::get('sonarr', [MediaApiController::class, 'sonarr'])->name('sonarr');
-        Route::get('bazarr', [MediaApiController::class, 'bazarr'])->name('bazarr');
-        Route::get('transmission', [MediaApiController::class, 'transmission'])->name('transmission');
-    });
+    Route::get('api/media/{mediaService}', [MediaApiController::class, 'show'])->name('api.media.show');
+    Route::post('api/github/{gitAccount}/notifications', [GitHubNotificationController::class, 'update'])->name('api.github.notifications.update');
 
     Route::get('api/netdata', [NetdataApiController::class, 'index'])->name('api.netdata.index');
     Route::get('api/containers/ping', [ContainerApiController::class, 'ping'])->name('api.containers.ping');

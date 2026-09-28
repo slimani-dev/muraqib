@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 import { Progress } from '../ui/progress';
 import {
     Select,
@@ -12,16 +12,38 @@ import {
 } from '../ui/select';
 import { Skeleton } from '../ui/skeleton';
 import Sparkline from '../ui/Sparkline.vue';
+import { dashboardContextKey } from './dashboardContext';
+import { tileGrid } from './widgets/tileRows';
+import type { WidgetMode } from './widgets/widgetMode';
+import WidgetShell from './widgets/WidgetShell.vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     server: any; // Raw server object with 'stats'
     loading?: boolean;
     timeframe?: string;
-}>();
+    mode?: WidgetMode;
+}>(), {
+    mode: 'desktop',
+});
 
 const emit = defineEmits(['update:timeframe']);
 
+const dashboard = inject(dashboardContextKey, null);
+
+const changeTimeframe = (timeframe: string): void => {
+    emit('update:timeframe', timeframe);
+    dashboard?.setNetdataTimeframe(props.server?.id, timeframe);
+};
+
 const stats = computed(() => props.server?.stats);
+
+/** CPU + RAM + one tile per network interface (or a placeholder while it loads). */
+const chartCount = computed(() => 2 + (stats.value?.networks?.length || (stats.value?.is_partial ? 1 : 0)));
+
+const chartGrid = (layout: WidgetMode) => tileGrid(chartCount.value, layout);
+
+/** Disks: same rows as the charts at 2 and 3 columns, stacked one per row at 1 column. */
+const diskGrid = (layout: WidgetMode) => tileGrid(stats.value?.disks?.length ?? 0, layout, 1);
 
 const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -133,7 +155,8 @@ return 'simple-icons:apple';
 </script>
 
 <template>
-    <div class="mb-4 rounded-2xl border bg-card shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col"
+    <WidgetShell v-slot="{ layout }" :mode="mode" class="mb-4">
+    <div class="rounded-2xl border bg-card shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col"
         :class="{
             'border-destructive shadow-sm shadow-destructive/20': server?.status === 'offline'
         }" style="padding: var(--card-padding); gap: var(--card-gap);">
@@ -194,7 +217,7 @@ return 'simple-icons:apple';
                     </span>
 
                     <Select v-if="stats" :model-value="timeframe || '1h'"
-                        @update:model-value="emit('update:timeframe', $event)">
+                        @update:model-value="changeTimeframe($event as string)">
                         <SelectTrigger
                             class="!h-5 w-[75px] text-[10px] bg-background/50 border-border/50 !py-0 !px-1.5 font-mono hover:bg-background/80 transition-colors">
                             <SelectValue placeholder="Time" />
@@ -214,13 +237,12 @@ return 'simple-icons:apple';
                 </div>
             </div>
 
-            <div v-if="stats" class="flex flex-col" style="gap: var(--stat-gap);">
-                <!-- Metrics Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2"
-                    style="gap: var(--stat-gap);">
+            <div v-if="stats" :style="{ ...chartGrid(layout).grid, gap: 'var(--stat-gap)' }">
+                    <!-- Chart tiles: CPU, RAM, one per network interface. Rows come from tileRows(). -->
                     <!-- CPU -->
-                    <div class="bg-background/60 border border-border/50 flex flex-col shadow-sm hover:bg-background/80 hover:border-border/60 transition-all relative overflow-hidden group min-h-[95px]"
-                        style="padding: var(--stat-padding); border-radius: var(--stat-radius);">
+                    <div class="bg-background/60 border border-border/50 flex flex-col shadow-sm hover:bg-background/80 hover:border-border/60 transition-all relative overflow-hidden group min-h-[95px] widget-md:min-h-[120px]"
+                        
+                        :style="chartGrid(layout).tile(0)" style="padding: var(--stat-padding); border-radius: var(--stat-radius);">
                         <div class="relative z-10 flex flex-col gap-1.5 w-full">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-1.5">
@@ -249,8 +271,9 @@ return 'simple-icons:apple';
                     </div>
 
                     <!-- RAM -->
-                    <div class="bg-background/60 border border-border/50 flex flex-col shadow-sm hover:bg-background/80 hover:border-border/60 transition-all relative overflow-hidden group min-h-[95px]"
-                        style="padding: var(--stat-padding); border-radius: var(--stat-radius);">
+                    <div class="bg-background/60 border border-border/50 flex flex-col shadow-sm hover:bg-background/80 hover:border-border/60 transition-all relative overflow-hidden group min-h-[95px] widget-md:min-h-[120px]"
+                        
+                        :style="chartGrid(layout).tile(1)" style="padding: var(--stat-padding); border-radius: var(--stat-radius);">
                         <div class="relative z-10 flex flex-col gap-1.5 w-full">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-1.5">
@@ -277,14 +300,12 @@ return 'simple-icons:apple';
                                 :stroke-width="1.0" :formatter="(v) => (v / 1024).toFixed(1) + ' GB'" />
                         </div>
                     </div>
-                </div>
 
                 <!-- Network -->
-                <div class="flex flex-col" style="gap: var(--stat-gap);">
                     <template v-if="stats.networks && stats.networks.length > 0">
-                        <div v-for="net in stats.networks" :key="net.name"
-                            class="bg-background/60 border border-border/50 flex flex-col shadow-sm hover:bg-background/80 hover:border-border/60 transition-all relative overflow-hidden group min-h-[95px]"
-                            style="padding: var(--stat-padding); border-radius: var(--stat-radius);">
+                        <div v-for="(net, netIndex) in stats.networks" :key="net.name"
+                            class="bg-background/60 border border-border/50 flex flex-col shadow-sm hover:bg-background/80 hover:border-border/60 transition-all relative overflow-hidden group min-h-[95px] widget-md:min-h-[120px]"
+                            :style="chartGrid(layout).tile(2 + (netIndex as number))" style="padding: var(--stat-padding); border-radius: var(--stat-radius);">
                             <div class="relative z-10 flex flex-col gap-1.5 w-full">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-1.5">
@@ -313,8 +334,8 @@ return 'simple-icons:apple';
                         </div>
                     </template>
                     <template v-else-if="stats.is_partial">
-                        <div class="bg-background/60 border border-border/50 flex flex-col shadow-sm relative overflow-hidden group min-h-[95px]"
-                            style="padding: var(--stat-padding); border-radius: var(--stat-radius);">
+                        <div class="bg-background/60 border border-border/50 flex flex-col shadow-sm relative overflow-hidden group min-h-[95px] widget-md:min-h-[120px]"
+                            :style="chartGrid(layout).tile(2)" style="padding: var(--stat-padding); border-radius: var(--stat-radius);">
                             <div class="relative z-10 flex flex-col gap-1.5 w-full">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-1.5">
@@ -331,20 +352,20 @@ return 'simple-icons:apple';
                             </div>
                         </div>
                     </template>
-                </div> <!-- Close Network wrapper -->
 
                 <!-- Disks -->
-                <div class="flex flex-col border bg-background/60 border-border/50 shadow-sm hover:bg-background/80 hover:border-border/60 transition-all relative overflow-hidden group"
-                    style="padding: var(--stat-padding); border-radius: var(--stat-radius); gap: var(--stat-gap);">
-                    <div v-for="disk in stats.disks" :key="disk.id" class="flex flex-col"
-                        style="gap: calc(var(--stat-gap) / 2);">
-                        <div class="flex items-center justify-between text-[11px] relative z-10 w-full">
-                            <span class="flex items-center font-mono font-semibold text-white/90"
-                                style="gap: calc(var(--stat-gap) / 2);">
-                                <Icon icon="lucide:hard-drive" class="h-3.5 w-3.5 text-muted-foreground" />
-                                {{ disk.name }}
+                <!-- Same row rules as the chart tiles (tileRows()) -->
+                <div class="col-span-full border bg-background/60 border-border/50 shadow-sm hover:bg-background/80 hover:border-border/60 transition-all relative overflow-hidden group"
+                    :style="diskGrid(layout).grid" style="padding: var(--stat-padding); border-radius: var(--stat-radius); gap: var(--stat-gap);">
+                    <div v-for="(disk, diskIndex) in stats.disks" :key="disk.id" class="flex min-w-0 flex-col"
+                        :style="diskGrid(layout).tile(diskIndex as number)" style="gap: calc(var(--stat-gap) / 2);">
+                        <div class="flex items-center justify-between gap-2 text-[11px] relative z-10 w-full">
+                            <span class="flex min-w-0 items-center font-mono font-semibold text-white/90"
+                                style="gap: calc(var(--stat-gap) / 2);" :title="disk.name">
+                                <Icon icon="lucide:hard-drive" class="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                <span class="truncate">{{ disk.name }}</span>
                             </span>
-                            <div class="font-mono flex items-center" style="gap: var(--stat-gap);">
+                            <div class="font-mono flex shrink-0 items-center whitespace-nowrap" style="gap: var(--stat-gap);">
                                 <span class="text-white/70" style="font-size: 10px;">{{ disk.used_formatted }} / {{
                                     disk.total_formatted }}</span>
                                 <span class="font-bold" :class="getCpuColor(disk.percent)">{{ disk.percent }}%</span>
@@ -360,4 +381,5 @@ return 'simple-icons:apple';
             </div> <!-- Close Main wrapper -->
         </template>
     </div>
+    </WidgetShell>
 </template>

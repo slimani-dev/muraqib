@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import { usePoll } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Skeleton } from '@/components/ui/skeleton';
+import MediaStatusPill from './MediaStatusPill.vue';
 
 const props = defineProps<{
     serviceItem: any;
     initialData?: any;
     cachedData?: any;
 }>();
-
-// Poll Jellyfin data every 60 seconds
-usePoll(60000, { only: ['jellyfin'] });
 
 const jellyfin = computed(() => {
     return { ...props.serviceItem, ...(props.initialData || props.cachedData || {}) };
@@ -92,7 +89,7 @@ window.open(url, '_blank');
                 <Skeleton class="h-5 w-5 rounded" />
                 <Skeleton class="h-4 w-16" />
             </div>
-            <Skeleton class="h-5 w-20 rounded-full hidden sm:block" />
+            <Skeleton class="h-5 w-20 rounded-full hidden @sm/widget:block" />
         </div>
 
         <!-- Continue Watching Skeleton -->
@@ -108,10 +105,10 @@ window.open(url, '_blank');
                 </div>
             </div>
             <!-- Mock Carousel -->
-            <div class="flex gap-2 md:gap-4 overflow-hidden w-full">
-                <Skeleton class="shrink-0 rounded-xl aspect-[16/9] w-[12rem] sm:w-[15rem] md:w-[18rem]" />
-                <Skeleton class="shrink-0 rounded-xl aspect-[16/9] w-[12rem] sm:w-[15rem] md:w-[18rem]" />
-                <Skeleton class="shrink-0 rounded-xl aspect-[16/9] w-[12rem] sm:w-[15rem] md:w-[18rem]" />
+            <div class="flex gap-2 widget-md:gap-4 overflow-hidden w-full">
+                <Skeleton class="shrink-0 rounded-xl aspect-[16/9] w-[12rem] @sm/widget:w-[15rem] widget-md:w-[18rem]" />
+                <Skeleton class="shrink-0 rounded-xl aspect-[16/9] w-[12rem] @sm/widget:w-[15rem] widget-md:w-[18rem]" />
+                <Skeleton class="shrink-0 rounded-xl aspect-[16/9] w-[12rem] @sm/widget:w-[15rem] widget-md:w-[18rem]" />
             </div>
         </div>
         
@@ -128,10 +125,10 @@ window.open(url, '_blank');
                 </div>
             </div>
             <!-- Mock Carousel -->
-            <div class="flex gap-2 md:gap-4 overflow-hidden w-full">
-                <Skeleton class="shrink-0 rounded-xl aspect-[16/9] w-[12rem] sm:w-[15rem] md:w-[18rem]" />
-                <Skeleton class="shrink-0 rounded-xl aspect-[16/9] w-[12rem] sm:w-[15rem] md:w-[18rem]" />
-                <Skeleton class="shrink-0 rounded-xl aspect-[16/9] w-[12rem] sm:w-[15rem] md:w-[18rem]" />
+            <div class="flex gap-2 widget-md:gap-4 overflow-hidden w-full">
+                <Skeleton class="shrink-0 rounded-xl aspect-[16/9] w-[12rem] @sm/widget:w-[15rem] widget-md:w-[18rem]" />
+                <Skeleton class="shrink-0 rounded-xl aspect-[16/9] w-[12rem] @sm/widget:w-[15rem] widget-md:w-[18rem]" />
+                <Skeleton class="shrink-0 rounded-xl aspect-[16/9] w-[12rem] @sm/widget:w-[15rem] widget-md:w-[18rem]" />
             </div>
         </div>
     </div>
@@ -143,15 +140,11 @@ window.open(url, '_blank');
                 <a :href="jellyfin.url" target="_blank" class="flex items-center gap-2.5 group cursor-pointer">
                     <img :src="jellyfin.icon" class="rounded-md shadow-sm group-hover:scale-105 transition-transform" style="width: var(--header-icon-size); height: var(--header-icon-size);" alt="" />
                     <div class="flex flex-col">
-                        <h2 class="text-sm font-bold text-foreground group-hover:text-primary transition-colors">Jellyfin</h2>
+                        <h2 class="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{{ jellyfin.name ?? 'Jellyfin' }}</h2>
                         <span class="text-muted-foreground/80 -mt-0.5 truncate max-w-[200px]" style="font-size: var(--header-url-size);">{{ jellyfin.url?.replace(/^https?:\/\//, '') }}</span>
                     </div>
                 </a>
-                <div
-                    class="flex items-center gap-1.5 border border-primary/30 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider hidden sm:flex">
-                    <div class="w-1.5 h-1.5 rounded-full bg-chart-3 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
-                    {{ jellyfin.status }}
-                </div>
+                <MediaStatusPill :fallback="jellyfin.status" />
             </div>
 
             <div>
@@ -175,9 +168,9 @@ window.open(url, '_blank');
                                     class="static translate-y-0 translate-x-0 inset-0 h-6 w-6 rounded-md bg-background hover:bg-muted opacity-100" />
                             </div>
                         </div>
-                        <CarouselContent class="-ml-2 md:-ml-4">
+                        <CarouselContent class="-ml-2 widget-md:-ml-4">
                             <CarouselItem v-for="item in currentJellyfinRecentlyPlayed" :key="item.title"
-                                class="pl-2 md:pl-4 basis-[12rem] sm:basis-[15rem] md:basis-[18rem]">
+                                class="pl-2 widget-md:pl-4 basis-[12rem] @sm/widget:basis-[15rem] widget-md:basis-[18rem]">
                                 <div @click="openUrl(item.mediaUrl)"
                                     class="group relative aspect-[16/9] transform-gpu cursor-pointer overflow-hidden rounded-xl bg-card outline-none ring-1 transition duration-300 scale-100 shadow ring-border/20 hover:ring-border/50 hover:shadow-md">
                                     <img :src="item.backdrop"
@@ -264,9 +257,9 @@ window.open(url, '_blank');
                                     class="static translate-y-0 translate-x-0 inset-0 h-6 w-6 rounded-md bg-background hover:bg-muted opacity-100" />
                             </div>
                         </div>
-                        <CarouselContent class="-ml-2 md:-ml-4">
+                        <CarouselContent class="-ml-2 widget-md:-ml-4">
                             <CarouselItem v-for="item in currentJellyfinNextUp" :key="item.title"
-                                class="pl-2 md:pl-4 basis-[12rem] sm:basis-[15rem] md:basis-[18rem]">
+                                class="pl-2 widget-md:pl-4 basis-[12rem] @sm/widget:basis-[15rem] widget-md:basis-[18rem]">
                                 <div @click="openUrl(item.mediaUrl)"
                                     class="group relative aspect-[16/9] transform-gpu cursor-pointer overflow-hidden rounded-xl bg-card outline-none ring-1 transition duration-300 scale-100 shadow ring-border/20 hover:ring-border/50 hover:shadow-md">
                                     <img :src="item.backdrop"

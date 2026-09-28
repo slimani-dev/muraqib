@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import { usePoll } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Skeleton } from '@/components/ui/skeleton';
+import MediaStatusPill from './MediaStatusPill.vue';
 
 const props = defineProps<{
     serviceItem: any;
     initialData?: any;
     cachedData?: any;
 }>();
-
-// Poll Seerr data every 5 minutes
-usePoll(300000, { only: ['seerr'] });
 
 const seerr = computed(() => {
     return { ...props.serviceItem, ...(props.initialData || props.cachedData || {}) };
@@ -51,10 +48,10 @@ const openUrl = (url?: string) => {
                 </div>
             </div>
 
-            <div class="flex gap-2 md:gap-4 overflow-hidden w-full">
+            <div class="flex gap-2 widget-md:gap-4 overflow-hidden w-full">
                 <!-- Request Card Skeleton -->
                 <div v-for="i in 3" :key="i"
-                    class="shrink-0 flex h-28 sm:h-36 w-[12rem] sm:w-[15rem] md:w-[18rem] rounded-xl bg-card border border-border/20 p-3 pr-2">
+                    class="shrink-0 flex h-28 @sm/widget:h-36 w-[12rem] @sm/widget:w-[15rem] widget-md:w-[18rem] rounded-xl bg-card border border-border/20 p-3 pr-2">
                     <div class="flex-1 flex flex-col gap-2">
                         <Skeleton class="h-2 w-8" />
                         <Skeleton class="h-4 w-3/4" />
@@ -66,7 +63,7 @@ const openUrl = (url?: string) => {
                             <Skeleton class="h-4 w-16 rounded-full" />
                         </div>
                     </div>
-                    <Skeleton class="h-full w-20 sm:w-24 rounded-md ml-2 shrink-0" />
+                    <Skeleton class="h-full w-20 @sm/widget:w-24 rounded-md ml-2 shrink-0" />
                 </div>
             </div>
         </div>
@@ -85,9 +82,9 @@ const openUrl = (url?: string) => {
                 </div>
             </div>
 
-            <div class="flex gap-2 md:gap-4 overflow-hidden w-full">
+            <div class="flex gap-2 widget-md:gap-4 overflow-hidden w-full">
                 <!-- Poster Card Skeleton -->
-                <Skeleton v-for="i in 4" :key="i" class="shrink-0 rounded-xl w-28 sm:w-32 md:w-36 aspect-[2/3]" />
+                <Skeleton v-for="i in 4" :key="i" class="shrink-0 rounded-xl w-28 @sm/widget:w-32 widget-md:w-36 aspect-[2/3]" />
             </div>
         </div>
     </div>
@@ -98,16 +95,11 @@ const openUrl = (url?: string) => {
                 <a :href="seerr.url" target="_blank" class="flex items-center gap-2.5 group cursor-pointer">
                     <img :src="seerr.icon" class="rounded-md shadow-sm group-hover:scale-105 transition-transform" style="width: var(--header-icon-size); height: var(--header-icon-size);" alt="" />
                     <div class="flex flex-col">
-                        <h2 class="text-sm font-bold text-foreground group-hover:text-primary transition-colors">Seerr</h2>
+                        <h2 class="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{{ seerr.name ?? 'Seerr' }}</h2>
                         <span class="text-muted-foreground/80 -mt-0.5 truncate max-w-[200px]" style="font-size: var(--header-url-size);">{{ seerr.url?.replace(/^https?:\/\//, '') }}</span>
                     </div>
                 </a>
-                <div
-                    class="flex items-center gap-1.5 border border-primary/30 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                    <div class="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(59,130,246,0.6)]">
-                    </div>
-                    {{ seerr.requests?.length || 0 }} Requests
-                </div>
+                <MediaStatusPill :fallback="seerr.status" />
             </div>
 
             <div>
@@ -131,9 +123,9 @@ const openUrl = (url?: string) => {
                                     class="static translate-y-0 translate-x-0 inset-0 h-6 w-6 rounded-md bg-background hover:bg-muted opacity-100" />
                             </div>
                         </div>
-                        <CarouselContent class="-ml-2 md:-ml-4">
+                        <CarouselContent class="-ml-2 widget-md:-ml-4">
                             <CarouselItem v-for="req in seerr.requests" :key="req.title"
-                                class="pl-2 md:pl-4 basis-[12rem] sm:basis-[15rem] md:basis-[18rem]">
+                                class="pl-2 widget-md:pl-4 basis-[12rem] @sm/widget:basis-[15rem] widget-md:basis-[18rem]">
                                 <div @click="openUrl(req.seerrUrl || seerr.url)"
                                     class="group relative flex h-full w-full transform-gpu cursor-pointer overflow-hidden rounded-xl bg-card outline-none ring-1 transition duration-300 scale-100 shadow ring-border/20 hover:ring-border/50 hover:shadow-md">
                                     <!-- Backdrop -->
@@ -150,7 +142,7 @@ const openUrl = (url?: string) => {
                                     <div class="relative z-10 flex min-w-0 flex-1 flex-col justify-start p-3 pr-2">
                                         <div v-if="req.year" class="text-[10px] font-medium text-white/80">{{
                                             req.year }}</div>
-                                        <a class="overflow-hidden overflow-ellipsis whitespace-nowrap text-sm font-bold text-white hover:underline sm:text-base mb-1"
+                                        <a class="overflow-hidden overflow-ellipsis whitespace-nowrap text-sm font-bold text-white hover:underline @sm/widget:text-base mb-1"
                                             :href="req.seerrUrl || seerr.url" target="_blank" @click.stop>{{
                                                 req.title }}</a>
 
@@ -168,7 +160,7 @@ const openUrl = (url?: string) => {
                                             </a>
                                         </div>
 
-                                        <div v-if="req.season" class="my-0.5 flex items-center text-sm sm:my-1">
+                                        <div v-if="req.season" class="my-0.5 flex items-center text-sm @sm/widget:my-1">
                                             <span class="mr-2 text-xs font-bold text-white/80">Season</span>
                                             <span
                                                 class="inline-flex items-center rounded-full bg-chart-1/80 border border-chart-1 px-2 py-0.5 text-[10px] font-semibold text-white">{{
@@ -193,7 +185,7 @@ const openUrl = (url?: string) => {
                                     <!-- Poster -->
                                     <div class="relative z-10 shrink-0 p-2 pl-0">
                                         <div
-                                            class="relative w-20 sm:w-24 aspect-[2/3] overflow-hidden rounded-md shadow-sm transition-transform duration-300 group-hover/poster:shadow-md group/poster">
+                                            class="relative w-20 @sm/widget:w-24 aspect-[2/3] overflow-hidden rounded-md shadow-sm transition-transform duration-300 group-hover/poster:shadow-md group/poster">
                                             <img v-if="req.image" :src="req.image"
                                                 class="h-full w-full object-cover text-transparent transition-transform duration-500 group-hover/poster:scale-110"
                                                 alt="" />
@@ -245,10 +237,10 @@ const openUrl = (url?: string) => {
                                     class="static translate-y-0 translate-x-0 inset-0 h-6 w-6 rounded-md bg-background hover:bg-muted opacity-100" />
                             </div>
                         </div>
-                        <CarouselContent class="-ml-2 md:-ml-4">
+                        <CarouselContent class="-ml-2 widget-md:-ml-4">
                             <CarouselItem v-for="show in seerr.newShows" :key="show.title"
-                                class="pl-2 md:pl-4 basis-auto">
-                                <div @click="openUrl(show.seerrUrl || seerr.url)" class="w-28 sm:w-32 md:w-36"
+                                class="pl-2 widget-md:pl-4 basis-auto">
+                                <div @click="openUrl(show.seerrUrl || seerr.url)" class="w-28 @sm/widget:w-32 widget-md:w-36"
                                     data-testid="title-card">
                                     <div class="relative transform-gpu cursor-pointer overflow-hidden rounded-xl bg-gray-800 bg-cover outline-none ring-1 transition duration-300 scale-100 shadow ring-border/20 group hover:ring-border/50 hover:shadow-md"
                                         style="padding-bottom: 150%;">
@@ -263,7 +255,7 @@ const openUrl = (url?: string) => {
                                                     'pointer-events-none self-start rounded-full border shadow-md'
                                                 ]">
                                                     <div
-                                                        class="flex h-4 items-center px-1.5 py-2 text-center text-[9px] font-bold uppercase tracking-wider text-white sm:h-5">
+                                                        class="flex h-4 items-center px-1.5 py-2 text-center text-[9px] font-bold uppercase tracking-wider text-white @sm/widget:h-5">
                                                         {{ show.type === 'tv' ? 'Series' : 'Movie' }}</div>
                                                 </div>
                                                 <div class="flex flex-col items-center gap-1">
@@ -272,7 +264,7 @@ const openUrl = (url?: string) => {
                                                         <div
                                                             class="relative inline-flex whitespace-nowrap rounded-full text-[9px] font-semibold leading-5">
                                                             <div
-                                                                class="rounded-full shadow-md w-4 sm:w-5 border p-0 bg-green-500/90 border-green-500 text-white">
+                                                                class="rounded-full shadow-md w-4 @sm/widget:w-5 border p-0 bg-green-500/90 border-green-500 text-white">
                                                                 <svg xmlns="http://www.w3.org/2000/svg"
                                                                     viewBox="0 0 20 20" fill="currentColor"
                                                                     aria-hidden="true" data-slot="icon">
@@ -287,15 +279,15 @@ const openUrl = (url?: string) => {
                                             </div>
 
                                             <div
-                                                class="absolute inset-0 z-20 flex flex-col justify-end p-3 sm:p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-gradient-to-t from-black via-black/80 to-transparent">
+                                                class="absolute inset-0 z-20 flex flex-col justify-end p-3 @sm/widget:p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-gradient-to-t from-black via-black/80 to-transparent">
                                                 <div v-if="show.year"
                                                     class="text-[10px] font-medium text-primary mb-0.5">{{
                                                         show.year }}</div>
                                                 <div :title="show.title"
-                                                    class="text-sm sm:text-base font-bold text-white leading-tight mb-1 sm:mb-2 line-clamp-2">
+                                                    class="text-sm @sm/widget:text-base font-bold text-white leading-tight mb-1 @sm/widget:mb-2 line-clamp-2">
                                                     {{ show.title }}</div>
                                                 <div v-if="show.description"
-                                                    class="text-[9px] sm:text-[10px] text-white/70 line-clamp-4 leading-snug">
+                                                    class="text-[9px] @sm/widget:text-[10px] text-white/70 line-clamp-4 leading-snug">
                                                     {{ show.description }}</div>
                                             </div>
 

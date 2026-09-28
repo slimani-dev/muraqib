@@ -80,7 +80,7 @@ defineProps<{
                 class="p-3.5"
                 :style="{
                     borderRight:
-                        index < service.items.length - 1
+                        (index as number) < service.items.length - 1
                             ? '1px solid var(--border)'
                             : 'none',
                 }"

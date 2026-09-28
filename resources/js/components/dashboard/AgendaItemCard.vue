@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Icon } from '@iconify/vue';
 import type { AgendaEvent } from '@/stores/useAgendaStore';
 
 defineProps<{
@@ -14,7 +15,7 @@ defineProps<{
     >
         <img v-if="item.poster" :src="item.poster" :class="compact ? 'w-10 h-14' : 'w-14 h-20'" class="object-cover rounded shadow-sm shrink-0" />
         <div v-else :class="compact ? 'w-10 h-14' : 'w-14 h-20'" class="bg-muted rounded flex items-center justify-center shrink-0">
-            <i data-lucide="image" :class="compact ? 'w-4 h-4' : 'w-6 h-6'" class="text-muted-foreground/50"></i>
+            <Icon icon="lucide:image" :class="compact ? 'w-4 h-4' : 'w-6 h-6'" class="text-muted-foreground/50" />
         </div>
         
         <div class="flex flex-col flex-1 min-w-0 py-0.5">

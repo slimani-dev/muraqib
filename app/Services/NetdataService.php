@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Netdata;
 use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Number;
 
@@ -17,11 +18,11 @@ class NetdataService
         $url = $this->getBaseUrl($record);
         $headers = $this->getAuthHeaders($record);
 
-        $filter = 'system.cpu system.ram disk_space.* net_speed.*';
+        $filter = 'system.cpu system.ram disk_space.* net_speed.* *_rtt';
         $allMetricsUrl = "{$url}/api/v1/allmetrics?format=json&help=no&types=no&timings=no&filter=".urlencode($filter);
 
         try {
-            $response = Http::withHeaders($headers)->timeout(5)->get($allMetricsUrl);
+            $response = Http::withHeaders($headers)->connectTimeout(3)->timeout(5)->get($allMetricsUrl);
 
             if (! $response->successful()) {
                 return null;
@@ -32,7 +33,11 @@ class NetdataService
             $disksToProcess = $this->getFilteredDisks($record, $allData);
             $networksToProcess = $this->getFilteredNetworks($record, $allData);
 
-            $historyResponses = Http::pool(fn (Pool $pool) => $this->preparePoolRequests($pool, $url, $headers, $networksToProcess, $timeframe));
+            // A failed pool request comes back as an exception; treat it as missing data.
+            $historyResponses = array_map(
+                fn ($response) => $response instanceof Response ? $response : null,
+                Http::pool(fn (Pool $pool) => $this->preparePoolRequests($pool, $url, $headers, $networksToProcess, $timeframe)),
+            );
 
             return [
                 'status' => 'online',
@@ -41,6 +46,7 @@ class NetdataService
                 'memory' => $this->buildMemoryData($allData['system.ram'] ?? [], $historyResponses['ram'] ?? null),
                 'networks' => $this->buildNetworkData($networksToProcess, $historyResponses),
                 'disks' => $this->buildDiskData($disksToProcess),
+                'ping' => $this->buildPingData($allData),
             ];
 
         } catch (\Exception $e) {
@@ -65,13 +71,15 @@ class NetdataService
         $points = 60; // Pull more points for the wider charts
         $commonParams = "points={$points}&format=json&after=-{$seconds}&options=unaligned";
 
-        $requests['info'] = $pool->as('info')->withHeaders($headers)->get("{$url}/api/v1/info");
-        $requests['cpu'] = $pool->as('cpu')->withHeaders($headers)->get("{$url}/api/v1/data?chart=system.cpu&{$commonParams}");
-        $requests['ram'] = $pool->as('ram')->withHeaders($headers)->get("{$url}/api/v1/data?chart=system.ram&{$commonParams}");
+        // Fail fast on an unreachable server: a slow request here holds a PHP worker for every poll
+        $request = fn (string $key) => $pool->as($key)->withHeaders($headers)->connectTimeout(3)->timeout(5);
+
+        $requests['info'] = $request('info')->get("{$url}/api/v1/info");
+        $requests['cpu'] = $request('cpu')->get("{$url}/api/v1/data?chart=system.cpu&{$commonParams}");
+        $requests['ram'] = $request('ram')->get("{$url}/api/v1/data?chart=system.ram&{$commonParams}");
 
         foreach ($networks as $name => $data) {
-            $requests["net_{$name}"] = $pool->as("net_{$name}")->withHeaders($headers)
-                ->get("{$url}/api/v1/data?chart=net.{$name}&{$commonParams}");
+            $requests["net_{$name}"] = $request("net_{$name}")->get("{$url}/api/v1/data?chart=net.{$name}&{$commonParams}");
         }
 
         return $requests;
@@ -234,9 +242,13 @@ class NetdataService
                 $sentBytes = $latestSent * 1000 / 8;
 
                 $chartData = [];
+                $rxChart = [];
+                $txChart = [];
                 foreach (array_reverse($values) as $point) {
                     $kbps = $point[1] + abs($point[2]);
                     $chartData[] = $kbps * 1000 / 8;
+                    $rxChart[] = $point[1] * 1000 / 8;
+                    $txChart[] = abs($point[2]) * 1000 / 8;
                 }
 
                 $stats[] = [
@@ -246,11 +258,37 @@ class NetdataService
                     'rx_formatted' => Number::fileSize($recBytes, 1).'/s',
                     'tx_formatted' => Number::fileSize($sentBytes, 1).'/s',
                     'chart' => $chartData,
+                    'rx_chart' => $rxChart,
+                    'tx_chart' => $txChart,
                 ];
             }
         }
 
         return $stats;
+    }
+
+    /**
+     * Round-trip time from Netdata's ping collector (charts ending in `_rtt`), if it has one.
+     *
+     * @param  array<string, mixed>  $allData
+     * @return array{ms: float, host: string}|null
+     */
+    protected function buildPingData(array $allData): ?array
+    {
+        foreach ($allData as $key => $chart) {
+            if (! str_ends_with($key, '_rtt') || str_starts_with($key, 'redis')) {
+                continue;
+            }
+
+            $dimensions = $chart['dimensions'] ?? [];
+            $average = $dimensions['avg']['value'] ?? collect($dimensions)->first()['value'] ?? null;
+
+            if (is_numeric($average)) {
+                return ['ms' => round((float) $average, 1), 'host' => (string) ($chart['family'] ?? $key)];
+            }
+        }
+
+        return null;
     }
 
     protected function getFilteredDisks(Netdata $record, array $allData): array

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -24,6 +25,18 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureDevCommands();
+    }
+
+    /**
+     * Valet already serves the app, so `artisan dev` skips `artisan serve`, and the
+     * queue worker listens on every queue the app dispatches to.
+     */
+    protected function configureDevCommands(): void
+    {
+        DevCommands::except('server');
+        DevCommands::artisan('queue:listen --queue=high,default,low --tries=1 --timeout=0', 'queue');
+        DevCommands::artisan('schedule:work', 'schedule');
     }
 
     /**

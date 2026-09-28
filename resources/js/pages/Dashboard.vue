@@ -1,28 +1,17 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import DashboardContent from '@/components/dashboard/DashboardContent.vue';
+import type { DashboardLayout } from '@/components/dashboard/layout';
 import { dashboard } from '@/routes';
 import type { Team } from '@/types';
 
 defineProps<{
     currentTeam?: Team | null;
-    jellyfin?: any;
-    seerr?: any;
-    radarr?: any;
-    sonarr?: any;
-    bazarr?: any;
-    transmission?: any;
-    jellyfin_cached?: any;
-    seerr_cached?: any;
-    radarr_cached?: any;
-    sonarr_cached?: any;
-    transmission_cached?: any;
+    /** The page being shown; its layout is null until the default page is customised. */
+    dashboardPage: { id: number; name: string; slug: string; is_default: boolean; layout: DashboardLayout | null };
     agenda_cached?: any[];
     agenda?: any[];
-    containers?: any[];
     netdata?: any[];
-    weather?: any;
-    weather_cached?: any;
 }>();
 
 defineOptions({
@@ -40,7 +29,7 @@ defineOptions({
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head :title="dashboardPage.name" />
 
-    <DashboardContent :jellyfin="jellyfin" :seerr="seerr" :radarr="radarr" :sonarr="sonarr" :bazarr="bazarr" :transmission="transmission" :jellyfin_cached="jellyfin_cached" :seerr_cached="seerr_cached" :radarr_cached="radarr_cached" :sonarr_cached="sonarr_cached" :bazarr_cached="bazarr_cached" :transmission_cached="transmission_cached" :agenda="agenda" :agenda_cached="agenda_cached" :containers="containers" :netdata="netdata" :weather="weather" :weather_cached="weather_cached" />
+    <DashboardContent :dashboard-page="dashboardPage" :agenda="agenda" :agenda_cached="agenda_cached" :netdata="netdata" />
 </template>

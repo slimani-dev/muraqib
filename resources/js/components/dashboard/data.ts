@@ -41,24 +41,10 @@ export const dashboardData = {
             border: 'rgba(255,255,255,.08)',
         },
     ],
-    network: {
-        down: '854 Mbps',
-        downPercent: 85,
-        up: '92 Mbps',
-        upPercent: 45,
-        ping: '12ms',
-        isp: '1 Gbps',
-    },
     pihole: {
         queries: '82.3k',
         blockedPercent: 16,
         blockedToday: '~13.2k',
-    },
-    githubStats: {
-        stars: '1.2k',
-        prs: 8,
-        issues: 14,
-        downloads: '45k',
     },
     services: [
         {
@@ -105,49 +91,11 @@ export const dashboardData = {
                     status: 'Running'
                 },
                 {
-                    name: 'Bazaarr',
+                    name: 'Bazarr',
                     icon: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/bazarr.png',
                     status: 'Running'
                 }
             ],
-        },
-    ],
-    repos: [
-        {
-            name: 'laravel-filament-app',
-            version: 'v2.3.0',
-            versionBg: 'rgba(34,197,94,.1)',
-            versionColor: '#4ade80',
-            versionBorder: 'rgba(34,197,94,.2)',
-            desc: 'Filament admin panel integration for Laravel.',
-            stars: 842,
-            forks: 124,
-            issues: 7,
-            prs: 3,
-        },
-        {
-            name: 'fortera-sdk',
-            version: 'v1.0.8',
-            versionBg: 'rgba(99,102,241,.1)',
-            versionColor: '#a5b4fc',
-            versionBorder: 'rgba(99,102,241,.2)',
-            desc: 'Official PHP SDK for the Fortera API.',
-            stars: 215,
-            forks: 31,
-            issues: 5,
-            prs: 2,
-        },
-        {
-            name: 'docker-homelab-kit',
-            version: 'v0.9.2',
-            versionBg: 'rgba(245,158,11,.1)',
-            versionColor: '#fcd34d',
-            versionBorder: 'rgba(245,158,11,.2)',
-            desc: 'Docker compose stacks for homelabbers.',
-            stars: 198,
-            forks: 47,
-            issues: 2,
-            prs: 3,
         },
     ],
     servers: [
@@ -192,79 +140,4 @@ export const dashboardData = {
             diskColor: 'bg-chart-1',
         },
     ],
-    pullRequests: [
-        {
-            title: 'feat: bulk export',
-            icon: 'git-pull-request',
-            iconColor: 'text-chart-3',
-            time: '2h',
-        },
-        {
-            title: 'Pagination broken',
-            icon: 'circle-dot',
-            iconColor: 'text-destructive',
-            time: '5h',
-        },
-        {
-            title: 'fix: auth token expiry',
-            icon: 'git-pull-request',
-            iconColor: 'text-chart-3',
-            time: '1d',
-        },
-        {
-            title: 'SDK: null pointer v1.0.8',
-            icon: 'circle-dot',
-            iconColor: 'text-destructive',
-            time: '2d',
-        },
-        {
-            title: 'feat: webhook support',
-            icon: 'git-pull-request',
-            iconColor: 'text-chart-3',
-            time: '3d',
-        },
-    ],
-    containers: {
-        total: 24,
-        running: 23,
-        update: 1,
-        list: [
-            {
-                name: 'redis',
-                status: 'Up 10d · healthy',
-                dotColor: 'bg-chart-3',
-                statusColor: 'text-muted-foreground',
-            },
-            {
-                name: 'postgres',
-                status: 'Up 10d · healthy',
-                dotColor: 'bg-chart-3',
-                statusColor: 'text-muted-foreground',
-            },
-            {
-                name: 'Outline',
-                status: 'Up 10d',
-                dotColor: 'bg-chart-3',
-                statusColor: 'text-muted-foreground',
-            },
-            {
-                name: 'Jellyfin',
-                status: 'Up 7d',
-                dotColor: 'bg-chart-3',
-                statusColor: 'text-muted-foreground',
-            },
-            {
-                name: 'Sonarr',
-                status: 'Update avail.',
-                dotColor: 'bg-chart-4',
-                statusColor: 'text-chart-4',
-            },
-            {
-                name: 'Pi-hole',
-                status: 'Up 22d',
-                dotColor: 'bg-chart-3',
-                statusColor: 'text-muted-foreground',
-            },
-        ],
-    },
 };

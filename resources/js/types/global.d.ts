@@ -1,4 +1,5 @@
 import type { Auth } from '@/types/auth';
+import type { DashboardPageSummary } from '@/types/dashboard';
 import type { Team } from '@/types/teams';
 
 // Extend ImportMeta interface for Vite...
@@ -22,6 +23,8 @@ declare module '@inertiajs/core' {
             sidebarOpen: boolean;
             currentTeam: Team | null;
             teams: Team[];
+            dashboardPages: DashboardPageSummary[];
+            canEditDashboard: boolean;
             [key: string]: unknown;
         };
     }

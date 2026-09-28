@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { router, usePage } from '@inertiajs/vue3';
 import { Icon } from '@iconify/vue';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
 import { useElementSize } from '@vueuse/core';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import SectionLabel from './SectionLabel.vue';
+import type { WidgetMode } from './widgets/widgetMode';
+import WidgetShell from './widgets/WidgetShell.vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     weather?: any;
     weather_cached?: any;
-}>();
+    mode?: WidgetMode;
+}>(), {
+    mode: 'desktop',
+});
 
 const page = usePage();
 const locationName = "Sidi Bel Abbès";
@@ -22,17 +27,27 @@ const containerRef = ref<HTMLElement | null>(null);
 const { width } = useElementSize(containerRef);
 
 const maxVisibleDays = computed(() => {
-    if (!width.value) return 4;
+    if (!width.value) {
+return 4;
+}
+
     const availableDataDays = (currentWeather.value?.daily?.time?.length || 5) - 1;
     const availableWidth = width.value - 40;
     const minWidthPerDay = 45;
     const fittedDays = Math.floor(availableWidth / minWidthPerDay);
+
     return Math.max(1, Math.min(fittedDays, availableDataDays));
 });
 
 const refreshBackground = (e?: Event) => {
-    if (e) e.stopPropagation();
-    if (refreshing.value) return;
+    if (e) {
+e.stopPropagation();
+}
+
+    if (refreshing.value) {
+return;
+}
+
     refreshing.value = true;
 
     const teamSlug = (page.props.auth as any).user.current_team.slug;
@@ -55,7 +70,9 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    if (interval) clearInterval(interval);
+    if (interval) {
+clearInterval(interval);
+}
 });
 
 const getWeatherDetails = (code: number, isDay: number = 1) => {
@@ -102,6 +119,7 @@ const getWeatherDetails = (code: number, isDay: number = 1) => {
 const getDayName = (dateStr: string) => {
     const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
     const d = new Date(dateStr);
+
     return days[d.getDay()];
 };
 
@@ -109,6 +127,7 @@ const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     const month = (d.getMonth() + 1).toString().padStart(2, '0');
     const day = d.getDate().toString().padStart(2, '0');
+
     return `${month}-${day}`;
 };
 
@@ -117,17 +136,18 @@ const temperatureUnit = ref<'C' | 'F'>('C');
 const activeTab = ref<'temperature' | 'precipitation' | 'wind'>('temperature');
 
 const formatTemp = (celsius: number) => {
-    if (temperatureUnit.value === 'C') return Math.round(celsius);
-    return Math.round((celsius * 9 / 5) + 32);
-};
+    if (temperatureUnit.value === 'C') {
+return Math.round(celsius);
+}
 
-const toggleUnit = (unit: 'C' | 'F') => {
-    temperatureUnit.value = unit;
+    return Math.round((celsius * 9 / 5) + 32);
 };
 
 // Compute exactly 8 points (every 3 hours) for our custom charts
 const eightPoints = computed(() => {
-    if (!currentWeather.value?.hourly) return [];
+    if (!currentWeather.value?.hourly) {
+return [];
+}
 
     const times = currentWeather.value.hourly.time;
     const temps = currentWeather.value.hourly.temperature_2m;
@@ -136,6 +156,7 @@ const eightPoints = computed(() => {
     const windDir = currentWeather.value.hourly.wind_direction_10m;
 
     const pts = [];
+
     // Start at current hour and step by 3 hours for 8 points total
     for (let i = 0; i < 24; i += 3) {
         const d = new Date(times[i]);
@@ -149,12 +170,15 @@ const eightPoints = computed(() => {
             windDir: (windDir && windDir[i]) ?? 0,
         });
     }
+
     return pts;
 });
 
 // Compute SVG paths for smooth temperature area chart
 const tempSvgPaths = computed(() => {
-    if (!eightPoints.value.length) return { line: '', area: '', points: [] };
+    if (!eightPoints.value.length) {
+return { line: '', area: '', points: [] };
+}
 
     const pts = eightPoints.value;
     const minT = Math.min(...pts.map(p => p.temp)) - 3;
@@ -164,11 +188,13 @@ const tempSvgPaths = computed(() => {
     const mapped = pts.map((p, i) => {
         const x = (i / 7) * 100; // 0 to 100
         const y = 100 - ((p.temp - minT) / range) * 80; // 20 to 100 to leave room for text
+
         return { x, y, label: p.tempFormatted, time: p.time };
     });
 
     // Smooth bezier curve generator
     let d = `M ${mapped[0].x},${mapped[0].y}`;
+
     for (let i = 0; i < mapped.length - 1; i++) {
         const curr = mapped[i];
         const next = mapped[i + 1];
@@ -177,25 +203,26 @@ const tempSvgPaths = computed(() => {
     }
 
     const area = `${d} L 100,100 L 0,100 Z`;
+
     return { line: d, area, points: mapped };
 });
 </script>
 
 <template>
-    <div class="mb-4">
+    <WidgetShell v-slot="{ layout }" :mode="mode" class="mb-4">
         <SectionLabel icon="cloud-sun" text="Weather" />
-        <div v-if="loading" class="w-full aspect-video rounded-2xl border bg-card/70 shadow-sm animate-pulse"></div>
+        <div v-if="loading" class="w-full aspect-video rounded-2xl border bg-card/70 shadow-sm animate-pulse widget-md:aspect-[21/9] widget-lg:aspect-[32/9]"></div>
 
         <div v-else-if="currentWeather"
-            class="w-full aspect-video perspective-[1000px] cursor-pointer group [container-type:size] [container-name:weather]"
-            @click="isFlipped = !isFlipped">
+            class="w-full aspect-video perspective-[1000px] cursor-pointer group [container-type:size] [container-name:weather] widget-md:aspect-[21/9] widget-lg:aspect-[32/9] widget-lg:cursor-default"
+            @click="layout !== 'desktop' && (isFlipped = !isFlipped)">
 
-            <div class="relative w-full h-full transition-transform duration-700 [transform-style:preserve-3d]"
-                :class="{ '[transform:rotateY(180deg)]': isFlipped }">
+            <div class="relative w-full h-full transition-transform duration-700 [transform-style:preserve-3d] widget-lg:grid widget-lg:grid-cols-2 widget-lg:gap-4 widget-lg:[transform-style:flat]"
+                :class="{ '[transform:rotateY(180deg)]': isFlipped && layout !== 'desktop' }">
 
                 <!-- Front Face -->
                 <div ref="containerRef"
-                    class="absolute inset-0 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 text-white flex flex-col border border-border/50 bg-cover bg-center [backface-visibility:hidden] [-webkit-backface-visibility:hidden] [transform:translateZ(1px)]"
+                    class="absolute inset-0 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 text-white flex flex-col border border-border/50 bg-cover bg-center [backface-visibility:hidden] [-webkit-backface-visibility:hidden] [transform:translateZ(1px)] widget-lg:relative widget-lg:inset-auto widget-lg:[transform:none]"
                     :class="[!currentWeather.background_image ? getWeatherDetails(currentWeather.current.weather_code, currentWeather.current.is_day).bg : '']"
                     :style="currentWeather.background_image ? `background-image: url('${currentWeather.background_image}')` : ''">
 
@@ -286,7 +313,7 @@ const tempSvgPaths = computed(() => {
                 </div>
 
                 <!-- Back Face -->
-                <div class="absolute inset-0 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 text-white flex flex-col border border-border/50 bg-cover bg-center [backface-visibility:hidden] [-webkit-backface-visibility:hidden] [transform:rotateY(180deg)_translateZ(1px)]"
+                <div class="absolute inset-0 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 text-white flex flex-col border border-border/50 bg-cover bg-center [backface-visibility:hidden] [-webkit-backface-visibility:hidden] [transform:rotateY(180deg)_translateZ(1px)] widget-lg:relative widget-lg:inset-auto widget-lg:[transform:none]"
                     :class="[!currentWeather.background_image ? getWeatherDetails(currentWeather.current.weather_code, currentWeather.current.is_day).bg : '']"
                     :style="currentWeather.background_image ? `background-image: url('${currentWeather.background_image}')` : ''">
 
@@ -323,7 +350,7 @@ const tempSvgPaths = computed(() => {
                         </div>
 
                         <!-- Custom Charts Area -->
-                        <div class="w-full h-16 sm:h-20 relative select-none" @click.stop>
+                        <div class="w-full h-16 sm:h-20 relative select-none">
 
                             <!-- Temperature Area Chart -->
                             <div v-if="activeTab === 'temperature'" class="absolute inset-0 w-full h-full">
@@ -378,7 +405,7 @@ const tempSvgPaths = computed(() => {
                 </div>
             </div>
         </div>
-    </div>
+    </WidgetShell>
 </template>
 
 <style scoped>

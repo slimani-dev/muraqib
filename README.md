@@ -81,7 +81,7 @@ Built with developer experience and performance in mind.
    cp .env.example .env
    php artisan key:generate
    ```
-   *Edit `.env` with your database settings and, optionally, your media stack credentials (see [Configuration](#-configuration)).*
+   *Edit `.env` with your database settings (see [Configuration](#-configuration)).*
 
 4. **Initialize Database**
    ```bash
@@ -105,15 +105,9 @@ Built with developer experience and performance in mind.
 Accounts and instances are managed directly via the admin panel. Log in as an administrator to add your first Cloudflare account, Portainer endpoint or Netdata node. API tokens entered in the UI are stored encrypted using your `APP_KEY`.
 
 ### Media Stack (optional)
-The dashboard's media cards (Jellyfin, Seerr, Radarr, Sonarr, Bazarr, Transmission) read their connection details from `.env`. Leave any of them blank to disable that card:
-```env
-JELLYFIN_URL=https://jellyfin.example.com
-JELLYFIN_API_KEY=
-JELLYFIN_USER_ID=
-RADARR_URL=https://radarr.example.com
-RADARR_API_KEY=
-# ... see .env.example for the full list
-```
+Jellyfin, Seerr, Radarr, Sonarr, Bazarr and Transmission are added in the admin panel under **Media Services** → **New** (as many of each as you run). Each enabled service gets its own dashboard widget. API keys and passwords are stored encrypted and only used by the server; the browser only checks whether each service is accessible.
+
+Upgrading from a version that read `JELLYFIN_URL`, `RADARR_API_KEY`, … from `.env`? Run `php artisan media:import-env` once, then remove those lines.
 
 ## 🧪 Testing
 

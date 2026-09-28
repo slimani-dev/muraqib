@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import ContainerItem from './containers/ContainerItem.vue';
 import SectionLabel from './SectionLabel.vue';
+import type { WidgetMode } from './widgets/widgetMode';
+import WidgetShell from './widgets/WidgetShell.vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     containers?: any[];
-}>();
+    mode?: WidgetMode;
+}>(), {
+    mode: 'desktop',
+});
 
 const labeledContainers = computed(() => {
     if (!props.containers) {
@@ -72,19 +76,33 @@ return containers.filter(c => !c.stack_name);
 const reachability = ref<Record<string, boolean>>({});
 let pingInterval: ReturnType<typeof setInterval>;
 
+/** One ping at a time: each checks every container URL on the server and can take a few seconds. */
+let pingInFlight = false;
+
 const checkReachability = async () => {
+    if (pingInFlight) {
+        return;
+    }
+
+    pingInFlight = true;
+
     try {
         const response = await fetch(`/api/containers/ping`, {
-            headers: { 'Accept': 'application/json' }
+            headers: { 'Accept': 'application/json' },
+            signal: AbortSignal.timeout(20_000),
         });
+
         if (response.ok) {
             const results = await response.json();
+
             for (const id in results) {
                 reachability.value[id] = results[id];
             }
         }
-    } catch (e) {
+    } catch {
         // Silent fail
+    } finally {
+        pingInFlight = false;
     }
 };
 
@@ -101,9 +119,9 @@ clearInterval(pingInterval);
 </script>
 
 <template>
-    <div class="mb-4">
+    <WidgetShell :mode="mode" class="mb-4">
         <Tabs :model-value="activeTab" @update:model-value="handleTabChange" class="w-full">
-            <div class="flex items-center justify-between mb-3 w-full">
+            <div class="mb-3 flex w-full flex-col gap-2 widget-md:flex-row widget-md:items-center widget-md:justify-between">
                 <a v-if="portainerInfo" :href="portainerInfo.url" target="_blank" rel="noopener noreferrer"
                     class="flex items-center gap-2.5 group cursor-pointer">
                     <div
@@ -120,7 +138,7 @@ clearInterval(pingInterval);
                     </div>
                 </a>
                 <SectionLabel v-else icon="container" text="Docker Containers" class="!mb-0 mr-4 flex-1" />
-                <TabsList class="h-8">
+                <TabsList class="grid h-8 w-full grid-cols-2 widget-md:inline-flex widget-md:w-auto">
                     <TabsTrigger value="labeled" class="text-xs px-3 h-6">Labeled</TabsTrigger>
                     <TabsTrigger value="all" class="text-xs px-3 h-6">All Containers</TabsTrigger>
                 </TabsList>
@@ -128,7 +146,7 @@ clearInterval(pingInterval);
 
             <TabsContent value="labeled"
                 class="mt-0 outline-none" :class="hasInteracted ? 'data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:zoom-in-95 duration-300' : ''">
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+                <div v-if="labeledContainers.length > 0" class="grid grid-cols-1 divide-y divide-border/50 overflow-hidden rounded-xl border bg-card/70 backdrop-blur-xl widget-md:grid-cols-2 widget-lg:grid-cols-3 widget-md:gap-2 widget-md:divide-y-0 widget-md:overflow-visible widget-md:rounded-none widget-md:border-0 widget-md:bg-transparent widget-md:backdrop-blur-none">
                     <ContainerItem v-for="c in labeledContainers" :key="c.container_id" :c="c" :reachable="reachability[c.container_id]" />
                 </div>
                 <div v-if="labeledContainers.length === 0"
@@ -139,21 +157,21 @@ clearInterval(pingInterval);
 
             <TabsContent value="all"
                 class="mt-0 outline-none" :class="hasInteracted ? 'data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:zoom-in-95 duration-300' : ''">
-                <div class="flex flex-wrap gap-2 mb-3">
+                <div class="-mx-1 mb-3 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] widget-md:flex-wrap widget-md:overflow-visible widget-md:pb-0">
                     <button v-for="stack in availableStacks" :key="stack" @click="selectedStack = stack"
-                        class="text-xs px-3 py-1.5 rounded-full border transition-all duration-300 font-medium"
+                        class="shrink-0 whitespace-nowrap text-xs px-3 py-1.5 rounded-full border transition-all duration-300 font-medium"
                         :class="selectedStack === stack ? 'bg-primary text-primary-foreground border-primary shadow-md' : 'bg-card/50 text-muted-foreground border-border/50 hover:bg-card hover:text-foreground hover:border-border'">
                         {{ stack }}
                     </button>
                 </div>
 
                 <TransitionGroup name="list" tag="div"
-                    class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 relative">
+                    class="relative grid grid-cols-1 divide-y divide-border/50 overflow-hidden rounded-xl border bg-card/70 backdrop-blur-xl widget-md:grid-cols-2 widget-lg:grid-cols-3 widget-md:gap-2 widget-md:divide-y-0 widget-md:overflow-visible widget-md:rounded-none widget-md:border-0 widget-md:bg-transparent widget-md:backdrop-blur-none">
                     <ContainerItem v-for="c in allContainers" :key="c.container_id" :c="c" :reachable="reachability[c.container_id]" />
                 </TransitionGroup>
             </TabsContent>
         </Tabs>
-    </div>
+    </WidgetShell>
 </template>
 
 <style scoped>

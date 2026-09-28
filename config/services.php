@@ -35,34 +35,4 @@ return [
         ],
     ],
 
-    'media' => [
-        'jellyfin' => [
-            'url' => env('JELLYFIN_URL'),
-            'key' => env('JELLYFIN_API_KEY'),
-            'user_id' => env('JELLYFIN_USER_ID'),
-        ],
-        'seerr' => [
-            'url' => env('SEERR_URL'),
-            'key' => env('SEERR_API_KEY'),
-        ],
-        'radarr' => [
-            'url' => env('RADARR_URL'),
-            'key' => env('RADARR_API_KEY'),
-        ],
-        'sonarr' => [
-            'url' => env('SONARR_URL'),
-            'key' => env('SONARR_API_KEY'),
-        ],
-        'bazarr' => [
-            'url' => env('BAZARR_URL'),
-            'key' => env('BAZARR_API_KEY'),
-        ],
-        'transmission' => [
-            'url' => env('TRANSMISSION_URL'),
-            'rpc_path' => env('TRANSMISSION_RPC_PATH', '/transmission/rpc'),
-            'username' => env('TRANSMISSION_USERNAME'),
-            'password' => env('TRANSMISSION_PASSWORD'),
-        ],
-    ],
-
 ];

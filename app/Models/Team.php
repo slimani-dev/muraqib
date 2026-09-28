@@ -100,4 +100,18 @@ class Team extends Model
     {
         return 'slug';
     }
+
+    public function dashboardPages(): HasMany
+    {
+        return $this->hasMany(DashboardPage::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
+     * The team's default dashboard page, created on first use.
+     */
+    public function defaultDashboardPage(): DashboardPage
+    {
+        return $this->dashboardPages()->where('is_default', true)->first()
+            ?? $this->dashboardPages()->create(['name' => 'Dashboard', 'slug' => 'dashboard', 'is_default' => true, 'position' => 0]);
+    }
 }

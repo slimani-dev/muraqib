@@ -1,13 +1,34 @@
 <script setup lang="ts">
+import { Icon } from '@iconify/vue';
 import { today, getLocalTimeZone } from '@internationalized/date';
 import { format, isToday, isTomorrow, isYesterday, formatDistanceToNowStrict, startOfDay } from 'date-fns';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Calendar } from '@/components/ui/calendar';
-import AgendaItemCard from './AgendaItemCard.vue';
-
+import type { AgendaEvent } from '@/stores/useAgendaStore';
 import { useAgendaStore } from '@/stores/useAgendaStore';
+import AgendaItemCard from './AgendaItemCard.vue';
+import type { WidgetMode } from './widgets/widgetMode';
+import WidgetShell from './widgets/WidgetShell.vue';
+
+const props = withDefaults(defineProps<{
+    /**
+     * Events to show (media releases for now; tasks and Google Calendar later).
+     * When omitted the widget reads the shared agenda store.
+     */
+    events?: AgendaEvent[] | null;
+    mode?: WidgetMode;
+}>(), {
+    events: null,
+    mode: 'desktop',
+});
 
 const agendaStore = useAgendaStore();
+
+watch(() => props.events, (events) => {
+    if (events) {
+        agendaStore.setEvents(events);
+    }
+}, { immediate: true });
 
 const value = ref<any>(today(getLocalTimeZone()));
 const viewMode = ref<'calendar' | 'list'>('calendar');
@@ -68,14 +89,16 @@ return 'Yesterday';
 </script>
 
 <template>
+    <WidgetShell v-slot="{ layout }" :mode="mode">
     <div class="col-span-full border rounded-xl bg-card text-card-foreground shadow-sm flex flex-col overflow-hidden">
         <!-- Header -->
         <div class="flex items-center justify-between p-4 border-b bg-muted/10">
             <h3 class="font-bold text-[13px] text-foreground flex items-center gap-2 uppercase tracking-wider">
-                <i data-lucide="calendar" class="h-4 w-4 text-primary"></i>
-                Upcoming Releases
+                <Icon icon="lucide:calendar" class="h-4 w-4 text-primary" />
+                Calendar
             </h3>
-            <div class="flex items-center bg-muted rounded-lg p-1">
+            <!-- 1 column only: 2 and 3 columns show the calendar and the day's list together -->
+            <div v-if="layout === 'mobile'" class="flex items-center bg-muted rounded-lg p-1">
                 <button 
                     @click="viewMode = 'calendar'"
                     class="px-3 py-1 rounded-md text-xs font-bold transition-colors"
@@ -94,9 +117,9 @@ return 'Yesterday';
         </div>
 
         <!-- Body -->
-        <div v-if="viewMode === 'calendar'" class="flex flex-col">
+        <div v-if="layout !== 'mobile' || viewMode === 'calendar'" class="flex flex-col widget-md:grid widget-md:grid-cols-2 widget-lg:grid-cols-[minmax(17rem,20rem)_1fr]">
             <!-- Calendar Sidebar -->
-            <div class="p-4 border-b w-full flex justify-center bg-card">
+            <div class="p-4 border-b w-full flex justify-center bg-card widget-md:border-b-0 widget-md:border-r widget-md:items-start">
                 <Calendar v-model="value" class="border-none shadow-none w-full">
                     <template #cell="{ date }">
                         <div class="flex flex-col items-center justify-center relative w-full h-full">
@@ -120,7 +143,7 @@ return 'Yesterday';
                     </span>
                 </div>
                 
-                <div class="flex-1 overflow-y-auto pr-2 space-y-3" v-if="selectedAgendaItems.length">
+                <div class="flex-1 overflow-y-auto pr-2 space-y-3 widget-md:grid widget-md:grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] widget-md:content-start widget-md:gap-3 widget-md:space-y-0 widget-md:max-h-[22rem]" v-if="selectedAgendaItems.length">
                     <AgendaItemCard 
                         v-for="item in selectedAgendaItems" 
                         :key="item.id" 
@@ -129,16 +152,16 @@ return 'Yesterday';
                 </div>
                 
                 <div v-else class="flex-1 flex flex-col items-center justify-center text-muted-foreground">
-                    <i data-lucide="calendar-x" class="h-10 w-10 mb-2 opacity-30"></i>
-                    <p class="text-[13px] font-medium">No releases scheduled.</p>
+                    <Icon icon="lucide:calendar-x" class="h-10 w-10 mb-2 opacity-30" />
+                    <p class="text-[13px] font-medium">Nothing scheduled.</p>
                 </div>
             </div>
         </div>
 
         <div v-else class="flex flex-col overflow-y-auto p-4 space-y-4 max-h-[600px]">
             <div v-if="groupedAgenda.length === 0" class="flex-1 flex flex-col items-center justify-center text-muted-foreground py-10">
-                <i data-lucide="inbox" class="h-10 w-10 mb-2 opacity-30"></i>
-                <p class="text-[13px] font-medium">No upcoming events found.</p>
+                <Icon icon="lucide:inbox" class="h-10 w-10 mb-2 opacity-30" />
+                <p class="text-[13px] font-medium">Nothing coming up.</p>
             </div>
             
             <div v-for="group in groupedAgenda" :key="group.date" class="space-y-2">
@@ -150,7 +173,7 @@ return 'Yesterday';
                         ({{ getRelativeDateText(group.date) }})
                     </span>
                 </div>
-                <div class="flex flex-col gap-2">
+                <div class="flex flex-col gap-2 widget-md:grid widget-md:grid-cols-[repeat(auto-fill,minmax(15rem,1fr))]">
                     <AgendaItemCard 
                         v-for="item in group.items" 
                         :key="item.id" 
@@ -161,4 +184,5 @@ return 'Yesterday';
             </div>
         </div>
     </div>
+    </WidgetShell>
 </template>

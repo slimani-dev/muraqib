@@ -9,6 +9,7 @@ use App\Services\RegistryApiService;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class ContainerApiController extends Controller
@@ -23,18 +24,23 @@ class ContainerApiController extends Controller
 
         $urls = $containers->pluck('url', 'container_id')->toArray();
 
-        $responses = Http::pool(function (Pool $pool) use ($urls) {
-            foreach ($urls as $id => $url) {
-                // Short timeout, disable SSL verification for local IPs
-                $pool->as($id)->timeout(3)->withoutVerifying()->get($url);
-            }
-        });
+        // Shared for 30 seconds, so several open tabs or quick reloads don't each ping every container
+        $results = Cache::remember('containers_ping_'.md5(json_encode($urls)), 30, function () use ($urls): array {
+            $responses = Http::pool(function (Pool $pool) use ($urls) {
+                foreach ($urls as $id => $url) {
+                    // Short timeouts, no SSL verification for local IPs
+                    $pool->as($id)->connectTimeout(2)->timeout(3)->withoutVerifying()->get($url);
+                }
+            });
 
-        $results = [];
-        foreach ($responses as $id => $response) {
-            // Reachable if we get ANY HTTP response back (even 401, 500, etc)
-            $results[$id] = $response instanceof Response;
-        }
+            $results = [];
+            foreach ($responses as $id => $response) {
+                // Reachable if we get ANY HTTP response back (even 401, 500, etc)
+                $results[$id] = $response instanceof Response;
+            }
+
+            return $results;
+        });
 
         return response()->json($results);
     }

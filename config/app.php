@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Vite Dev Tunnel URL
+    |--------------------------------------------------------------------------
+    |
+    | Optional public tunnel domain in front of the local site. While `vite dev`
+    | runs, requests on this host load assets through its `/vite` path instead
+    | of the local dev server. See vite.config.ts.
+    |
+    */
+
+    'vite_dev_tunnel_url' => env('VITE_DEV_TUNNEL_URL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

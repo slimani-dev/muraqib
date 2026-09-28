@@ -6,6 +6,40 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Dashboard widgets (see components/dashboard/widgets/WidgetShell.vue).
+ * Styles are mobile-first (the 1-column variation). `widget-md:` adds the
+ * 2-column variation and `widget-lg:` the 3-column one. Each applies only
+ * when the widget's mode allows it AND its container is wide enough, so a
+ * widget falls back to a narrower variation on its own (e.g. on a phone).
+ * Keep 28rem / 48rem in sync with widgets/widgetMode.ts.
+ */
+@custom-variant widget-md {
+    @container widget (width >= 28rem) {
+        :is([data-widget-mode='medium'], [data-widget-mode='desktop']) & {
+            @slot;
+        }
+    }
+}
+
+@custom-variant widget-lg {
+    @container widget (width >= 48rem) {
+        [data-widget-mode='desktop'] & {
+            @slot;
+        }
+    }
+}
+
+@custom-variant widget-mobile {
+    [data-widget-mode='mobile'] & {
+        @slot;
+    }
+
+    @container widget (width < 28rem) {
+        @slot;
+    }
+}
+
 @theme inline {
     --font-sans:
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
