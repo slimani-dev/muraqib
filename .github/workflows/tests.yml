@@ -2,22 +2,17 @@ name: tests
 
 on:
   push:
-    branches:
-      - develop
-      - main
-      - master
-      - workos
+    branches: [main]
   pull_request:
-    branches:
-      - develop
-      - main
-      - master
-      - workos
+
+permissions:
+  contents: read
 
 jobs:
-  ci:
+  tests:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         php-version: ['8.3', '8.4', '8.5']
 
@@ -32,27 +27,31 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           tools: composer:v2
-          coverage: xdebug
+          extensions: redis
+          coverage: none
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: '22'
+          cache: pnpm
 
-      - name: Install Node Dependencies
-        run: npm i
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
 
-      - name: Install Dependencies
+      - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
-      - name: Copy Environment File
-        run: cp .env.example .env
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
 
-      - name: Generate Application Key
-        run: php artisan key:generate
-
-      - name: Build Assets
-        run: npm run build
+      - name: Build assets (client and SSR)
+        run: pnpm run build:ssr
 
       - name: Tests
-        run: ./vendor/bin/pest
+        run: php artisan test --compact

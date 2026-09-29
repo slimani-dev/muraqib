@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Github, LayoutGrid, Menu, PanelsTopLeft, Pencil, Plus, Search } from 'lucide-vue-next';
+import {
+    BookOpen,
+    Github,
+    LayoutGrid,
+    Menu,
+    PanelsTopLeft,
+    Pencil,
+    Plus,
+    Search,
+} from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import AddPageDialog from '@/components/dashboard/editor/AddPageDialog.vue';
 import AppearanceDropdown from '@/components/kit/AppearanceDropdown.vue';
@@ -59,8 +68,7 @@ const dashboardUrl = computed(() =>
     page.props.currentTeam ? dashboard(page.props.currentTeam.slug).url : '/',
 );
 
-const activeItemStyles =
-    'text-neutral-900 dark:text-neutral-100';
+const activeItemStyles = 'text-neutral-900 dark:text-neutral-100';
 
 /** One tab per dashboard page; the default page lives at /{team}/dashboard. */
 const mainNavItems = computed<NavItem[]>(() => {
@@ -68,19 +76,28 @@ const mainNavItems = computed<NavItem[]>(() => {
     const pages = page.props.dashboardPages ?? [];
 
     if (!team || !pages.length) {
-        return [{ title: 'Dashboard', href: dashboardUrl.value, icon: LayoutGrid }];
+        return [
+            { title: 'Dashboard', href: dashboardUrl.value, icon: LayoutGrid },
+        ];
     }
 
     return pages.map((dashboardPage) => ({
         title: dashboardPage.name,
-        href: dashboardPage.is_default ? dashboardUrl.value : dashboardPageRoute({ current_team: team, page: dashboardPage.slug }).url,
+        href: dashboardPage.is_default
+            ? dashboardUrl.value
+            : dashboardPageRoute({
+                  current_team: team,
+                  page: dashboardPage.slug,
+              }).url,
         icon: dashboardPage.is_default ? LayoutGrid : PanelsTopLeft,
     }));
 });
 
 /** Edit mode is available on dashboard pages to team owners and admins. */
 const editStore = useDashboardEditStore();
-const canEdit = computed(() => page.component === 'Dashboard' && page.props.canEditDashboard);
+const canEdit = computed(
+    () => page.component === 'Dashboard' && page.props.canEditDashboard,
+);
 const addPageOpen = ref(false);
 
 const rightNavItems: NavItem[] = [
@@ -211,14 +228,37 @@ const rightNavItems: NavItem[] = [
                                     class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"
                                 ></div>
                             </NavigationMenuItem>
-                            <NavigationMenuItem v-if="canEdit" class="flex h-full items-center gap-1">
-                                <Button v-if="editStore.editing" variant="ghost" size="sm" class="h-9 cursor-pointer px-2" title="Add a page" @click="addPageOpen = true">
+                            <NavigationMenuItem
+                                v-if="canEdit"
+                                class="flex h-full items-center gap-1"
+                            >
+                                <Button
+                                    v-if="editStore.editing"
+                                    variant="ghost"
+                                    size="sm"
+                                    class="h-9 cursor-pointer px-2"
+                                    title="Add a page"
+                                    @click="addPageOpen = true"
+                                >
                                     <Plus class="h-4 w-4" />
                                 </Button>
-                                <Button :variant="editStore.editing ? 'default' : 'ghost'" size="sm" class="h-9 cursor-pointer px-2.5"
-                                    :title="editStore.editing ? 'Editing the dashboard' : 'Edit the dashboard'" @click="editStore.start()">
+                                <Button
+                                    :variant="
+                                        editStore.editing ? 'default' : 'ghost'
+                                    "
+                                    size="sm"
+                                    class="h-9 cursor-pointer px-2.5"
+                                    :title="
+                                        editStore.editing
+                                            ? 'Editing the dashboard'
+                                            : 'Edit the dashboard'
+                                    "
+                                    @click="editStore.start()"
+                                >
                                     <Pencil class="h-4 w-4" />
-                                    <span v-if="editStore.editing" class="ml-1">Editing</span>
+                                    <span v-if="editStore.editing" class="ml-1"
+                                        >Editing</span
+                                    >
                                 </Button>
                             </NavigationMenuItem>
                         </NavigationMenuList>

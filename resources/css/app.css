@@ -119,59 +119,59 @@
    ============================================================ */
 :root {
     /* Backgrounds */
-    --background:            #F8FAFC;
-    --foreground:            #0F172A;
+    --background: #f8fafc;
+    --foreground: #0f172a;
 
-    --card:                  #FFFFFF;
-    --card-foreground:       #0F172A;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
 
-    --popover:               #FFFFFF;
-    --popover-foreground:    #0F172A;
+    --popover: #ffffff;
+    --popover-foreground: #0f172a;
 
     /* Primary action — Blue 600 */
-    --primary:               #2563EB;
-    --primary-foreground:    #FFFFFF;
+    --primary: #2563eb;
+    --primary-foreground: #ffffff;
 
     /* Secondary / subtle surfaces */
-    --secondary:             #F1F5F9;
-    --secondary-foreground:  #0F172A;
+    --secondary: #f1f5f9;
+    --secondary-foreground: #0f172a;
 
     /* Muted — panels, disabled states */
-    --muted:                 #F1F5F9;
-    --muted-foreground:      #64748B;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
 
     /* Accent */
-    --accent:                #E0E7FF;
-    --accent-foreground:     #3730A3;
+    --accent: #e0e7ff;
+    --accent-foreground: #3730a3;
 
     /* Destructive — Red 500 */
-    --destructive:           #EF4444;
-    --destructive-foreground:#FFFFFF;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
 
     /* Borders & inputs */
-    --border:                #E2E8F0;
-    --input:                 #E2E8F0;
-    --ring:                  #3B82F6;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: #3b82f6;
 
     /* Charts */
-    --chart-1:               #3B82F6;   /* Blue */
-    --chart-2:               #06B6D4;   /* Cyan */
-    --chart-3:               #10B981;   /* Emerald */
-    --chart-4:               #F59E0B;   /* Amber */
-    --chart-5:               #EC4899;   /* Pink */
+    --chart-1: #3b82f6; /* Blue */
+    --chart-2: #06b6d4; /* Cyan */
+    --chart-3: #10b981; /* Emerald */
+    --chart-4: #f59e0b; /* Amber */
+    --chart-5: #ec4899; /* Pink */
 
     --radius: 0.75rem;
 
     /* Sidebar */
-    --sidebar-background:           #FFFFFF;
-    --sidebar-foreground:           #0F172A;
-    --sidebar-primary:              #2563EB;
-    --sidebar-primary-foreground:   #FFFFFF;
-    --sidebar-accent:               #F1F5F9;
-    --sidebar-accent-foreground:    #0F172A;
-    --sidebar-border:               #E2E8F0;
-    --sidebar-ring:                 #3B82F6;
-    --sidebar:                      #FFFFFF;
+    --sidebar-background: #ffffff;
+    --sidebar-foreground: #0f172a;
+    --sidebar-primary: #2563eb;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #f1f5f9;
+    --sidebar-accent-foreground: #0f172a;
+    --sidebar-border: #e2e8f0;
+    --sidebar-ring: #3b82f6;
+    --sidebar: #ffffff;
 }
 
 /* ============================================================
@@ -179,57 +179,57 @@
    ============================================================ */
 .dark {
     /* Backgrounds */
-    --background:            #0B1121;
-    --foreground:            #F1F5F9;
+    --background: #0b1121;
+    --foreground: #f1f5f9;
 
-    --card:                  #151E32;
-    --card-foreground:       #F1F5F9;
+    --card: #151e32;
+    --card-foreground: #f1f5f9;
 
-    --popover:               #151E32;
-    --popover-foreground:    #F1F5F9;
+    --popover: #151e32;
+    --popover-foreground: #f1f5f9;
 
     /* Primary action — Blue 500 */
-    --primary:               #3B82F6;
-    --primary-foreground:    #FFFFFF;
+    --primary: #3b82f6;
+    --primary-foreground: #ffffff;
 
     /* Secondary / subtle surfaces */
-    --secondary:             #1E293B;
-    --secondary-foreground:  #F1F5F9;
+    --secondary: #1e293b;
+    --secondary-foreground: #f1f5f9;
 
     /* Muted */
-    --muted:                 #1E293B;
-    --muted-foreground:      #94A3B8;
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
 
     /* Accent */
-    --accent:                #1E293B;
-    --accent-foreground:     #60A5FA;
+    --accent: #1e293b;
+    --accent-foreground: #60a5fa;
 
     /* Destructive — Red 400 */
-    --destructive:           #F87171;
-    --destructive-foreground:#0B1121;
+    --destructive: #f87171;
+    --destructive-foreground: #0b1121;
 
     /* Borders & inputs */
-    --border:                #1E293B;
-    --input:                 #1E293B;
-    --ring:                  #3B82F6;
+    --border: #1e293b;
+    --input: #1e293b;
+    --ring: #3b82f6;
 
     /* Charts */
-    --chart-1:               #3B82F6;   /* Blue 500 */
-    --chart-2:               #22D3EE;   /* Cyan 400 */
-    --chart-3:               #34D399;   /* Emerald 400 */
-    --chart-4:               #FBBF24;   /* Amber 400 */
-    --chart-5:               #F472B6;   /* Pink 400 */
+    --chart-1: #3b82f6; /* Blue 500 */
+    --chart-2: #22d3ee; /* Cyan 400 */
+    --chart-3: #34d399; /* Emerald 400 */
+    --chart-4: #fbbf24; /* Amber 400 */
+    --chart-5: #f472b6; /* Pink 400 */
 
     /* Sidebar */
-    --sidebar-background:           #151E32;
-    --sidebar-foreground:           #F1F5F9;
-    --sidebar-primary:              #3B82F6;
-    --sidebar-primary-foreground:   #FFFFFF;
-    --sidebar-accent:               #1E293B;
-    --sidebar-accent-foreground:    #F1F5F9;
-    --sidebar-border:               #1E293B;
-    --sidebar-ring:                 #3B82F6;
-    --sidebar:                      #151E32;
+    --sidebar-background: #151e32;
+    --sidebar-foreground: #f1f5f9;
+    --sidebar-primary: #3b82f6;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #1e293b;
+    --sidebar-accent-foreground: #f1f5f9;
+    --sidebar-border: #1e293b;
+    --sidebar-ring: #3b82f6;
+    --sidebar: #151e32;
 }
 
 /* ============================================================
@@ -237,44 +237,44 @@
    ============================================================ */
 :root {
     /* Card internals */
-    --card-padding:              1.25rem;  /* 20px = p-5 */
-    --card-gap:                  1rem;     /* 16px = gap-4 */
+    --card-padding: 1.25rem; /* 20px = p-5 */
+    --card-gap: 1rem; /* 16px = gap-4 */
 
     /* Header */
-    --header-icon-size:          1.75rem;  /* 28px = h-7 w-7 */
-    --header-icon-radius:        0.375rem; /* rounded-md */
-    --header-gap:                0.625rem; /* 10px = gap-2.5 */
-    --header-title-size:         0.875rem; /* 14px = text-sm */
-    --header-url-size:           11px;     /* text-[11px] */
-    --header-margin-bottom:      1rem;     /* 16px = mb-4 */
+    --header-icon-size: 1.75rem; /* 28px = h-7 w-7 */
+    --header-icon-radius: 0.375rem; /* rounded-md */
+    --header-gap: 0.625rem; /* 10px = gap-2.5 */
+    --header-title-size: 0.875rem; /* 14px = text-sm */
+    --header-url-size: 11px; /* text-[11px] */
+    --header-margin-bottom: 1rem; /* 16px = mb-4 */
 
     /* Status badge */
-    --badge-font-size:           10px;     /* text-[10px] */
-    --badge-px:                  0.625rem; /* 10px = px-2.5 */
-    --badge-py:                  0.125rem; /* 2px  = py-0.5 */
-    --badge-radius:              9999px;   /* rounded-full */
-    --badge-dot-size:            0.375rem; /* 6px  = w-1.5 h-1.5 */
+    --badge-font-size: 10px; /* text-[10px] */
+    --badge-px: 0.625rem; /* 10px = px-2.5 */
+    --badge-py: 0.125rem; /* 2px  = py-0.5 */
+    --badge-radius: 9999px; /* rounded-full */
+    --badge-dot-size: 0.375rem; /* 6px  = w-1.5 h-1.5 */
 
     /* Stats grid */
-    --stat-gap:                  0.5rem;   /* 8px  = gap-2 */
-    --stat-padding:              0.625rem; /* 10px = p-2.5 */
-    --stat-radius:               0.75rem;  /* rounded-xl */
-    --stat-value-size:           13px;     /* text-[13px] */
-    --stat-label-size:           9px;      /* text-[9px] */
-    --stat-margin-bottom:        1rem;     /* 16px = mb-4 */
+    --stat-gap: 0.5rem; /* 8px  = gap-2 */
+    --stat-padding: 0.625rem; /* 10px = p-2.5 */
+    --stat-radius: 0.75rem; /* rounded-xl */
+    --stat-value-size: 13px; /* text-[13px] */
+    --stat-label-size: 9px; /* text-[9px] */
+    --stat-margin-bottom: 1rem; /* 16px = mb-4 */
 
     /* Queue pills */
-    --pill-px:                   0.625rem; /* 10px = px-2.5 */
-    --pill-py:                   0.25rem;  /* 4px  = py-1 */
-    --pill-font-size:            10px;     /* text-[10px] */
-    --pill-margin-bottom:        1rem;     /* 16px = mb-4 */
+    --pill-px: 0.625rem; /* 10px = px-2.5 */
+    --pill-py: 0.25rem; /* 4px  = py-1 */
+    --pill-font-size: 10px; /* text-[10px] */
+    --pill-margin-bottom: 1rem; /* 16px = mb-4 */
 
     /* Torrent items */
-    --torrent-padding:           0.75rem;  /* 12px = p-3 */
-    --torrent-radius:            0.75rem;  /* rounded-xl */
-    --torrent-name-size:         12px;     /* text-[12px] */
-    --torrent-meta-size:         10px;     /* text-[10px] */
-    --torrent-gap:               0.75rem;  /* 12px = space-y-3 */
+    --torrent-padding: 0.75rem; /* 12px = p-3 */
+    --torrent-radius: 0.75rem; /* rounded-xl */
+    --torrent-name-size: 12px; /* text-[12px] */
+    --torrent-meta-size: 10px; /* text-[10px] */
+    --torrent-gap: 0.75rem; /* 12px = space-y-3 */
 }
 
 @layer base {

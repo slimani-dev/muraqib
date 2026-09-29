@@ -16,10 +16,12 @@ return [
     */
 
     'ssr' => [
-        'enabled' => true,
-        'url' => 'http://127.0.0.1:13714',
-        // 'bundle' => base_path('bootstrap/ssr/ssr.mjs'),
-
+        'enabled' => (bool) env('INERTIA_SSR_ENABLED', true),
+        // Production: the Node SSR server (`php artisan inertia:start-ssr`, after `pnpm run build:ssr`)
+        'url' => env('INERTIA_SSR_URL', 'http://127.0.0.1:13714'),
+        // Development: the Vite dev server renders pages at its root, even when assets are served
+        // under a base path (e.g. /vite/ for the Cloudflare tunnel setup)
+        'hot_url' => env('INERTIA_SSR_HOT_URL'),
     ],
 
     /*

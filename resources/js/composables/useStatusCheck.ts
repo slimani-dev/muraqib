@@ -1,6 +1,6 @@
 import { useDocumentVisibility, useIntervalFn } from '@vueuse/core';
 import type { MaybeRefOrGetter, Ref } from 'vue';
-import { ref, toValue, watch } from 'vue';
+import { onMounted, ref, toValue, watch } from 'vue';
 
 export type ServerStatusState = 'up' | 'blocked' | 'down';
 
@@ -8,7 +8,9 @@ export type ServerStatusState = 'up' | 'blocked' | 'down';
  * How a service's accessibility is checked (see App\Services\Media\MediaStatusChecker::forDashboard):
  * `browser` checks run here; `server` checks run in Laravel and arrive with the polled props.
  */
-export type StatusCheckTarget = { mode: 'browser'; url: string } | { mode: 'server'; state: ServerStatusState };
+export type StatusCheckTarget =
+    | { mode: 'browser'; url: string }
+    | { mode: 'server'; state: ServerStatusState };
 
 export type StatusState = ServerStatusState | 'checking' | 'unknown';
 
@@ -52,7 +54,15 @@ export function useStatusCheck(
         }
     };
 
-    const { pause, resume } = useIntervalFn(check, intervalMs, { immediateCallback: true });
+    // Started on mount, so a server-side render never pings anything
+    const { pause, resume } = useIntervalFn(check, intervalMs, {
+        immediate: false,
+    });
+
+    onMounted(() => {
+        void check();
+        resume();
+    });
     const visibility = useDocumentVisibility();
 
     watch(visibility, (value) => {

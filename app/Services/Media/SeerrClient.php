@@ -66,9 +66,9 @@ class SeerrClient extends MediaClient
                         'type' => $media['mediaType'],
                         'year' => $year,
                         'tmdbId' => $media['tmdbId'],
-                        // Static placeholders for now, could be fetched via full request info
-                        'userName' => 'moh',
-                        'userAvatar' => 'https://ui-avatars.com/api/?name=moh&background=random',
+                        // Who asked for it, when Seerr includes the request with the media
+                        'userName' => $media['requests'][0]['requestedBy']['displayName'] ?? null,
+                        'userAvatar' => $media['requests'][0]['requestedBy']['avatar'] ?? null,
                         'season' => ! $isMovie ? '1' : null,
                         'mediaUrl' => $media['mediaUrl'] ?? null,
                         'serviceUrl' => $media['serviceUrl'] ?? null,

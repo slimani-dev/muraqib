@@ -8,7 +8,13 @@ import type { Team } from '@/types';
 defineProps<{
     currentTeam?: Team | null;
     /** The page being shown; its layout is null until the default page is customised. */
-    dashboardPage: { id: number; name: string; slug: string; is_default: boolean; layout: DashboardLayout | null };
+    dashboardPage: {
+        id: number;
+        name: string;
+        slug: string;
+        is_default: boolean;
+        layout: DashboardLayout | null;
+    };
     agenda_cached?: any[];
     agenda?: any[];
     netdata?: any[];
@@ -31,5 +37,10 @@ defineOptions({
 <template>
     <Head :title="dashboardPage.name" />
 
-    <DashboardContent :dashboard-page="dashboardPage" :agenda="agenda" :agenda_cached="agenda_cached" :netdata="netdata" />
+    <DashboardContent
+        :dashboard-page="dashboardPage"
+        :agenda="agenda"
+        :agenda_cached="agenda_cached"
+        :netdata="netdata"
+    />
 </template>

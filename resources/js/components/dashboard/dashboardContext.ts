@@ -12,4 +12,5 @@ export type DashboardContext = {
     setNetdataTimeframe: (serverId: number, timeframe: string) => void;
 };
 
-export const dashboardContextKey: InjectionKey<DashboardContext> = Symbol('dashboardContext');
+export const dashboardContextKey: InjectionKey<DashboardContext> =
+    Symbol('dashboardContext');

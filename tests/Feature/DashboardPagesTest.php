@@ -159,7 +159,7 @@ test('the php widget catalog matches the dashboard widget registry', function ()
     $registry = file_get_contents(resource_path('js/components/dashboard/widgets/registry.ts'));
     $fixed = str($registry)->after('export const widgets: WidgetDefinition[] = [')->before('];');
 
-    preg_match_all("/\\{ id: '([a-z-]+)'/", (string) $fixed, $matches);
+    preg_match_all("/\\bid: '([a-z-]+)'/", (string) $fixed, $matches);
 
     expect($matches[1])->toEqualCanonicalizing(WidgetCatalog::FIXED)
         ->and($registry)->toContain('id: `media-${service.id}`', 'id: `netdata-${server.id}`');

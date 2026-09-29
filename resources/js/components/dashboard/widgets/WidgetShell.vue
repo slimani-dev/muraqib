@@ -11,13 +11,20 @@ const props = withDefaults(defineProps<{ mode?: WidgetMode }>(), {
 const shell = useTemplateRef<HTMLElement>('shell');
 const { width } = useElementSize(shell);
 
-const layout = computed<WidgetMode>(() => resolveWidgetLayout(props.mode, width.value));
+const layout = computed<WidgetMode>(() =>
+    resolveWidgetLayout(props.mode, width.value),
+);
 
 provide(widgetLayoutKey, layout);
 </script>
 
 <template>
-    <div ref="shell" class="@container/widget" :data-widget-mode="mode" :data-widget-layout="layout">
+    <div
+        ref="shell"
+        class="@container/widget"
+        :data-widget-mode="mode"
+        :data-widget-layout="layout"
+    >
         <slot :layout="layout" />
     </div>
 </template>

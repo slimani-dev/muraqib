@@ -20,10 +20,22 @@ const rename = (event: Event): void => {
 
 <template>
     <section class="flex flex-col">
-        <input v-if="editor.editing.value" :value="item.title" maxlength="60" aria-label="Section title"
+        <input
+            v-if="editor.editing.value"
+            :value="item.title"
+            maxlength="60"
+            aria-label="Section title"
             class="mb-2 w-full rounded-md border border-border/60 bg-background/40 px-2 py-1 text-[0.72rem] font-bold tracking-[0.11em] uppercase outline-none focus:border-primary/60"
-            @change="rename" />
+            @change="rename"
+        />
         <SectionLabel v-else icon="layout-list" :text="item.title" />
-        <LayoutList :items="item.items" kind="section" :owner="item" owner-key="items" :columns="columns" empty-text="Drop widgets into this section" />
+        <LayoutList
+            :items="item.items"
+            kind="section"
+            :owner="item"
+            owner-key="items"
+            :columns="columns"
+            empty-text="Drop widgets into this section"
+        />
     </section>
 </template>

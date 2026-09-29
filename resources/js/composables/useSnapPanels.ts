@@ -28,7 +28,12 @@ const storePanel = (index: number): void => {
  * and remembers the last panel. Uses native scrolling, so it keeps momentum and
  * rubber-banding, and stays out of the way of drag-and-drop.
  */
-export function useSnapPanels(track: Ref<HTMLElement | null>, count: number, initial = 1, dragEnabled: Ref<boolean> = ref(true)) {
+export function useSnapPanels(
+    track: Ref<HTMLElement | null>,
+    count: number,
+    initial = 1,
+    dragEnabled: Ref<boolean> = ref(true),
+) {
     /** 0 = first panel, 1.5 = halfway between the second and the third. */
     const progress = ref(initial);
     const active = computed(() => Math.round(progress.value));
@@ -47,7 +52,10 @@ export function useSnapPanels(track: Ref<HTMLElement | null>, count: number, ini
 
         // Panels are narrower than the track, so measure against how far it can scroll
         const maxScroll = track.value.scrollWidth - track.value.clientWidth;
-        progress.value = maxScroll > 0 ? (track.value.scrollLeft / maxScroll) * (count - 1) : 0;
+        progress.value =
+            maxScroll > 0
+                ? (track.value.scrollLeft / maxScroll) * (count - 1)
+                : 0;
     };
 
     const scrollTo = (index: number, smooth = true): void => {
@@ -58,8 +66,14 @@ export function useSnapPanels(track: Ref<HTMLElement | null>, count: number, ini
         }
 
         // The track is `relative`, so offsetLeft is measured from it
-        const left = panel.offsetLeft - (track.value.clientWidth - panel.offsetWidth) / 2;
-        track.value.scrollTo({ left, behavior: smooth && reducedMotion.value !== 'reduce' ? 'smooth' : 'auto' });
+        const left =
+            panel.offsetLeft -
+            (track.value.clientWidth - panel.offsetWidth) / 2;
+        track.value.scrollTo({
+            left,
+            behavior:
+                smooth && reducedMotion.value !== 'reduce' ? 'smooth' : 'auto',
+        });
     };
 
     /*
@@ -68,7 +82,13 @@ export function useSnapPanels(track: Ref<HTMLElement | null>, count: number, ini
      * threshold, then release to snap to the nearest panel (a quick flick counts).
      */
     const DRAG_THRESHOLD = 8;
-    let drag: { x: number; y: number; scrollLeft: number; time: number; moving: boolean } | null = null;
+    let drag: {
+        x: number;
+        y: number;
+        scrollLeft: number;
+        time: number;
+        moving: boolean;
+    } | null = null;
 
     const endDrag = (event: PointerEvent): void => {
         if (!drag || !track.value) {
@@ -92,25 +112,46 @@ export function useSnapPanels(track: Ref<HTMLElement | null>, count: number, ini
 
         // Snap to the nearest panel, or the next one in the flick's direction
         const flick = Math.abs(velocity) > 0.4 ? -Math.sign(velocity) : 0;
-        const target = Math.max(0, Math.min(count - 1, flick ? Math.round(progress.value + flick * 0.5) : active.value));
+        const target = Math.max(
+            0,
+            Math.min(
+                count - 1,
+                flick ? Math.round(progress.value + flick * 0.5) : active.value,
+            ),
+        );
         scrollTo(target);
 
         // The pointer-up turns into a click on whatever is under it: swallow that one
-        window.addEventListener('click', (click) => {
-            click.stopPropagation();
-            click.preventDefault();
-        }, { capture: true, once: true });
+        window.addEventListener(
+            'click',
+            (click) => {
+                click.stopPropagation();
+                click.preventDefault();
+            },
+            { capture: true, once: true },
+        );
     };
 
     useEventListener(track, 'pointerdown', (event: PointerEvent) => {
-        if (event.pointerType !== 'mouse' || event.button !== 0 || !dragEnabled.value || !track.value) {
+        if (
+            event.pointerType !== 'mouse' ||
+            event.button !== 0 ||
+            !dragEnabled.value ||
+            !track.value
+        ) {
             return;
         }
 
-        drag = { x: event.clientX, y: event.clientY, scrollLeft: track.value.scrollLeft, time: performance.now(), moving: false };
+        drag = {
+            x: event.clientX,
+            y: event.clientY,
+            scrollLeft: track.value.scrollLeft,
+            time: performance.now(),
+            moving: false,
+        };
     });
 
-    useEventListener(window, 'pointermove', (event: PointerEvent) => {
+    useEventListener('pointermove', (event: PointerEvent) => {
         if (!drag || !track.value) {
             return;
         }
@@ -119,7 +160,10 @@ export function useSnapPanels(track: Ref<HTMLElement | null>, count: number, ini
 
         if (!drag.moving) {
             // Only a mostly-sideways drag switches panels; vertical drags and clicks are left alone
-            if (Math.abs(dx) < DRAG_THRESHOLD || Math.abs(dx) < Math.abs(event.clientY - drag.y)) {
+            if (
+                Math.abs(dx) < DRAG_THRESHOLD ||
+                Math.abs(dx) < Math.abs(event.clientY - drag.y)
+            ) {
                 return;
             }
 
@@ -141,21 +185,32 @@ export function useSnapPanels(track: Ref<HTMLElement | null>, count: number, ini
         }
     });
 
-    useEventListener(window, 'pointerup', endDrag);
-    useEventListener(window, 'pointercancel', endDrag);
+    useEventListener('pointerup', endDrag);
+    useEventListener('pointercancel', endDrag);
 
     useEventListener(track, 'scroll', update, { passive: true });
-    useEventListener(track, 'scrollend', () => storePanel(active.value), { passive: true });
+    useEventListener(track, 'scrollend', () => storePanel(active.value), {
+        passive: true,
+    });
 
     // Open on the remembered panel (or the main one) without animating
-    watch(track, async (element) => {
-        if (element) {
-            await nextTick();
-            const stored = readStoredPanel();
-            scrollTo(stored !== null && stored >= 0 && stored < count ? stored : initial, false);
-            update();
-        }
-    }, { immediate: true });
+    watch(
+        track,
+        async (element) => {
+            if (element) {
+                await nextTick();
+                const stored = readStoredPanel();
+                scrollTo(
+                    stored !== null && stored >= 0 && stored < count
+                        ? stored
+                        : initial,
+                    false,
+                );
+                update();
+            }
+        },
+        { immediate: true },
+    );
 
     return { progress, active, scrollTo, panelWidth };
 }

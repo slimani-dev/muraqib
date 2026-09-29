@@ -63,38 +63,38 @@ export const dashboardData = {
                 {
                     name: 'Jellyfin',
                     icon: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/jellyfin.png',
-                    status: 'Running'
+                    status: 'Running',
                 },
                 {
                     name: 'Seerr',
                     icon: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/seerr.png',
-                    status: 'Running'
+                    status: 'Running',
                 },
                 {
                     name: 'Radarr',
                     icon: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/radarr.png',
-                    status: 'Running'
+                    status: 'Running',
                 },
                 {
                     name: 'Sonarr',
                     icon: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/sonarr.png',
-                    status: 'Update!'
+                    status: 'Update!',
                 },
                 {
                     name: 'Transmission',
                     icon: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/transmission.png',
-                    status: 'Running'
+                    status: 'Running',
                 },
                 {
                     name: 'Prowlarr',
                     icon: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/prowlarr.png',
-                    status: 'Running'
+                    status: 'Running',
                 },
                 {
                     name: 'Bazarr',
                     icon: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/bazarr.png',
-                    status: 'Running'
-                }
+                    status: 'Running',
+                },
             ],
         },
     ],

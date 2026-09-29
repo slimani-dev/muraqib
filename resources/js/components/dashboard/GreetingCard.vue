@@ -1,10 +1,11 @@
 <script setup lang="ts">
-
 import { dashboardData } from './data';
 </script>
 
 <template>
-    <div class="border bg-card/70 backdrop-blur-xl shadow-xl transition-all duration-200 hover:border-primary/50 text-card-foreground flex h-full flex-col gap-1.5 rounded-xl p-3.5">
+    <div
+        class="flex h-full flex-col gap-1.5 rounded-xl border bg-card/70 p-3.5 text-card-foreground shadow-xl backdrop-blur-xl transition-all duration-200 hover:border-primary/50"
+    >
         <div class="mb-0.5 text-base font-bold text-white">
             {{ dashboardData.greeting.timeOfDay }} 👋
         </div>

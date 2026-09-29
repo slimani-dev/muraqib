@@ -23,31 +23,33 @@ export const useAgendaStore = defineStore('agenda', {
         },
         clearEvents() {
             this.events = [];
-        }
+        },
     },
     getters: {
         getEventsByDate: (state) => (dateStr: string) => {
-            return state.events.filter(e => e.date === dateStr);
+            return state.events.filter((e) => e.date === dateStr);
         },
         getGroupedEvents: (state) => {
             const groups: Record<string, AgendaEvent[]> = {};
-            state.events.forEach(item => {
+            state.events.forEach((item) => {
                 if (!item.date) {
-return;
-}
+                    return;
+                }
 
                 if (!groups[item.date]) {
-groups[item.date] = [];
-}
+                    groups[item.date] = [];
+                }
 
                 groups[item.date].push(item);
             });
 
             // Sort keys chronologically
-            return Object.keys(groups).sort().map(date => ({
-                date,
-                items: groups[date]
-            }));
-        }
-    }
+            return Object.keys(groups)
+                .sort()
+                .map((date) => ({
+                    date,
+                    items: groups[date],
+                }));
+        },
+    },
 });

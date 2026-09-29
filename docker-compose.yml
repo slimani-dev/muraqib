@@ -1,0 +1,96 @@
+# Muraqib with Docker Compose.
+#
+#   cp .env.example .env        # set APP_KEY (see README), APP_URL, ADMIN_EMAIL, ADMIN_PASSWORD, DB_PASSWORD
+#   docker compose up -d
+#
+# The first start runs the migrations and creates the admin from ADMIN_EMAIL / ADMIN_PASSWORD
+# (a random password is printed in `docker compose logs app` when ADMIN_PASSWORD is empty).
+
+x-muraqib: &muraqib
+  image: ghcr.io/slimani-dev/muraqib:latest
+  build: .
+  restart: unless-stopped
+  env_file: .env
+  environment: &muraqib-env
+    DB_CONNECTION: mariadb
+    DB_HOST: db
+    DB_PORT: 3306
+    DB_DATABASE: ${DB_DATABASE:-muraqib}
+    DB_USERNAME: ${DB_USERNAME:-muraqib}
+    REDIS_HOST: redis
+    CACHE_STORE: redis
+    QUEUE_CONNECTION: redis
+    SESSION_DRIVER: redis
+    INERTIA_SSR_URL: http://ssr:13714
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_started
+
+services:
+  app:
+    <<: *muraqib
+    ports:
+      - "${MURAQIB_PORT:-8080}:8080"
+    volumes:
+      - storage:/var/www/html/storage/app
+
+  queue:
+    <<: *muraqib
+    command: ["php", "/var/www/html/artisan", "queue:work", "--queue=high,default,low", "--tries=3"]
+    environment:
+      <<: *muraqib-env
+      AUTORUN_ENABLED: "false"
+    stop_signal: SIGTERM
+    healthcheck:
+      test: ["CMD", "healthcheck-queue"]
+      start_period: 10s
+
+  scheduler:
+    <<: *muraqib
+    command: ["php", "/var/www/html/artisan", "schedule:work"]
+    environment:
+      <<: *muraqib-env
+      AUTORUN_ENABLED: "false"
+    stop_signal: SIGTERM
+    healthcheck:
+      test: ["CMD", "healthcheck-schedule"]
+      start_period: 10s
+
+  # Server-side rendering; set INERTIA_SSR_ENABLED=false in .env to go without it
+  ssr:
+    <<: *muraqib
+    command: ["php", "/var/www/html/artisan", "inertia:start-ssr"]
+    environment:
+      <<: *muraqib-env
+      AUTORUN_ENABLED: "false"
+    healthcheck:
+      test: ["CMD", "php", "/var/www/html/artisan", "inertia:check-ssr"]
+      start_period: 10s
+
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_DATABASE:-muraqib}
+      MARIADB_USER: ${DB_USERNAME:-muraqib}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+    volumes:
+      - db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis:/data
+
+volumes:
+  storage:
+  db:
+  redis:

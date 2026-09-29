@@ -10,12 +10,12 @@
 @source inline('animate-{spin,pulse,bounce}');
 
 .torchlight .line {
-    @apply whitespace-pre-wrap break-all;
+    @apply break-all whitespace-pre-wrap;
 }
 
 .no-header {
     thead {
-        @apply hidden
+        @apply hidden;
     }
 }
 
@@ -24,7 +24,7 @@
         .fi-in-entry-content-col {
             .fi-inline {
                 div {
-                    @apply w-full
+                    @apply w-full;
                 }
             }
         }
@@ -32,5 +32,5 @@
 }
 
 .fi-wi-stats-overview-stat-value {
-    @apply text-xl
+    @apply text-xl;
 }

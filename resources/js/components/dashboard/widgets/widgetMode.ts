@@ -16,15 +16,22 @@ export const WIDGET_DESKTOP_MIN_WIDTH = 768;
 const rank: Record<WidgetMode, number> = { mobile: 0, medium: 1, desktop: 2 };
 
 /** The variation actually rendered for a mode at a given width (0 = not measured yet). */
-export function resolveWidgetLayout(mode: WidgetMode, width: number): WidgetMode {
-    const fits: WidgetMode = width === 0 || width >= WIDGET_DESKTOP_MIN_WIDTH
-        ? 'desktop'
-        : width >= WIDGET_MEDIUM_MIN_WIDTH ? 'medium' : 'mobile';
+export function resolveWidgetLayout(
+    mode: WidgetMode,
+    width: number,
+): WidgetMode {
+    const fits: WidgetMode =
+        width === 0 || width >= WIDGET_DESKTOP_MIN_WIDTH
+            ? 'desktop'
+            : width >= WIDGET_MEDIUM_MIN_WIDTH
+              ? 'medium'
+              : 'mobile';
 
     return rank[fits] < rank[mode] ? fits : mode;
 }
 
-export const widgetLayoutKey: InjectionKey<ComputedRef<WidgetMode>> = Symbol('widgetLayout');
+export const widgetLayoutKey: InjectionKey<ComputedRef<WidgetMode>> =
+    Symbol('widgetLayout');
 
 /**
  * The layout a widget is actually rendering right now, for template logic that

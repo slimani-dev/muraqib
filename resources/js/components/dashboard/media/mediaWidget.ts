@@ -1,10 +1,14 @@
 import type { InjectionKey, Ref } from 'vue';
-import type { StatusCheckTarget, StatusState } from '@/composables/useStatusCheck';
+import type {
+    StatusCheckTarget,
+    StatusState,
+} from '@/composables/useStatusCheck';
 
 /** One entry of the dashboard's `media_services` prop: an enabled media service. */
 export type ConfiguredMediaService = {
     id: number;
-    type: 'jellyfin' | 'seerr' | 'radarr' | 'sonarr' | 'bazarr' | 'transmission';
+    type:
+        'jellyfin' | 'seerr' | 'radarr' | 'sonarr' | 'bazarr' | 'transmission';
     name: string;
     url: string;
     status: StatusCheckTarget | null;
@@ -17,4 +21,5 @@ export type MediaWidgetContext = {
     refresh: () => void;
 };
 
-export const mediaWidgetKey: InjectionKey<MediaWidgetContext> = Symbol('mediaWidget');
+export const mediaWidgetKey: InjectionKey<MediaWidgetContext> =
+    Symbol('mediaWidget');

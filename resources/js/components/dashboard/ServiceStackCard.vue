@@ -5,7 +5,9 @@ defineProps<{
 </script>
 
 <template>
-    <div class="overflow-hidden rounded-2xl border bg-card/70 backdrop-blur-xl text-card-foreground shadow-xl transition-all duration-200 hover:border-primary/50">
+    <div
+        class="overflow-hidden rounded-2xl border bg-card/70 text-card-foreground shadow-xl backdrop-blur-xl transition-all duration-200 hover:border-primary/50"
+    >
         <div
             class="flex items-center justify-between border-b border-border/10 px-4 py-3"
             :style="{ background: service.theme.base.replace(')', ', .05)') }"
@@ -59,8 +61,12 @@ defineProps<{
                     >{{ service.status.text }}</span
                 >
                 <span class="relative flex h-1.5 w-1.5">
-                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-chart-3 opacity-75"></span>
-                    <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-chart-3"></span>
+                    <span
+                        class="absolute inline-flex h-full w-full animate-ping rounded-full bg-chart-3 opacity-75"
+                    ></span>
+                    <span
+                        class="relative inline-flex h-1.5 w-1.5 rounded-full bg-chart-3"
+                    ></span>
                 </span>
             </div>
         </div>
@@ -106,7 +112,9 @@ defineProps<{
                         v-if="item.status"
                         :class="[
                             'ml-auto rounded-full px-1.5 py-0.5 text-[11px]',
-                            item.status === 'Running' ? 'border border-chart-3/20 bg-chart-3/10 text-chart-3' : 'border border-chart-4/20 bg-chart-4/10 text-chart-4',
+                            item.status === 'Running'
+                                ? 'border border-chart-3/20 bg-chart-3/10 text-chart-3'
+                                : 'border border-chart-4/20 bg-chart-4/10 text-chart-4',
                         ]"
                         >{{ item.status }}</span
                     >
@@ -117,7 +125,9 @@ defineProps<{
                         :key="stat.label"
                         class="flex justify-between"
                     >
-                        <span class="text-muted-foreground">{{ stat.label }}</span>
+                        <span class="text-muted-foreground">{{
+                            stat.label
+                        }}</span>
                         <span class="font-mono" :class="stat.color || ''">{{
                             stat.value
                         }}</span>
@@ -131,10 +141,12 @@ defineProps<{
         >
             <i data-lucide="cloud" class="h-4 w-4 shrink-0 text-orange-400"></i>
             <div class="flex-1 text-[12px] text-muted-foreground">
-                <span class="font-semibold text-foreground">Cloudflare Tunnel</span>
+                <span class="font-semibold text-foreground"
+                    >Cloudflare Tunnel</span
+                >
                 ·
                 <span
-                    class="border border-chart-3/20 bg-chart-3/10 text-chart-3 mx-1 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] font-semibold"
+                    class="mx-1 inline-flex items-center gap-1 rounded-full border border-chart-3/20 bg-chart-3/10 px-1.5 py-0.5 text-[11px] font-semibold text-chart-3"
                     ><span class="h-1 w-1 rounded-full bg-chart-3"></span>
                     {{ service.cloudflare.active }} active</span
                 >
@@ -145,9 +157,7 @@ defineProps<{
                 class="flex shrink-0 gap-3 font-mono text-[12px] text-muted-foreground"
             >
                 <span>{{ service.cloudflare.blocks }}</span>
-                <span class="text-chart-3">{{
-                    service.cloudflare.ddos
-                }}</span>
+                <span class="text-chart-3">{{ service.cloudflare.ddos }}</span>
             </div>
         </div>
         <div

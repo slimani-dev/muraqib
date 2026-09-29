@@ -1,6 +1,11 @@
 import type { ComputedRef, InjectionKey, Ref } from 'vue';
 import { inject } from 'vue';
-import type { DashboardLayout, LayoutItem, ListKind, TabsItem } from '../layout';
+import type {
+    DashboardLayout,
+    LayoutItem,
+    ListKind,
+    TabsItem,
+} from '../layout';
 import { acceptedKinds, newId, zoneNames } from '../layout';
 import type { WidgetDefinition } from '../widgets/registry';
 
@@ -15,7 +20,11 @@ export type LayoutEditor = {
     available: ComputedRef<WidgetDefinition[]>;
     /** Page props (plus live Netdata) that widgets build their props from. */
     data: ComputedRef<Record<string, any>>;
-    replaceList: (owner: Record<string, any>, key: string, items: LayoutItem[]) => void;
+    replaceList: (
+        owner: Record<string, any>,
+        key: string,
+        items: LayoutItem[],
+    ) => void;
     update: (target: object, patch: Record<string, unknown>) => void;
     remove: (item: LayoutItem) => void;
     addTab: (tabs: TabsItem) => void;
@@ -25,7 +34,8 @@ export type LayoutEditor = {
     toggleCollapsed: (id: string) => void;
 };
 
-export const layoutEditorKey: InjectionKey<LayoutEditor> = Symbol('layoutEditor');
+export const layoutEditorKey: InjectionKey<LayoutEditor> =
+    Symbol('layoutEditor');
 
 export const useLayoutEditor = (): LayoutEditor => {
     const editor = inject(layoutEditorKey);
@@ -48,12 +58,20 @@ export const layoutOperations = (draft: Ref<DashboardLayout>) => {
             return true;
         }
 
-        return items.some((item) => (item.kind === 'section' && removeFrom(item.items, target))
-            || (item.kind === 'tabs' && item.tabs.some((tab) => removeFrom(tab.items, target))));
+        return items.some(
+            (item) =>
+                (item.kind === 'section' && removeFrom(item.items, target)) ||
+                (item.kind === 'tabs' &&
+                    item.tabs.some((tab) => removeFrom(tab.items, target))),
+        );
     };
 
     return {
-        replaceList: (owner: Record<string, any>, key: string, items: LayoutItem[]) => {
+        replaceList: (
+            owner: Record<string, any>,
+            key: string,
+            items: LayoutItem[],
+        ) => {
             owner[key] = items;
         },
         update: (target: object, patch: Record<string, unknown>) => {
@@ -63,7 +81,11 @@ export const layoutOperations = (draft: Ref<DashboardLayout>) => {
             zoneNames.some((zone) => removeFrom(draft.value.zones[zone], item));
         },
         addTab: (tabs: TabsItem) => {
-            tabs.tabs.push({ id: newId(), title: `Tab ${tabs.tabs.length + 1}`, items: [] });
+            tabs.tabs.push({
+                id: newId(),
+                title: `Tab ${tabs.tabs.length + 1}`,
+                items: [],
+            });
         },
         removeTab: (tabs: TabsItem, tabId: string) => {
             if (tabs.tabs.length <= 1) {
@@ -83,5 +105,9 @@ export const layoutOperations = (draft: Ref<DashboardLayout>) => {
  * SortableJS `put` check: whether a list accepts the dragged element. Every item and
  * catalog entry carries `data-kind`, so sections can't go into sections and tabs stay top-level.
  */
-export const acceptsDrop = (list: ListKind) => (_to: unknown, _from: unknown, dragged: HTMLElement): boolean =>
-    (acceptedKinds[list] as readonly string[]).includes(dragged.dataset.kind ?? '');
+export const acceptsDrop =
+    (list: ListKind) =>
+    (_to: unknown, _from: unknown, dragged: HTMLElement): boolean =>
+        (acceptedKinds[list] as readonly string[]).includes(
+            dragged.dataset.kind ?? '',
+        );

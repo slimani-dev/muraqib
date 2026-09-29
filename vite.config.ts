@@ -57,6 +57,11 @@ export default defineConfig(({ command, mode }) => {
                 },
             },
         },
+        // The SSR bundle includes its dependencies, so the SSR server (and the Docker image)
+        // only needs Node, not node_modules
+        ssr: {
+            noExternal: true,
+        },
         server: {
             ...tunnelServer.server,
             watch: {

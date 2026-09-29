@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+} from '@/components/ui/carousel';
 import { Skeleton } from '@/components/ui/skeleton';
 import MediaStatusPill from './MediaStatusPill.vue';
 
@@ -11,7 +17,10 @@ const props = defineProps<{
 }>();
 
 const seerr = computed(() => {
-    return { ...props.serviceItem, ...(props.initialData || props.cachedData || {}) };
+    return {
+        ...props.serviceItem,
+        ...(props.initialData || props.cachedData || {}),
+    };
 });
 
 const isLoading = computed(() => !props.initialData && !props.cachedData);
@@ -24,9 +33,12 @@ const openUrl = (url?: string) => {
 </script>
 
 <template>
-    <div v-if="isLoading" class="flex flex-col gap-4 p-4 bg-muted/20 flex-1 w-full overflow-hidden">
+    <div
+        v-if="isLoading"
+        class="flex w-full flex-1 flex-col gap-4 overflow-hidden bg-muted/20 p-4"
+    >
         <!-- Header Skeleton -->
-        <div class="flex justify-between items-center">
+        <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <Skeleton class="h-5 w-5 rounded" />
                 <Skeleton class="h-4 w-16" />
@@ -36,26 +48,29 @@ const openUrl = (url?: string) => {
 
         <!-- Recent Requests Skeleton -->
         <div>
-            <div class="flex items-center justify-between mb-3">
+            <div class="mb-3 flex items-center justify-between">
                 <div>
-                    <Skeleton class="h-3 w-24 mb-1.5" />
+                    <Skeleton class="mb-1.5 h-3 w-24" />
                     <Skeleton class="h-2 w-32" />
                 </div>
                 <div class="flex items-center gap-1">
-                    <Skeleton class="h-3 w-8 mr-2" />
+                    <Skeleton class="mr-2 h-3 w-8" />
                     <Skeleton class="h-6 w-6 rounded-md" />
                     <Skeleton class="h-6 w-6 rounded-md" />
                 </div>
             </div>
 
-            <div class="flex gap-2 widget-md:gap-4 overflow-hidden w-full">
+            <div class="flex w-full gap-2 overflow-hidden widget-md:gap-4">
                 <!-- Request Card Skeleton -->
-                <div v-for="i in 3" :key="i"
-                    class="shrink-0 flex h-28 @sm/widget:h-36 w-[12rem] @sm/widget:w-[15rem] widget-md:w-[18rem] rounded-xl bg-card border border-border/20 p-3 pr-2">
-                    <div class="flex-1 flex flex-col gap-2">
+                <div
+                    v-for="i in 3"
+                    :key="i"
+                    class="flex h-28 w-[12rem] shrink-0 rounded-xl border border-border/20 bg-card p-3 pr-2 @sm/widget:h-36 @sm/widget:w-[15rem] widget-md:w-[18rem]"
+                >
+                    <div class="flex flex-1 flex-col gap-2">
                         <Skeleton class="h-2 w-8" />
                         <Skeleton class="h-4 w-3/4" />
-                        <div class="flex items-center gap-2 mt-1">
+                        <div class="mt-1 flex items-center gap-2">
                             <Skeleton class="h-5 w-5 rounded-full" />
                             <Skeleton class="h-3 w-16" />
                         </div>
@@ -63,143 +78,259 @@ const openUrl = (url?: string) => {
                             <Skeleton class="h-4 w-16 rounded-full" />
                         </div>
                     </div>
-                    <Skeleton class="h-full w-20 @sm/widget:w-24 rounded-md ml-2 shrink-0" />
+                    <Skeleton
+                        class="ml-2 h-full w-20 shrink-0 rounded-md @sm/widget:w-24"
+                    />
                 </div>
             </div>
         </div>
 
         <!-- Recently Added Skeleton -->
         <div class="mt-2">
-            <div class="flex items-center justify-between mb-3">
+            <div class="mb-3 flex items-center justify-between">
                 <div>
-                    <Skeleton class="h-3 w-28 mb-1.5" />
+                    <Skeleton class="mb-1.5 h-3 w-28" />
                     <Skeleton class="h-2 w-36" />
                 </div>
                 <div class="flex items-center gap-1">
-                    <Skeleton class="h-3 w-8 mr-2" />
+                    <Skeleton class="mr-2 h-3 w-8" />
                     <Skeleton class="h-6 w-6 rounded-md" />
                     <Skeleton class="h-6 w-6 rounded-md" />
                 </div>
             </div>
 
-            <div class="flex gap-2 widget-md:gap-4 overflow-hidden w-full">
+            <div class="flex w-full gap-2 overflow-hidden widget-md:gap-4">
                 <!-- Poster Card Skeleton -->
-                <Skeleton v-for="i in 4" :key="i" class="shrink-0 rounded-xl w-28 @sm/widget:w-32 widget-md:w-36 aspect-[2/3]" />
+                <Skeleton
+                    v-for="i in 4"
+                    :key="i"
+                    class="aspect-[2/3] w-28 shrink-0 rounded-xl @sm/widget:w-32 widget-md:w-36"
+                />
             </div>
         </div>
     </div>
     <template v-else>
         <!-- Overseerr Block -->
-        <div class="flex flex-col bg-muted/20 flex-1" style="padding: var(--card-padding); gap: var(--card-gap);">
-            <div class="flex justify-between items-center">
-                <a :href="seerr.url" target="_blank" class="flex items-center gap-2.5 group cursor-pointer">
-                    <img :src="seerr.icon" class="rounded-md shadow-sm group-hover:scale-105 transition-transform" style="width: var(--header-icon-size); height: var(--header-icon-size);" alt="" />
+        <div
+            class="flex flex-1 flex-col bg-muted/20"
+            style="padding: var(--card-padding); gap: var(--card-gap)"
+        >
+            <div class="flex items-center justify-between">
+                <a
+                    :href="seerr.url"
+                    target="_blank"
+                    class="group flex cursor-pointer items-center gap-2.5"
+                >
+                    <img
+                        :src="seerr.icon"
+                        class="rounded-md shadow-sm transition-transform group-hover:scale-105"
+                        style="
+                            width: var(--header-icon-size);
+                            height: var(--header-icon-size);
+                        "
+                        alt=""
+                    />
                     <div class="flex flex-col">
-                        <h2 class="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{{ seerr.name ?? 'Seerr' }}</h2>
-                        <span class="text-muted-foreground/80 -mt-0.5 truncate max-w-[200px]" style="font-size: var(--header-url-size);">{{ seerr.url?.replace(/^https?:\/\//, '') }}</span>
+                        <h2
+                            class="text-sm font-bold text-foreground transition-colors group-hover:text-primary"
+                        >
+                            {{ seerr.name ?? 'Seerr' }}
+                        </h2>
+                        <span
+                            class="-mt-0.5 max-w-[200px] truncate text-muted-foreground/80"
+                            style="font-size: var(--header-url-size)"
+                            >{{ seerr.url?.replace(/^https?:\/\//, '') }}</span
+                        >
                     </div>
                 </a>
                 <MediaStatusPill :fallback="seerr.status" />
             </div>
 
             <div>
-                <div v-if="seerr.requests?.length" class="relative group/carousel">
-                    <Carousel :opts="{ align: 'start', loop: true }" class="w-full">
-                        <div class="flex items-center justify-between mb-3">
+                <div
+                    v-if="seerr.requests?.length"
+                    class="group/carousel relative"
+                >
+                    <Carousel
+                        :opts="{ align: 'start', loop: true }"
+                        class="w-full"
+                    >
+                        <div class="mb-3 flex items-center justify-between">
                             <div>
-                                <h3 class="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                                    Recent Requests</h3>
-                                <p class="text-[10px] text-muted-foreground mt-0.5">
-                                    Showing {{ seerr.requests.length }} out of {{ seerr.totalRequests
-                                    }} requests
+                                <h3
+                                    class="text-[11px] font-bold tracking-wider text-muted-foreground uppercase"
+                                >
+                                    Recent Requests
+                                </h3>
+                                <p
+                                    class="mt-0.5 text-[10px] text-muted-foreground"
+                                >
+                                    Showing {{ seerr.requests.length }} out of
+                                    {{ seerr.totalRequests }} requests
                                 </p>
                             </div>
                             <div class="flex items-center gap-1">
-                                <a :href="seerr.url + '/requests?filter=all'" target="_blank"
-                                    class="text-[10px] font-bold text-primary hover:underline px-2">More</a>
+                                <a
+                                    :href="seerr.url + '/requests?filter=all'"
+                                    target="_blank"
+                                    class="px-2 text-[10px] font-bold text-primary hover:underline"
+                                    >More</a
+                                >
                                 <CarouselPrevious
-                                    class="static translate-y-0 translate-x-0 inset-0 h-6 w-6 rounded-md bg-background hover:bg-muted opacity-100" />
+                                    class="static inset-0 h-6 w-6 translate-x-0 translate-y-0 rounded-md bg-background opacity-100 hover:bg-muted"
+                                />
                                 <CarouselNext
-                                    class="static translate-y-0 translate-x-0 inset-0 h-6 w-6 rounded-md bg-background hover:bg-muted opacity-100" />
+                                    class="static inset-0 h-6 w-6 translate-x-0 translate-y-0 rounded-md bg-background opacity-100 hover:bg-muted"
+                                />
                             </div>
                         </div>
                         <CarouselContent class="-ml-2 widget-md:-ml-4">
-                            <CarouselItem v-for="req in seerr.requests" :key="req.title"
-                                class="pl-2 widget-md:pl-4 basis-[12rem] @sm/widget:basis-[15rem] widget-md:basis-[18rem]">
-                                <div @click="openUrl(req.seerrUrl || seerr.url)"
-                                    class="group relative flex h-full w-full transform-gpu cursor-pointer overflow-hidden rounded-xl bg-card outline-none ring-1 transition duration-300 scale-100 shadow ring-border/20 hover:ring-border/50 hover:shadow-md">
+                            <CarouselItem
+                                v-for="req in seerr.requests"
+                                :key="req.title"
+                                class="basis-[12rem] pl-2 @sm/widget:basis-[15rem] widget-md:basis-[18rem] widget-md:pl-4"
+                            >
+                                <div
+                                    @click="openUrl(req.seerrUrl || seerr.url)"
+                                    class="group relative flex h-full w-full scale-100 transform-gpu cursor-pointer overflow-hidden rounded-xl bg-card shadow ring-1 ring-border/20 transition duration-300 outline-none hover:shadow-md hover:ring-border/50"
+                                >
                                     <!-- Backdrop -->
                                     <div class="absolute inset-0 z-0">
-                                        <img v-if="req.backdrop" :src="req.backdrop"
+                                        <img
+                                            v-if="req.backdrop"
+                                            :src="req.backdrop"
                                             class="absolute inset-0 h-full w-full object-cover text-transparent transition-transform duration-500"
-                                            alt="" />
+                                            alt=""
+                                        />
                                         <div
-                                            class="absolute inset-0 bg-gradient-to-br from-black/90 via-black/80 to-black/30">
-                                        </div>
+                                            class="absolute inset-0 bg-gradient-to-br from-black/90 via-black/80 to-black/30"
+                                        ></div>
                                     </div>
 
                                     <!-- Details -->
-                                    <div class="relative z-10 flex min-w-0 flex-1 flex-col justify-start p-3 pr-2">
-                                        <div v-if="req.year" class="text-[10px] font-medium text-white/80">{{
-                                            req.year }}</div>
-                                        <a class="overflow-hidden overflow-ellipsis whitespace-nowrap text-sm font-bold text-white hover:underline @sm/widget:text-base mb-1"
-                                            :href="req.seerrUrl || seerr.url" target="_blank" @click.stop>{{
-                                                req.title }}</a>
+                                    <div
+                                        class="relative z-10 flex min-w-0 flex-1 flex-col justify-start p-3 pr-2"
+                                    >
+                                        <div
+                                            v-if="req.year"
+                                            class="text-[10px] font-medium text-white/80"
+                                        >
+                                            {{ req.year }}
+                                        </div>
+                                        <a
+                                            class="mb-1 overflow-hidden text-sm font-bold overflow-ellipsis whitespace-nowrap text-white hover:underline @sm/widget:text-base"
+                                            :href="req.seerrUrl || seerr.url"
+                                            target="_blank"
+                                            @click.stop
+                                            >{{ req.title }}</a
+                                        >
 
                                         <div class="card-field mb-2">
-                                            <a class="group/user flex items-center gap-2" href="#">
+                                            <a
+                                                class="group/user flex items-center gap-2"
+                                                href="#"
+                                            >
                                                 <span
-                                                    class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-chart-1 text-[9px] font-bold text-white overflow-hidden shadow-sm">
-                                                    <img v-if="req.userAvatar" :src="req.userAvatar"
-                                                        class="h-full w-full object-cover" />
-                                                    <span v-else>{{ req.userName?.[0]?.toUpperCase() }}</span>
+                                                    class="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-chart-1 text-[9px] font-bold text-white shadow-sm"
+                                                >
+                                                    <img
+                                                        v-if="req.userAvatar"
+                                                        :src="req.userAvatar"
+                                                        class="h-full w-full object-cover"
+                                                    />
+                                                    <span v-else>{{
+                                                        req.userName?.[0]?.toUpperCase()
+                                                    }}</span>
                                                 </span>
                                                 <span
-                                                    class="truncate text-xs font-semibold text-white/80 group-hover/user:text-white group-hover/user:underline">{{
-                                                        req.userName }}</span>
+                                                    class="truncate text-xs font-semibold text-white/80 group-hover/user:text-white group-hover/user:underline"
+                                                    >{{ req.userName }}</span
+                                                >
                                             </a>
                                         </div>
 
-                                        <div v-if="req.season" class="my-0.5 flex items-center text-sm @sm/widget:my-1">
-                                            <span class="mr-2 text-xs font-bold text-white/80">Season</span>
+                                        <div
+                                            v-if="req.season"
+                                            class="my-0.5 flex items-center text-sm @sm/widget:my-1"
+                                        >
                                             <span
-                                                class="inline-flex items-center rounded-full bg-chart-1/80 border border-chart-1 px-2 py-0.5 text-[10px] font-semibold text-white">{{
-                                                    req.season }}</span>
+                                                class="mr-2 text-xs font-bold text-white/80"
+                                                >Season</span
+                                            >
+                                            <span
+                                                class="inline-flex items-center rounded-full border border-chart-1 bg-chart-1/80 px-2 py-0.5 text-[10px] font-semibold text-white"
+                                                >{{ req.season }}</span
+                                            >
                                         </div>
 
-                                        <div class="mt-1 flex items-center text-sm">
-                                            <span class="mr-2 text-xs font-bold text-white/80">Status</span>
-                                            <span :class="[
-                                                req.status === 'Available' ? 'bg-emerald-500/80 border-emerald-500 text-white' :
-                                                    req.status === 'Approved' ? 'bg-chart-3/80 border-chart-3 text-white' :
-                                                        req.status === 'Pending' ? 'bg-amber-500/80 border-amber-500 text-white' :
-                                                            req.status === 'Processing' ? 'bg-blue-500/80 border-blue-500 text-white' :
-                                                                'bg-chart-4/80 border-chart-4 text-white',
-                                                'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold transition'
-                                            ]">
+                                        <div
+                                            class="mt-1 flex items-center text-sm"
+                                        >
+                                            <span
+                                                class="mr-2 text-xs font-bold text-white/80"
+                                                >Status</span
+                                            >
+                                            <span
+                                                :class="[
+                                                    req.status === 'Available'
+                                                        ? 'border-emerald-500 bg-emerald-500/80 text-white'
+                                                        : req.status ===
+                                                            'Approved'
+                                                          ? 'border-chart-3 bg-chart-3/80 text-white'
+                                                          : req.status ===
+                                                              'Pending'
+                                                            ? 'border-amber-500 bg-amber-500/80 text-white'
+                                                            : req.status ===
+                                                                'Processing'
+                                                              ? 'border-blue-500 bg-blue-500/80 text-white'
+                                                              : 'border-chart-4 bg-chart-4/80 text-white',
+                                                    'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold transition',
+                                                ]"
+                                            >
                                                 {{ req.status }}
                                             </span>
                                         </div>
                                     </div>
 
                                     <!-- Poster -->
-                                    <div class="relative z-10 shrink-0 p-2 pl-0">
+                                    <div
+                                        class="relative z-10 shrink-0 p-2 pl-0"
+                                    >
                                         <div
-                                            class="relative w-20 @sm/widget:w-24 aspect-[2/3] overflow-hidden rounded-md shadow-sm transition-transform duration-300 group-hover/poster:shadow-md group/poster">
-                                            <img v-if="req.image" :src="req.image"
+                                            class="group/poster relative aspect-[2/3] w-20 overflow-hidden rounded-md shadow-sm transition-transform duration-300 group-hover/poster:shadow-md @sm/widget:w-24"
+                                        >
+                                            <img
+                                                v-if="req.image"
+                                                :src="req.image"
                                                 class="h-full w-full object-cover text-transparent transition-transform duration-500 group-hover/poster:scale-110"
-                                                alt="" />
-                                            <div v-else
-                                                class="h-full w-full bg-muted flex items-center justify-center text-xs text-muted-foreground p-2 text-center">
-                                                {{ req.title }}</div>
+                                                alt=""
+                                            />
+                                            <div
+                                                v-else
+                                                class="flex h-full w-full items-center justify-center bg-muted p-2 text-center text-xs text-muted-foreground"
+                                            >
+                                                {{ req.title }}
+                                            </div>
 
                                             <div
-                                                class="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover/poster:opacity-100 transition-opacity duration-300 pointer-events-none">
-                                                <a v-if="req.mediaUrl" :href="req.mediaUrl" target="_blank" @click.stop
-                                                    class="rounded-full bg-black/60 p-2 text-white backdrop-blur-sm border border-white/20 shadow-xl hover:bg-black/80 hover:scale-110 transition-transform flex items-center justify-center pointer-events-auto">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-0.5"
-                                                        viewBox="0 0 24 24" fill="currentColor">
-                                                        <path d="M8 5v14l11-7z" />
+                                                class="pointer-events-none absolute inset-0 z-30 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover/poster:opacity-100"
+                                            >
+                                                <a
+                                                    v-if="req.mediaUrl"
+                                                    :href="req.mediaUrl"
+                                                    target="_blank"
+                                                    @click.stop
+                                                    class="pointer-events-auto flex items-center justify-center rounded-full border border-white/20 bg-black/60 p-2 text-white shadow-xl backdrop-blur-sm transition-transform hover:scale-110 hover:bg-black/80"
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        class="ml-0.5 h-6 w-6"
+                                                        viewBox="0 0 24 24"
+                                                        fill="currentColor"
+                                                    >
+                                                        <path
+                                                            d="M8 5v14l11-7z"
+                                                        />
                                                     </svg>
                                                 </a>
                                             </div>
@@ -210,67 +341,128 @@ const openUrl = (url?: string) => {
                         </CarouselContent>
                     </Carousel>
                 </div>
-                <div v-else
-                    class="text-xs text-muted-foreground p-2 text-center rounded-lg border border-border/20 bg-card/50">
+                <div
+                    v-else
+                    class="rounded-lg border border-border/20 bg-card/50 p-2 text-center text-xs text-muted-foreground"
+                >
                     No active requests.
                 </div>
             </div>
 
             <div class="mt-2">
-                <div v-if="seerr.newShows?.length" class="relative group/carousel">
-                    <Carousel :opts="{ align: 'start', loop: true }" class="w-full">
-                        <div class="flex items-center justify-between mb-3">
+                <div
+                    v-if="seerr.newShows?.length"
+                    class="group/carousel relative"
+                >
+                    <Carousel
+                        :opts="{ align: 'start', loop: true }"
+                        class="w-full"
+                    >
+                        <div class="mb-3 flex items-center justify-between">
                             <div>
-                                <h3 class="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                                    Recently Added</h3>
-                                <p class="text-[10px] text-muted-foreground mt-0.5">
-                                    Showing {{ seerr.newShows.length }} out of {{ seerr.totalMedia }}
+                                <h3
+                                    class="text-[11px] font-bold tracking-wider text-muted-foreground uppercase"
+                                >
+                                    Recently Added
+                                </h3>
+                                <p
+                                    class="mt-0.5 text-[10px] text-muted-foreground"
+                                >
+                                    Showing {{ seerr.newShows.length }} out of
+                                    {{ seerr.totalMedia }}
                                     added media
                                 </p>
                             </div>
                             <div class="flex items-center gap-1">
-                                <a :href="seerr.url" target="_blank"
-                                    class="text-[10px] font-bold text-primary hover:underline px-2">More</a>
+                                <a
+                                    :href="seerr.url"
+                                    target="_blank"
+                                    class="px-2 text-[10px] font-bold text-primary hover:underline"
+                                    >More</a
+                                >
                                 <CarouselPrevious
-                                    class="static translate-y-0 translate-x-0 inset-0 h-6 w-6 rounded-md bg-background hover:bg-muted opacity-100" />
+                                    class="static inset-0 h-6 w-6 translate-x-0 translate-y-0 rounded-md bg-background opacity-100 hover:bg-muted"
+                                />
                                 <CarouselNext
-                                    class="static translate-y-0 translate-x-0 inset-0 h-6 w-6 rounded-md bg-background hover:bg-muted opacity-100" />
+                                    class="static inset-0 h-6 w-6 translate-x-0 translate-y-0 rounded-md bg-background opacity-100 hover:bg-muted"
+                                />
                             </div>
                         </div>
                         <CarouselContent class="-ml-2 widget-md:-ml-4">
-                            <CarouselItem v-for="show in seerr.newShows" :key="show.title"
-                                class="pl-2 widget-md:pl-4 basis-auto">
-                                <div @click="openUrl(show.seerrUrl || seerr.url)" class="w-28 @sm/widget:w-32 widget-md:w-36"
-                                    data-testid="title-card">
-                                    <div class="relative transform-gpu cursor-pointer overflow-hidden rounded-xl bg-gray-800 bg-cover outline-none ring-1 transition duration-300 scale-100 shadow ring-border/20 group hover:ring-border/50 hover:shadow-md"
-                                        style="padding-bottom: 150%;">
-                                        <div class="absolute inset-0 h-full w-full overflow-hidden">
-                                            <img :src="show.image" alt="" loading="lazy" decoding="async"
-                                                class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                            <CarouselItem
+                                v-for="show in seerr.newShows"
+                                :key="show.title"
+                                class="basis-auto pl-2 widget-md:pl-4"
+                            >
+                                <div
+                                    @click="openUrl(show.seerrUrl || seerr.url)"
+                                    class="w-28 @sm/widget:w-32 widget-md:w-36"
+                                    data-testid="title-card"
+                                >
+                                    <div
+                                        class="group relative scale-100 transform-gpu cursor-pointer overflow-hidden rounded-xl bg-gray-800 bg-cover shadow ring-1 ring-border/20 transition duration-300 outline-none hover:shadow-md hover:ring-border/50"
+                                        style="padding-bottom: 150%"
+                                    >
+                                        <div
+                                            class="absolute inset-0 h-full w-full overflow-hidden"
+                                        >
+                                            <img
+                                                :src="show.image"
+                                                alt=""
+                                                loading="lazy"
+                                                decoding="async"
+                                                class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                            />
 
                                             <div
-                                                class="absolute left-0 right-0 flex items-center justify-between p-2 z-30 transition-opacity duration-300">
-                                                <div :class="[
-                                                    show.type === 'tv' ? 'border-purple-500/50 bg-purple-600/90' : 'border-blue-500/50 bg-blue-600/90',
-                                                    'pointer-events-none self-start rounded-full border shadow-md'
-                                                ]">
+                                                class="absolute right-0 left-0 z-30 flex items-center justify-between p-2 transition-opacity duration-300"
+                                            >
+                                                <div
+                                                    :class="[
+                                                        show.type === 'tv'
+                                                            ? 'border-purple-500/50 bg-purple-600/90'
+                                                            : 'border-blue-500/50 bg-blue-600/90',
+                                                        'pointer-events-none self-start rounded-full border shadow-md',
+                                                    ]"
+                                                >
                                                     <div
-                                                        class="flex h-4 items-center px-1.5 py-2 text-center text-[9px] font-bold uppercase tracking-wider text-white @sm/widget:h-5">
-                                                        {{ show.type === 'tv' ? 'Series' : 'Movie' }}</div>
+                                                        class="flex h-4 items-center px-1.5 py-2 text-center text-[9px] font-bold tracking-wider text-white uppercase @sm/widget:h-5"
+                                                    >
+                                                        {{
+                                                            show.type === 'tv'
+                                                                ? 'Series'
+                                                                : 'Movie'
+                                                        }}
+                                                    </div>
                                                 </div>
-                                                <div class="flex flex-col items-center gap-1">
-                                                    <div class="pointer-events-none flex"
-                                                        v-if="show.status === 'Available'">
+                                                <div
+                                                    class="flex flex-col items-center gap-1"
+                                                >
+                                                    <div
+                                                        class="pointer-events-none flex"
+                                                        v-if="
+                                                            show.status ===
+                                                            'Available'
+                                                        "
+                                                    >
                                                         <div
-                                                            class="relative inline-flex whitespace-nowrap rounded-full text-[9px] font-semibold leading-5">
+                                                            class="relative inline-flex rounded-full text-[9px] leading-5 font-semibold whitespace-nowrap"
+                                                        >
                                                             <div
-                                                                class="rounded-full shadow-md w-4 @sm/widget:w-5 border p-0 bg-green-500/90 border-green-500 text-white">
-                                                                <svg xmlns="http://www.w3.org/2000/svg"
-                                                                    viewBox="0 0 20 20" fill="currentColor"
-                                                                    aria-hidden="true" data-slot="icon">
-                                                                    <path fill-rule="evenodd"
+                                                                class="w-4 rounded-full border border-green-500 bg-green-500/90 p-0 text-white shadow-md @sm/widget:w-5"
+                                                            >
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    viewBox="0 0 20 20"
+                                                                    fill="currentColor"
+                                                                    aria-hidden="true"
+                                                                    data-slot="icon"
+                                                                >
+                                                                    <path
+                                                                        fill-rule="evenodd"
                                                                         d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
-                                                                        clip-rule="evenodd"></path>
+                                                                        clip-rule="evenodd"
+                                                                    ></path>
                                                                 </svg>
                                                             </div>
                                                         </div>
@@ -279,26 +471,47 @@ const openUrl = (url?: string) => {
                                             </div>
 
                                             <div
-                                                class="absolute inset-0 z-20 flex flex-col justify-end p-3 @sm/widget:p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-gradient-to-t from-black via-black/80 to-transparent">
-                                                <div v-if="show.year"
-                                                    class="text-[10px] font-medium text-primary mb-0.5">{{
-                                                        show.year }}</div>
-                                                <div :title="show.title"
-                                                    class="text-sm @sm/widget:text-base font-bold text-white leading-tight mb-1 @sm/widget:mb-2 line-clamp-2">
-                                                    {{ show.title }}</div>
-                                                <div v-if="show.description"
-                                                    class="text-[9px] @sm/widget:text-[10px] text-white/70 line-clamp-4 leading-snug">
-                                                    {{ show.description }}</div>
+                                                class="absolute inset-0 z-20 flex flex-col justify-end bg-gradient-to-t from-black via-black/80 to-transparent p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100 @sm/widget:p-4"
+                                            >
+                                                <div
+                                                    v-if="show.year"
+                                                    class="mb-0.5 text-[10px] font-medium text-primary"
+                                                >
+                                                    {{ show.year }}
+                                                </div>
+                                                <div
+                                                    :title="show.title"
+                                                    class="mb-1 line-clamp-2 text-sm leading-tight font-bold text-white @sm/widget:mb-2 @sm/widget:text-base"
+                                                >
+                                                    {{ show.title }}
+                                                </div>
+                                                <div
+                                                    v-if="show.description"
+                                                    class="line-clamp-4 text-[9px] leading-snug text-white/70 @sm/widget:text-[10px]"
+                                                >
+                                                    {{ show.description }}
+                                                </div>
                                             </div>
 
                                             <div
-                                                class="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pb-10 pointer-events-none">
-                                                <a v-if="show.mediaUrl" :href="show.mediaUrl" target="_blank"
+                                                class="pointer-events-none absolute inset-0 z-30 flex items-center justify-center pb-10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                                            >
+                                                <a
+                                                    v-if="show.mediaUrl"
+                                                    :href="show.mediaUrl"
+                                                    target="_blank"
                                                     @click.stop
-                                                    class="rounded-full bg-black/60 p-3 text-white backdrop-blur-sm border border-white/20 shadow-xl hover:bg-black/80 hover:scale-110 transition-transform flex items-center justify-center pointer-events-auto">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 ml-1"
-                                                        viewBox="0 0 24 24" fill="currentColor">
-                                                        <path d="M8 5v14l11-7z" />
+                                                    class="pointer-events-auto flex items-center justify-center rounded-full border border-white/20 bg-black/60 p-3 text-white shadow-xl backdrop-blur-sm transition-transform hover:scale-110 hover:bg-black/80"
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        class="ml-1 h-10 w-10"
+                                                        viewBox="0 0 24 24"
+                                                        fill="currentColor"
+                                                    >
+                                                        <path
+                                                            d="M8 5v14l11-7z"
+                                                        />
                                                     </svg>
                                                 </a>
                                             </div>
@@ -309,8 +522,10 @@ const openUrl = (url?: string) => {
                         </CarouselContent>
                     </Carousel>
                 </div>
-                <div v-else
-                    class="text-xs text-muted-foreground p-2 text-center rounded-lg border border-border/20 bg-card/50">
+                <div
+                    v-else
+                    class="rounded-lg border border-border/20 bg-card/50 p-2 text-center text-xs text-muted-foreground"
+                >
                     No recently added media found.
                 </div>
             </div>
