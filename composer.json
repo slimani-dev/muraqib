@@ -6,7 +6,7 @@
     "keywords": ["laravel", "filament", "dashboard", "homelab", "cloudflare", "portainer", "netdata"],
     "license": "MIT",
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "codeat3/blade-simple-icons": "*",
         "codewithdennis/filament-simple-alert": "^4.0|^5.0",
         "devonab/filament-easy-footer": "^2.0|^3.0",

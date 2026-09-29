@@ -36,6 +36,15 @@ jobs:
           composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
           pnpm install --frozen-lockfile
 
+      # Wayfinder's route helpers (resources/js/actions, routes) are generated, not committed;
+      # ESLint and vue-tsc need them
+      - name: Generate route helpers
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan package:discover
+          php artisan wayfinder:generate --with-form
+
       # Checks only: nothing is rewritten in CI, a style problem fails the build
       - name: PHP code style (Pint)
         run: vendor/bin/pint --test

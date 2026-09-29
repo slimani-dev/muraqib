@@ -6,7 +6,7 @@
 [![Tests](https://img.shields.io/github/actions/workflow/status/slimani-dev/muraqib/tests.yml?branch=main&label=Tests&style=flat-square)](https://github.com/slimani-dev/muraqib/actions/workflows/tests.yml)
 [![Docker](https://img.shields.io/github/actions/workflow/status/slimani-dev/muraqib/docker.yml?branch=main&label=Docker&style=flat-square)](https://github.com/slimani-dev/muraqib/pkgs/container/muraqib)
 [![License](https://img.shields.io/github/license/slimani-dev/muraqib?style=flat-square)](LICENSE)
-![PHP Version](https://img.shields.io/badge/PHP-8.3%2B-777bb4?style=flat-square)
+![PHP Version](https://img.shields.io/badge/PHP-8.4%2B-777bb4?style=flat-square)
 
 **The Ultimate Sentinel for your Cloud & Infrastructure.**
 
@@ -83,7 +83,7 @@ Muraqib runs on port `8080` (change it with `MURAQIB_PORT`). The first start run
 
 ### Manual
 
-**Prerequisites:** PHP 8.3+ (with `intl`), Composer, Node.js 22 with pnpm, a database (SQLite, MySQL/MariaDB or PostgreSQL) and Redis (recommended).
+**Prerequisites:** PHP 8.4+ (with `intl`), Composer, Node.js 22 with pnpm, a database (SQLite, MySQL/MariaDB or PostgreSQL) and Redis (recommended).
 
 ```bash
 git clone https://github.com/slimani-dev/muraqib.git
