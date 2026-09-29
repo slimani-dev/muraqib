@@ -10,6 +10,7 @@ use App\Services\Git\RepositoryDashboard;
 use App\Services\Media\MediaStatusChecker;
 use App\Services\MediaArrService;
 use App\Services\NetworkLatencyService;
+use App\Settings\WeatherSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -19,18 +20,19 @@ use Inertia\Inertia;
 class DashboardController extends Controller
 {
     /**
-     * Current weather and forecast from Open-Meteo for the location in config/services.php
-     * (WEATHER_* in .env), with an optional Unsplash background (UNSPLASH_API_KEY).
-     * Null when no location is configured.
+     * Current weather and forecast from Open-Meteo for the location in the admin panel
+     * (Settings → Weather), with an optional Unsplash background. Null without a location.
      */
     private function getWeatherData()
     {
-        $latitude = config('services.weather.latitude');
-        $longitude = config('services.weather.longitude');
+        $settings = app(WeatherSettings::class);
 
-        if (blank($latitude) || blank($longitude)) {
+        if (! $settings->hasLocation()) {
             return null;
         }
+
+        $latitude = $settings->latitude;
+        $longitude = $settings->longitude;
 
         if (Cache::has('weather_sba')) {
             return Cache::get('weather_sba');
@@ -53,7 +55,7 @@ class DashboardController extends Controller
 
                 // Fetch Unsplash background image
                 try {
-                    $unsplashKey = config('services.unsplash.key');
+                    $unsplashKey = $settings->unsplash_key;
                     $isDay = $data['current']['is_day'] ?? 1;
                     $weatherCode = $data['current']['weather_code'] ?? 0;
                     $timeOfDay = $isDay ? 'daytime' : 'night';
@@ -75,7 +77,7 @@ class DashboardController extends Controller
 
                     $unsplashResponse = blank($unsplashKey) ? null : Http::timeout(5)->get('https://api.unsplash.com/photos/random', [
                         'client_id' => $unsplashKey,
-                        'query' => trim(config('services.weather.location_name').' '.$keyword),
+                        'query' => trim($settings->location_name.' '.$keyword),
                         'orientation' => 'landscape',
                     ]);
 
@@ -87,7 +89,7 @@ class DashboardController extends Controller
                     // Ignore Unsplash errors so weather still loads
                 }
 
-                $data['location_name'] = config('services.weather.location_name');
+                $data['location_name'] = $settings->location_name;
 
                 Cache::put('weather_sba', $data, 1800);
 

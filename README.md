@@ -109,7 +109,7 @@ php artisan schedule:work                          # every-30-minute syncs
 php artisan inertia:start-ssr                      # server-side rendering (or set INERTIA_SSR_ENABLED=false)
 ```
 
-For development, `composer dev` starts the Vite dev server, the queue worker, the scheduler and the log viewer together.
+For development, `php artisan dev` starts the Vite dev server, the queue worker, the scheduler and the log viewer together.
 
 ## 🛠️ Configuration
 
@@ -126,7 +126,7 @@ Everything is added in the admin panel:
 API keys, tokens and passwords are stored encrypted with your `APP_KEY` and never sent to the browser.
 
 ### Weather
-Set `WEATHER_LATITUDE`, `WEATHER_LONGITUDE` and `WEATHER_LOCATION_NAME` in `.env` (forecasts come from Open-Meteo, no key needed). `UNSPLASH_API_KEY` adds a matching background photo.
+In the admin panel under **Settings → Weather**: the location (forecasts come from Open-Meteo, no key needed) and an optional Unsplash key for a matching background photo.
 
 ### Upgrading
 Media services used to be configured in `.env` (`JELLYFIN_URL`, `RADARR_API_KEY`, ...). Run `php artisan media:import-env` once, then remove those lines.

@@ -57,11 +57,10 @@ export default defineConfig(({ command, mode }) => {
                 },
             },
         },
-        // The SSR bundle includes its dependencies, so the SSR server (and the Docker image)
-        // only needs Node, not node_modules
-        ssr: {
-            noExternal: true,
-        },
+        // Production SSR bundles include their dependencies, so the SSR server (and the Docker
+        // image) only needs Node, not node_modules. Not in dev: the Vite dev server can't run
+        // Vue's CommonJS entry that way ("module is not defined").
+        ...(command === 'build' ? { ssr: { noExternal: true } } : {}),
         server: {
             ...tunnelServer.server,
             watch: {
