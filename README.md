@@ -1,6 +1,11 @@
 
 # Muraqib
 
+> [!CAUTION]
+> **This is NOT a production-ready release. Muraqib is still a work in progress (beta).**
+>
+> Features change, data migrations may break, and security has not been audited. Muraqib stores credentials for your infrastructure (Cloudflare, Portainer, media apps, Git hosts), so **only run it if you really know what you are doing**, keep it off the public internet (VPN or an access layer in front), and keep backups.
+
 <div align="center">
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/slimani-dev/muraqib/tests.yml?branch=main&label=Tests&style=flat-square)](https://github.com/slimani-dev/muraqib/actions/workflows/tests.yml)
@@ -39,6 +44,7 @@ Stop juggling multiple portals. Monitor your Netdata instances, manage Cloudflar
 
 ### 🐳 Portainer & Docker
 - Stacks and containers from your Portainer instances, update checks against the registries, and a container status widget that puts problems first.
+- Update checks use [registry-api](https://github.com/slimani-dev/registry-api), a small companion service that reads tags and digests from Docker Hub, GHCR and other registries.
 
 ### 🎬 Media stack
 - Jellyfin, Seerr, Radarr, Sonarr, Bazarr and Transmission (several of each if you like), with a status dot per service and a combined release calendar.
@@ -60,7 +66,7 @@ Stop juggling multiple portals. Monitor your Netdata instances, manage Cloudflar
 
 ### With Docker (recommended)
 
-The image (`ghcr.io/slimani-dev/muraqib`) runs the web app, the queue worker, the scheduler and the SSR server; `docker-compose.yml` adds MariaDB and Redis.
+The image (`ghcr.io/slimani-dev/muraqib`) runs the web app, the queue worker, the scheduler and the SSR server; `docker-compose.yml` adds MariaDB, Redis and [registry-api](https://github.com/slimani-dev/registry-api) (container update checks; its image is amd64 only for now).
 
 ```bash
 git clone https://github.com/slimani-dev/muraqib.git
@@ -70,7 +76,7 @@ cp .env.example .env
 
 Edit `.env`:
 
-- `APP_KEY`: generate one with `docker run --rm ghcr.io/slimani-dev/muraqib:latest php artisan key:generate --show`
+- `APP_KEY`: generate one with `docker run --rm ghcr.io/slimani-dev/muraqib:beta php artisan key:generate --show`
 - `APP_URL`: the address you'll open Muraqib at
 - `DB_PASSWORD`: any strong password (the database container is created with it)
 - `ADMIN_EMAIL` / `ADMIN_PASSWORD`: your first login (leave the password empty to have one generated and printed in `docker compose logs app`)
@@ -83,7 +89,7 @@ Muraqib runs on port `8080` (change it with `MURAQIB_PORT`). The first start run
 
 ### Manual
 
-**Prerequisites:** PHP 8.4+ (with `intl`), Composer, Node.js 22 with pnpm, a database (SQLite, MySQL/MariaDB or PostgreSQL) and Redis (recommended).
+**Prerequisites:** PHP 8.4+ (with `intl`), Composer, Node.js 22 with pnpm, a database (SQLite, MySQL/MariaDB or PostgreSQL), Redis (recommended), and a running [registry-api](https://github.com/slimani-dev/registry-api) for container update checks (set `REGISTRY_API_URL`, default `http://localhost:8080`).
 
 ```bash
 git clone https://github.com/slimani-dev/muraqib.git

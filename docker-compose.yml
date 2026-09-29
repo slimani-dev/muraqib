@@ -7,7 +7,8 @@
 # (a random password is printed in `docker compose logs app` when ADMIN_PASSWORD is empty).
 
 x-muraqib: &muraqib
-  image: ghcr.io/slimani-dev/muraqib:latest
+  # Beta for now; pin a version with MURAQIB_VERSION (e.g. 0.1.0-beta.1)
+  image: ghcr.io/slimani-dev/muraqib:${MURAQIB_VERSION:-beta}
   build: .
   restart: unless-stopped
   env_file: .env
@@ -22,10 +23,13 @@ x-muraqib: &muraqib
     QUEUE_CONNECTION: redis
     SESSION_DRIVER: redis
     INERTIA_SSR_URL: http://ssr:13714
+    REGISTRY_API_URL: http://registry-api:8080
   depends_on:
     db:
       condition: service_healthy
     redis:
+      condition: service_started
+    registry-api:
       condition: service_started
 
 services:
@@ -68,6 +72,16 @@ services:
     healthcheck:
       test: ["CMD", "php", "/var/www/html/artisan", "inertia:check-ssr"]
       start_period: 10s
+
+  # Container registry lookups for Portainer's "update available" checks
+  # (https://github.com/slimani-dev/registry-api; amd64 only for now)
+  registry-api:
+    image: ghcr.io/slimani-dev/registry-api:main
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis:6379
+    depends_on:
+      - redis
 
   db:
     image: mariadb:11

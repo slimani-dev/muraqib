@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    // https://github.com/slimani-dev/registry-api: reads tags and digests from container
+    // registries, for Portainer's "update available" checks
+    'registry_api' => [
+        'url' => env('REGISTRY_API_URL', 'http://localhost:8080'),
+    ],
+
 ];

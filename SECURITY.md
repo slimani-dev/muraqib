@@ -17,7 +17,7 @@ You can expect an acknowledgement within a few days. Once the issue is confirmed
 
 ## Supported versions
 
-Only the latest release (and the `main` branch) receives security fixes.
+Muraqib is in beta: only the latest release (and the `main` branch) receives security fixes, and there's no long-term support for older versions yet.
 
 ## How Muraqib protects your data
 
