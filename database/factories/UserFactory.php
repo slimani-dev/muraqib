@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Actions\Teams\CreateTeam;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -34,6 +35,26 @@ class UserFactory extends Factory
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
         ];
+    }
+
+    /**
+     * Every user starts with a personal team (and its default dashboard page), like real accounts.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user): void {
+            app(CreateTeam::class)->handle($user, "{$user->name}'s Team", isPersonal: true);
+        });
+    }
+
+    /**
+     * A user who can open the admin panel.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_admin' => true,
+        ]);
     }
 
     /**

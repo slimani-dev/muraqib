@@ -15,7 +15,7 @@ use Livewire\Livewire;
 
 function dashboardUser(): array
 {
-    $user = User::factory()->create();
+    $user = User::factory()->admin()->create();
     $team = app(CreateTeam::class)->handle($user, 'Media Team', isPersonal: true);
     $user->update(['current_team_id' => $team->id]);
 
@@ -129,7 +129,7 @@ test('polls reuse cached data and the refresh button bypasses the cache once per
 test('a service is created with the new action, and several of one type are allowed', function () {
     MediaService::factory()->jellyfin()->create(['name' => 'Home']);
 
-    Livewire::actingAs(User::factory()->create())
+    Livewire::actingAs(User::factory()->admin()->create())
         ->test(ListMediaServices::class)
         ->callAction('create', data: [
             'type' => 'jellyfin',
@@ -148,7 +148,7 @@ test('a service is created with the new action, and several of one type are allo
 });
 
 test('transmission asks for a username and password instead of an api key', function () {
-    Livewire::actingAs(User::factory()->create())
+    Livewire::actingAs(User::factory()->admin()->create())
         ->test(ListMediaServices::class)
         ->callAction('create', data: [
             'type' => 'transmission',
@@ -166,7 +166,7 @@ test('transmission asks for a username and password instead of an api key', func
 });
 
 test('a private status url is rejected', function () {
-    Livewire::actingAs(User::factory()->create())
+    Livewire::actingAs(User::factory()->admin()->create())
         ->test(ListMediaServices::class)
         ->callAction('create', data: [
             'type' => 'radarr',
@@ -181,7 +181,7 @@ test('a private status url is rejected', function () {
 test('editing keeps the stored secret when the field is left blank and never shows it', function () {
     $radarr = MediaService::factory()->radarr()->create(['api_key' => 'stored-key']);
 
-    Livewire::actingAs(User::factory()->create())
+    Livewire::actingAs(User::factory()->admin()->create())
         ->test(ListMediaServices::class)
         ->mountTableAction('edit', $radarr)
         ->assertTableActionDataSet(['api_key' => null])
@@ -224,7 +224,7 @@ test('media:import-env imports the old env configuration and is idempotent', fun
 test('a single app can be edited from the table without re-entering its secret', function () {
     $transmission = MediaService::factory()->transmission()->create(['password' => 'stored-password']);
 
-    Livewire::actingAs(User::factory()->create())
+    Livewire::actingAs(User::factory()->admin()->create())
         ->test(ListMediaServices::class)
         ->assertCanSeeTableRecords([$transmission])
         ->callTableAction('edit', $transmission, data: ['url' => 'https://torrents.example.com', 'password' => ''])

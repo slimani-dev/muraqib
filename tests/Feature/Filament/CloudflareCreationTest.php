@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
+    $this->user = User::factory()->admin()->create();
     // Clear cache if used
 });
 

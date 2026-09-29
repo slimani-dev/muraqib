@@ -122,13 +122,14 @@ test('the default page cannot be deleted but other pages can', function () {
         ->delete(route('dashboard.pages.destroy', ['current_team' => $this->team->slug, 'dashboardPage' => $extra]))
         ->assertRedirect();
 
-    expect(DashboardPage::query()->pluck('id')->all())->toBe([$default->id]);
+    expect($this->team->dashboardPages()->pluck('id')->all())->toBe([$default->id]);
 });
 
 test('members see the shared layout but cannot change it', function () {
     $member = User::factory()->create();
     $this->team->members()->attach($member, ['role' => TeamRole::Member->value]);
     $member->update(['current_team_id' => $this->team->id]);
+    $member = $member->fresh();
     $page = $this->team->defaultDashboardPage();
 
     $this->actingAs($member)

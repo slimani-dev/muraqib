@@ -161,7 +161,7 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // No public sign-up: accounts are created by an administrator in the admin panel (Users)
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([

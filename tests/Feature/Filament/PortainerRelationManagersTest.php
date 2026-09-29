@@ -4,7 +4,9 @@ use App\Filament\Resources\Portainers\Pages\ViewPortainer;
 use App\Filament\Resources\Portainers\RelationManagers\ContainersRelationManager;
 use App\Filament\Resources\Portainers\RelationManagers\StacksRelationManager;
 use App\Models\Portainer;
+use App\Services\PortainerService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
@@ -21,6 +23,8 @@ beforeEach(function () {
 
 it('syncs and displays stacks from portainer api', function () {
     // Fake the API response
+    // A fresh fake each time, so a later sync sees its own responses
+    Http::swap(new Factory);
     Http::fake([
         '*/api/stacks' => Http::response([
             [
@@ -41,6 +45,9 @@ it('syncs and displays stacks from portainer api', function () {
     ]);
 
     // Test the relation manager renders with synced data
+    // Relation managers don't sync when they open anymore; PortainerService does
+    (new PortainerService($this->portainer))->syncStacks(force: true);
+
     $component = Livewire::test(StacksRelationManager::class, [
         'ownerRecord' => $this->portainer,
         'pageClass' => ViewPortainer::class,
@@ -57,8 +64,10 @@ it('syncs and displays stacks from portainer api', function () {
 
 it('syncs and displays containers from portainer api', function () {
     // Fake the API response
+    // A fresh fake each time, so a later sync sees its own responses
+    Http::swap(new Factory);
     Http::fake([
-        '*/api/endpoints' => Http::response([['Id' => 2]], 200),
+        '*/api/endpoints' => Http::response([['Id' => 2, 'Name' => 'local']], 200),
         '*/api/endpoints/*/docker/containers/json*' => Http::response([
             [
                 'Id' => 'abc123',
@@ -78,6 +87,8 @@ it('syncs and displays containers from portainer api', function () {
     ]);
 
     // Test the relation manager renders with synced data
+    (new PortainerService($this->portainer))->syncContainers(force: true);
+
     $component = Livewire::test(ContainersRelationManager::class, [
         'ownerRecord' => $this->portainer,
         'pageClass' => ViewPortainer::class,
@@ -96,6 +107,8 @@ it('syncs and displays containers from portainer api', function () {
 
 it('removes stacks from database when they disappear from api', function () {
     // First sync with 2 stacks
+    // A fresh fake each time, so a later sync sees its own responses
+    Http::swap(new Factory);
     Http::fake([
         '*/api/stacks' => Http::response([
             ['Id' => 1, 'Name' => 'stack-1', 'EndpointId' => 2, 'Status' => 1, 'Type' => 2],
@@ -103,6 +116,7 @@ it('removes stacks from database when they disappear from api', function () {
         ], 200),
     ]);
 
+    (new PortainerService($this->portainer))->syncStacks(force: true);
     Livewire::test(StacksRelationManager::class, [
         'ownerRecord' => $this->portainer,
         'pageClass' => ViewPortainer::class,
@@ -111,12 +125,15 @@ it('removes stacks from database when they disappear from api', function () {
     expect($this->portainer->stacks()->count())->toBe(2);
 
     // Now API returns only 1 stack
+    // A fresh fake each time, so a later sync sees its own responses
+    Http::swap(new Factory);
     Http::fake([
         '*/api/stacks' => Http::response([
             ['Id' => 1, 'Name' => 'stack-1', 'EndpointId' => 2, 'Status' => 1, 'Type' => 2],
         ], 200),
     ]);
 
+    (new PortainerService($this->portainer))->syncStacks(force: true);
     Livewire::test(StacksRelationManager::class, [
         'ownerRecord' => $this->portainer,
         'pageClass' => ViewPortainer::class,
@@ -132,12 +149,15 @@ it('removes stacks from database when they disappear from api', function () {
 
 it('updates existing stacks when api data changes', function () {
     // First sync
+    // A fresh fake each time, so a later sync sees its own responses
+    Http::swap(new Factory);
     Http::fake([
         '*/api/stacks' => Http::response([
             ['Id' => 1, 'Name' => 'old-name', 'EndpointId' => 2, 'Status' => 1, 'Type' => 2],
         ], 200),
     ]);
 
+    (new PortainerService($this->portainer))->syncStacks(force: true);
     Livewire::test(StacksRelationManager::class, [
         'ownerRecord' => $this->portainer,
         'pageClass' => ViewPortainer::class,
@@ -147,12 +167,15 @@ it('updates existing stacks when api data changes', function () {
     expect($this->portainer->stacks()->first()->name)->toBe('old-name');
 
     // Name changed in API
+    // A fresh fake each time, so a later sync sees its own responses
+    Http::swap(new Factory);
     Http::fake([
         '*/api/stacks' => Http::response([
             ['Id' => 1, 'Name' => 'new-name', 'EndpointId' => 2, 'Status' => 1, 'Type' => 2],
         ], 200),
     ]);
 
+    (new PortainerService($this->portainer))->syncStacks(force: true);
     Livewire::test(StacksRelationManager::class, [
         'ownerRecord' => $this->portainer,
         'pageClass' => ViewPortainer::class,

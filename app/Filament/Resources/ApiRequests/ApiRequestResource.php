@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ApiRequests;
 
 use App\Filament\Resources\ApiRequests\Pages\ListApiRequests;
+use App\Filament\Resources\ApiRequests\Pages\ViewApiRequest;
 use App\Filament\Resources\ApiRequests\Schemas\ApiRequestForm;
 use App\Filament\Resources\ApiRequests\Schemas\ApiRequestInfolist;
 use App\Filament\Resources\ApiRequests\Tables\ApiRequestsTable;
@@ -49,6 +50,7 @@ class ApiRequestResource extends Resource
     {
         return [
             'index' => ListApiRequests::route('/'),
+            'view' => ViewApiRequest::route('/{record}'),
         ];
     }
 

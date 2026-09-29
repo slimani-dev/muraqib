@@ -66,14 +66,27 @@ it('can check digest by fetching tags then digest', function () {
     $service = new RegistryApiService;
     $result = $service->checkDigest('nginx:latest', 'sha256:1234');
 
+    // An image on an alias tag (latest, stable, ...) is compared against that alias
     expect($result)->toBeArray()
         ->and($result['is_latest'])->toBeFalse()
-        ->and($result['latest_tag'])->toBe('v2.0.0')
+        ->and($result['latest_tag'])->toBe('latest')
         ->and($result['latest_digest'])->toBe('sha256:abcd');
 
     // Check match
     $resultMatch = $service->checkDigest('nginx:latest', 'sha256:abcd');
     expect($resultMatch['is_latest'])->toBeTrue();
+});
+
+it('compares an image pinned to a version against the newest stable tag', function () {
+    Http::fake([
+        '*/tags*' => Http::response(['tags' => ['latest', 'v1.0.0', 'v2.0.0']], 200),
+        '*/digest*' => Http::response(['digest' => 'sha256:abcd'], 200),
+    ]);
+
+    $result = (new RegistryApiService)->checkDigest('nginx:v1.0.0', 'sha256:1234');
+
+    expect($result['latest_tag'])->toBe('v2.0.0')
+        ->and($result['is_latest'])->toBeFalse();
 });
 
 it('gracefully handles missing tags', function () {

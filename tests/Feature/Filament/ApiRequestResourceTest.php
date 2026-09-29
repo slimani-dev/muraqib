@@ -10,7 +10,7 @@ use App\Models\User;
 use Livewire\Livewire;
 
 beforeEach(function () {
-    $this->actingAs(User::factory()->create(['email_verified_at' => now()]));
+    $this->actingAs(User::factory()->admin()->create(['email_verified_at' => now()]));
 });
 
 it('can render list page', function () {

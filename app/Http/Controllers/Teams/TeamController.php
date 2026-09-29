@@ -122,9 +122,13 @@ class TeamController extends Controller
             : null;
 
         DB::transaction(function () use ($user, $team) {
+            // Move everyone else who was on this team to another of their teams (or none)
             User::where('current_team_id', $team->id)
                 ->where('id', '!=', $user->id)
-                ->each(fn (User $affectedUser) => $affectedUser->switchTeam($affectedUser->personalTeam()));
+                ->each(function (User $affectedUser) use ($team): void {
+                    $next = $affectedUser->personalTeam() ?? $affectedUser->fallbackTeam($team);
+                    $next ? $affectedUser->switchTeam($next) : $affectedUser->update(['current_team_id' => null]);
+                });
 
             $team->invitations()->delete();
             $team->memberships()->delete();

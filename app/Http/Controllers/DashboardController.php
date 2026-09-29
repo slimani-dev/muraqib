@@ -18,16 +18,28 @@ use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
+    /**
+     * Current weather and forecast from Open-Meteo for the location in config/services.php
+     * (WEATHER_* in .env), with an optional Unsplash background (UNSPLASH_API_KEY).
+     * Null when no location is configured.
+     */
     private function getWeatherData()
     {
+        $latitude = config('services.weather.latitude');
+        $longitude = config('services.weather.longitude');
+
+        if (blank($latitude) || blank($longitude)) {
+            return null;
+        }
+
         if (Cache::has('weather_sba')) {
             return Cache::get('weather_sba');
         }
 
         try {
             $response = Http::timeout(5)->get('https://api.open-meteo.com/v1/forecast', [
-                'latitude' => 35.2106,
-                'longitude' => -0.6300,
+                'latitude' => $latitude,
+                'longitude' => $longitude,
                 'current' => 'temperature_2m,is_day,weather_code,relative_humidity_2m,precipitation_probability,wind_speed_10m',
                 'hourly' => 'temperature_2m,precipitation_probability,wind_speed_10m,wind_direction_10m',
                 'daily' => 'weather_code,temperature_2m_max,temperature_2m_min',
@@ -41,7 +53,7 @@ class DashboardController extends Controller
 
                 // Fetch Unsplash background image
                 try {
-                    $unsplashKey = env('UNSPLASH_API_KEY', '');
+                    $unsplashKey = config('services.unsplash.key');
                     $isDay = $data['current']['is_day'] ?? 1;
                     $weatherCode = $data['current']['weather_code'] ?? 0;
                     $timeOfDay = $isDay ? 'daytime' : 'night';
@@ -61,19 +73,21 @@ class DashboardController extends Controller
                         $keyword = "thunderstorm $timeOfDay";
                     }
 
-                    $unsplashResponse = Http::timeout(5)->get('https://api.unsplash.com/photos/random', [
+                    $unsplashResponse = blank($unsplashKey) ? null : Http::timeout(5)->get('https://api.unsplash.com/photos/random', [
                         'client_id' => $unsplashKey,
-                        'query' => "Sidi Bel Abbes $keyword",
+                        'query' => trim(config('services.weather.location_name').' '.$keyword),
                         'orientation' => 'landscape',
                     ]);
 
-                    if ($unsplashResponse->successful()) {
+                    if ($unsplashResponse?->successful()) {
                         $unsplashData = $unsplashResponse->json();
                         $data['background_image'] = $unsplashData['urls']['regular'] ?? null;
                     }
                 } catch (\Exception $e) {
                     // Ignore Unsplash errors so weather still loads
                 }
+
+                $data['location_name'] = config('services.weather.location_name');
 
                 Cache::put('weather_sba', $data, 1800);
 

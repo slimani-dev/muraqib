@@ -68,6 +68,16 @@ return [
     'vite_dev_tunnel_url' => env('VITE_DEV_TUNNEL_URL'),
 
     /*
+    | The first admin, created by `php artisan db:seed` (there's no public sign-up).
+    | Leave ADMIN_PASSWORD empty to have a random password generated and printed.
+    */
+    'admin' => [
+        'name' => env('ADMIN_NAME', 'Admin'),
+        'email' => env('ADMIN_EMAIL', 'admin@example.com'),
+        'password' => env('ADMIN_PASSWORD'),
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------

@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'weather' => [
+        'latitude' => env('WEATHER_LATITUDE'),
+        'longitude' => env('WEATHER_LONGITUDE'),
+        'location_name' => env('WEATHER_LOCATION_NAME'),
+    ],
+
+    'unsplash' => [
+        'key' => env('UNSPLASH_API_KEY'),
+    ],
+
 ];

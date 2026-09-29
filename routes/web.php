@@ -12,7 +12,8 @@ use App\Http\Controllers\WidgetPreviewController;
 use App\Http\Middleware\EnsureTeamMembership;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'Welcome')->name('home');
+// No public landing page: signed-in users go to their dashboard, everyone else to the login page
+Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard.home' : 'login'))->name('home');
 
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
@@ -42,7 +43,7 @@ Route::get('dashboard', function () {
     }
 
     return redirect()->route('dashboard', ['current_team' => $user->currentTeam->slug]);
-})->middleware(['auth', 'verified']);
+})->middleware(['auth', 'verified'])->name('dashboard.home');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('invitations/{invitation}/accept', [TeamInvitationController::class, 'accept'])->name('invitations.accept');

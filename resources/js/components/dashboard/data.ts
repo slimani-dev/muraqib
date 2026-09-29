@@ -5,7 +5,7 @@ export const dashboardData = {
         updates: 2,
     },
     weather: {
-        location: 'Sidi Bel Abbes',
+        location: 'Your city',
         temp: 24,
         condition: 'Partly Cloudy',
         high: 28,

@@ -148,7 +148,7 @@ test('git account tokens are encrypted and never sent back to the form', functio
 
     expect(DB::table('git_accounts')->value('token'))->not->toContain('secret-token');
 
-    Livewire::actingAs(User::factory()->create())
+    Livewire::actingAs(User::factory()->admin()->create())
         ->test(ListGitAccounts::class)
         ->mountTableAction('edit', $account)
         ->assertTableActionDataSet(['token' => null])
@@ -160,7 +160,7 @@ test('git account tokens are encrypted and never sent back to the form', functio
 });
 
 test('self-hosted gitea needs an instance url', function () {
-    Livewire::actingAs(User::factory()->create())
+    Livewire::actingAs(User::factory()->admin()->create())
         ->test(ListGitAccounts::class)
         ->callAction('create', data: ['provider' => 'gitea', 'name' => 'Home Gitea'])
         ->assertHasFormErrors(['base_url']);
@@ -170,7 +170,7 @@ test('repositories are added from the admin panel', function () {
     Queue::fake();
     $account = GitAccount::factory()->create();
 
-    Livewire::actingAs(User::factory()->create())
+    Livewire::actingAs(User::factory()->admin()->create())
         ->test(ListRepositories::class)
         ->callAction('create', data: ['git_account_id' => $account->id, 'owner' => 'laravel', 'name' => 'framework', 'is_managed' => true])
         ->assertHasNoFormErrors();
@@ -189,7 +189,7 @@ test('repositories:sync queues every repository', function () {
 
 test('the dashboard gets repositories with their weekly star change and no tokens', function () {
     Queue::fake();
-    $user = User::factory()->create();
+    $user = User::factory()->admin()->create();
     $team = app(CreateTeam::class)->handle($user, 'Repo Team', isPersonal: true);
     $user->update(['current_team_id' => $team->id]);
 

@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<{
 });
 
 const page = usePage();
-const locationName = "Sidi Bel Abbès";
+const locationName = computed(() => props.weather?.location_name ?? props.weather_cached?.location_name ?? '');
 
 const currentWeather = computed(() => props.weather || props.weather_cached);
 const loading = computed(() => !currentWeather.value);
