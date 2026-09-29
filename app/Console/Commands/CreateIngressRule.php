@@ -15,7 +15,7 @@ class CreateIngressRule extends Command
      * @var string
      */
     protected $signature = 'cloudflare:create-ingress-rule
-        {hostname : The public hostname, e.g. meqx.slimani.dev}
+        {hostname : The public hostname, e.g. app.example.com}
         {service : The origin service URL, e.g. http://192.168.1.2:8083}
         {--tunnel= : Tunnel id or name (defaults to the tunnel already serving the hostname\'s domain, or the only tunnel on that domain\'s account)}
         {--path= : Path matcher for this rule (omit for a catch-all rule on this hostname)}';

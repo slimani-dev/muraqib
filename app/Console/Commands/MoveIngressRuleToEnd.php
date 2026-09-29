@@ -15,7 +15,7 @@ class MoveIngressRuleToEnd extends Command
      * @var string
      */
     protected $signature = 'cloudflare:move-ingress-rule-to-end
-        {hostname : The public hostname of the rule to move, e.g. skipex.slimani.dev}
+        {hostname : The public hostname of the rule to move, e.g. app.example.com}
         {--path= : Path matcher of the rule to move (omit to target its catch-all/no-path rule)}';
 
     /**
