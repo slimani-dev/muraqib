@@ -39,6 +39,7 @@ return [
     // registries, for Portainer's "update available" checks
     'registry_api' => [
         'url' => env('REGISTRY_API_URL', 'http://localhost:8080'),
+        'key' => env('REGISTRY_API_KEY'),
     ],
 
 ];

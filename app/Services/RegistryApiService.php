@@ -3,18 +3,31 @@
 namespace App\Services;
 
 use App\Traits\HasApiMonitoring;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class RegistryApiService
 {
-    use HasApiMonitoring;
+    use HasApiMonitoring {
+        http as monitoredHttp;
+    }
 
     protected string $baseUrl;
 
     public function __construct()
     {
         $this->baseUrl = rtrim(config('services.registry_api.url', 'http://localhost:8080'), '/');
+    }
+
+    /**
+     * The monitored client, sending the registry-api key when one is configured.
+     */
+    protected function http(?string $action = null): PendingRequest
+    {
+        $key = config('services.registry_api.key');
+
+        return $this->monitoredHttp($action)->when($key, fn (PendingRequest $request) => $request->withToken($key));
     }
 
     /**

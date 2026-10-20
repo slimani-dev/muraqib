@@ -40,6 +40,24 @@ it('can fetch tags', function () {
         ->and($result)->toContain('v2.0.0');
 });
 
+it('sends the configured API key as a bearer token', function () {
+    config(['services.registry_api.key' => 'secret-key']);
+    Http::fake(['*/tags*' => Http::response(['tags' => ['latest']], 200)]);
+
+    (new RegistryApiService)->getTags('nginx');
+
+    Http::assertSent(fn ($request) => $request->hasHeader('Authorization', 'Bearer secret-key'));
+});
+
+it('sends no Authorization header without an API key', function () {
+    config(['services.registry_api.key' => null]);
+    Http::fake(['*/tags*' => Http::response(['tags' => ['latest']], 200)]);
+
+    (new RegistryApiService)->getTags('nginx');
+
+    Http::assertSent(fn ($request) => ! $request->hasHeader('Authorization'));
+});
+
 it('can determine the latest stable tag using semver', function () {
     $service = new RegistryApiService;
 
